@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Billet inconnu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; font-family: 'Manrope', system-ui, sans-serif; background: #1A0C10; color: #FBE9EC; }
+a { color: #FFA8AC; } a:hover { color: #FFC9CC; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #1A0C10; display: flex; flex-direction: column;">
+
+  <div style="flex-grow: 1; padding: 46px 26px 0; display: flex; flex-direction: column; align-items: center; gap: 22px;">
+
+    <div style="width: 104px; height: 104px; border-radius: 999px; background: #FF6B6B; display: flex; align-items: center; justify-content: center;">
+      <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#1E0709" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+      <div style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 34px; line-height: 1.02; font-weight: 800; letter-spacing: -0.03em; color: #FF8A8A;">BILLET INCONNU</div>
+      <div style="font-size: 15px; color: #DBB4B8; line-height: 1.5; max-width: 290px;">Ce QR code ne correspond à aucun billet de cette soirée.</div>
+    </div>
+
+    <div style="width: 100%; border-radius: 20px; background: #261015; border: 1px solid #4E1D24; padding: 22px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #DBB4B8;">Que faire</div>
+      <div style="display: flex; gap: 11px; align-items: flex-start;">
+        <span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 999px; background: #4E1D24; color: #FBE9EC; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">1</span>
+        <span style="font-size: 14px; color: #FBE9EC; line-height: 1.45;">Vérifie que c'est bien le QR de <strong style="font-weight: 700;">cette</strong> soirée, pas d'un ancien événement.</span>
+      </div>
+      <div style="display: flex; gap: 11px; align-items: flex-start;">
+        <span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 999px; background: #4E1D24; color: #FBE9EC; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</span>
+        <span style="font-size: 14px; color: #FBE9EC; line-height: 1.45;">Cherche son nom dans la liste avec « Chercher par nom ».</span>
+      </div>
+      <div style="display: flex; gap: 11px; align-items: flex-start;">
+        <span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 999px; background: #4E1D24; color: #FBE9EC; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">3</span>
+        <span style="font-size: 14px; color: #FBE9EC; line-height: 1.45;">Rien trouvé ? Renvoie-la vers la file « paiement sur place ».</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="padding: 0 26px 34px; display: flex; flex-direction: column; gap: 10px;">
+    <button type="button" style="box-sizing: border-box; width: 100%; height: 54px; border-radius: 15px; background: #2E1319; border: 1px solid #5A2229; color: #FBE9EC; font-family: 'Manrope', system-ui, sans-serif; font-size: 15px; font-weight: 600;">Chercher par nom</button>
+    <a href="Scanner.dc.html" style="box-sizing: border-box; width: 100%; height: 58px; border-radius: 15px; background: #FF6B6B; color: #1E0709; font-size: 17px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center;">Scanner le suivant</a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

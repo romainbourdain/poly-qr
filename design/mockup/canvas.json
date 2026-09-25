@@ -1,0 +1,50 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-09-25T10:00:00Z" },
+  "title": "Maquette QR soirée",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 390, "h": 844, "title": "Billet — 1 entrée", "radius": 28 },
+    "BilletPlusieurs.dc.html": { "x": 470, "y": 0, "w": 390, "h": 844, "title": "Billet — 4 entrées", "radius": 28 },
+    "Login.dc.html": { "x": 940, "y": 0, "w": 390, "h": 844, "title": "Accès bénévole", "radius": 28, "is_interactive": true },
+    "Scanner.dc.html": { "x": 1410, "y": 0, "w": 390, "h": 844, "title": "Scanner", "radius": 28, "is_interactive": true },
+    "ScanOk.dc.html": { "x": 1880, "y": 0, "w": 390, "h": 844, "title": "Scan valide — 1 entrée", "radius": 28, "is_interactive": true },
+    "ScanOkPlusieurs.dc.html": { "x": 2350, "y": 0, "w": 390, "h": 844, "title": "Scan valide — 4 entrées", "radius": 28, "is_interactive": true },
+    "ScanUtilise.dc.html": { "x": 2820, "y": 0, "w": 390, "h": 844, "title": "Scan — déjà utilisé", "radius": 28, "is_interactive": true },
+    "ScanInconnu.dc.html": { "x": 3290, "y": 0, "w": 390, "h": 844, "title": "Scan — billet inconnu", "radius": 28, "is_interactive": true },
+    "AdminEvenements.dc.html": { "x": 0, "y": 1400, "w": 1280, "h": 900, "title": "Admin — Événements", "radius": 18, "is_interactive": true },
+    "AdminNouveauBillet.dc.html": { "x": 1360, "y": 1400, "w": 1280, "h": 900, "title": "Admin — Billet de permanence", "radius": 18, "is_interactive": true },
+    "AdminBillets.dc.html": { "x": 2720, "y": 1400, "w": 1280, "h": 900, "title": "Admin — Liste des billets", "radius": 18, "is_interactive": true }
+  },
+  "order": [
+    "Main.dc.html",
+    "BilletPlusieurs.dc.html",
+    "Login.dc.html",
+    "Scanner.dc.html",
+    "ScanOk.dc.html",
+    "ScanOkPlusieurs.dc.html",
+    "ScanUtilise.dc.html",
+    "ScanInconnu.dc.html",
+    "AdminEvenements.dc.html",
+    "AdminNouveauBillet.dc.html",
+    "AdminBillets.dc.html"
+  ],
+  "notes": {
+    "n1": {
+      "x": 0,
+      "y": -270,
+      "text": "Un billet porte 1 ou plusieurs entrées — même écran, même scan",
+      "kind": "title1",
+      "maxW": 3680
+    },
+    "n2": {
+      "x": 0,
+      "y": 1130,
+      "text": "Côté organisateurs — interface admin",
+      "kind": "title1",
+      "maxW": 4000
+    }
+  },
+  "designSystems": []
+}

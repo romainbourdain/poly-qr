@@ -1,0 +1,21 @@
+# PolyQR
+
+Système de QR code pour l'entrée aux soirées de l'association Poly, en remplacement du contrôle manuel sur fichier Excel.
+
+## Le problème actuel
+
+Les places sont payées sur HelloAsso, la liste des payeurs est suivie dans un fichier Excel, et à l'entrée une personne coche manuellement chaque arrivant dans ce fichier et distribue les tickets boisson correspondants. Processus lent, source d'erreurs, et rien pour les paiements en dehors de HelloAsso (permanences, paiement sur place).
+
+## Ce que fait PolyQR
+
+Chaque billet (HelloAsso, permanence, ou saisi manuellement) génère un QR code envoyé par email. À l'entrée, un bénévole scanne le QR depuis son smartphone via une page web protégée : le billet est validé (usage unique) et le nombre de tickets boisson à remettre en papier s'affiche.
+
+Voir [docs/CONTEXT.md](docs/CONTEXT.md) pour le cadrage complet (périmètre, décisions, hors-scope) et [docs/DECISIONS.md](docs/DECISIONS.md) pour le détail des choix actés lors du cadrage initial.
+
+## Maquette
+
+Les écrans (billet participant, scanner bénévole, interface admin) sont maquettés dans [design/mockup/](design/mockup/). Version interactive : https://claude.ai/artifact/7dYqDzdfVwNb6f1RRibefm (accès privé).
+
+## Stack prévue
+
+Next.js + Postgres, hébergé sur un VPS.

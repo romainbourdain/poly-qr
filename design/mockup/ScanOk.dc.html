@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Scan valide</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; font-family: 'Manrope', system-ui, sans-serif; background: #071410; color: #EAF7F1; }
+a { color: #8FF0C4; } a:hover { color: #B9F7DB; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #071410; display: flex; flex-direction: column;">
+
+  <div style="flex-grow: 1; padding: 44px 26px 0; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+
+    <div style="width: 96px; height: 96px; border-radius: 999px; background: #45E0A0; display: flex; align-items: center; justify-content: center;">
+      <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#04150E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"></path></svg>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+      <div style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: #45E0A0;">VALIDE</div>
+      <div style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 25px; font-weight: 700; letter-spacing: -0.015em; color: #EAF7F1;">Camille Moreau</div>
+      <div style="font-size: 13.5px; color: #93B7A8;">Acheté sur HelloAsso · 2 mars</div>
+    </div>
+
+    <div style="width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+      <div style="border-radius: 20px; background: #0E2A20; border: 1px solid #1D4E3B; padding: 22px 16px; display: flex; flex-direction: column; align-items: center; gap: 7px;">
+        <div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #93B7A8; text-align: center;">Font entrer</div>
+        <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 66px; line-height: 0.9; font-weight: 800; letter-spacing: -0.04em; color: #EAF7F1;">1</span>
+        <span style="font-size: 14px; font-weight: 700; color: #EAF7F1;">personne</span>
+      </div>
+      <div style="border-radius: 20px; background: #0E2A20; border: 1px solid #1D4E3B; padding: 22px 16px; display: flex; flex-direction: column; align-items: center; gap: 7px;">
+        <div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #93B7A8; text-align: center;">À remettre</div>
+        <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 66px; line-height: 0.9; font-weight: 800; letter-spacing: -0.04em; color: #EAF7F1;">3</span>
+        <span style="font-size: 14px; font-weight: 700; color: #EAF7F1; text-align: center;">tickets boisson</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #93B7A8;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#93B7A8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      Entrée enregistrée à 22h47
+    </div>
+
+  </div>
+
+  <div style="padding: 0 26px 34px;">
+    <a href="Scanner.dc.html" style="box-sizing: border-box; width: 100%; height: 58px; border-radius: 15px; background: #45E0A0; color: #04150E; font-size: 17px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center;">Scanner le suivant</a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

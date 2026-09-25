@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Admin — Événements</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; font-family: 'Manrope', system-ui, sans-serif; background: #101018; color: #EDEBF5; }
+a { color: #A78BFA; } a:hover { color: #C4B5FD; }
+</style>
+</helmet>
+<div style="width: 1280px; height: 900px; box-sizing: border-box; background: #101018; display: flex;">
+
+  <div style="width: 236px; flex-shrink: 0; box-sizing: border-box; background: #14141E; border-right: 1px solid #262636; padding: 24px 16px; display: flex; flex-direction: column; gap: 28px;">
+    <div style="display: flex; flex-direction: column; gap: 3px; padding: 0 8px;">
+      <div style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.01em;">PolyQR</div>
+      <div style="font-size: 12px; color: #A5A2BC;">Association Poly</div>
+    </div>
+    <nav style="display: flex; flex-direction: column; gap: 4px;">
+      <a href="AdminEvenements.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; background: #252538; color: #EDEBF5; text-decoration: none; font-size: 14px; font-weight: 700;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EDEBF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+        Événements
+      </a>
+      <a href="AdminNouveauBillet.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; color: #A5A2BC; text-decoration: none; font-size: 14px; font-weight: 600;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A5A2BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        Nouveau billet
+      </a>
+      <a href="AdminBillets.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; color: #A5A2BC; text-decoration: none; font-size: 14px; font-weight: 600;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A5A2BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"></path></svg>
+        Billets
+      </a>
+    </nav>
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px;">
+      <a href="Scanner.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 9px; padding: 12px; border-radius: 11px; background: #1D1D2C; border: 1px solid #30304A; color: #EDEBF5; text-decoration: none; font-size: 13.5px; font-weight: 600;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EDEBF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M3 12h18"></path></svg>
+        Ouvrir le scanner
+      </a>
+      <div style="font-size: 11.5px; color: #6F6C87; padding: 0 4px; line-height: 1.4;">Connecté avec le mot de passe admin.</div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; box-sizing: border-box; padding: 34px 40px; display: flex; flex-direction: column; gap: 26px; overflow: hidden;">
+
+    <div style="display: flex; align-items: flex-end; gap: 20px;">
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 5px;">
+        <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -0.025em;">Événements</h1>
+        <div style="font-size: 14px; color: #A5A2BC;">Un événement = une liste de billets, un mot de passe, un formulaire HelloAsso.</div>
+      </div>
+      <button type="button" style="height: 44px; padding: 0 20px; border-radius: 11px; border: none; background: #6C4BF0; color: #FFFFFF; font-family: 'Manrope', system-ui, sans-serif; font-size: 14.5px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        Nouvel événement
+      </button>
+    </div>
+
+    <div style="border-radius: 18px; background: #16161F; border: 1px solid #2B2B3C; padding: 26px 28px; display: flex; flex-direction: column; gap: 22px;">
+      <div style="display: flex; align-items: flex-start; gap: 16px;">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 7px;">
+          <div style="display: flex; align-items: center; gap: 11px;">
+            <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 23px; font-weight: 700; letter-spacing: -0.015em;">Soirée d'hiver</span>
+            <span style="padding: 4px 10px; border-radius: 999px; background: #143026; border: 1px solid #1F5340; color: #63E2A8; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em;">EN COURS</span>
+          </div>
+          <div style="font-size: 13.5px; color: #A5A2BC;">Samedi 14 mars · 22h00 · Le Hangar</div>
+        </div>
+        <button type="button" style="height: 38px; padding: 0 16px; border-radius: 10px; background: #1F1F2E; border: 1px solid #343448; color: #EDEBF5; font-family: 'Manrope', system-ui, sans-serif; font-size: 13.5px; font-weight: 600;">Modifier</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+        <div style="border-radius: 14px; background: #1D1D2A; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 12px; color: #A5A2BC; font-weight: 600;">Billets émis</span>
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.02em;">198</span>
+        </div>
+        <div style="border-radius: 14px; background: #1D1D2A; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 12px; color: #A5A2BC; font-weight: 600;">Entrées vendues</span>
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.02em;">247</span>
+        </div>
+        <div style="border-radius: 14px; background: #1D1D2A; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 12px; color: #A5A2BC; font-weight: 600;">Entrées scannées</span>
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.02em;">127</span>
+        </div>
+        <div style="border-radius: 14px; background: #1D1D2A; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 12px; color: #A5A2BC; font-weight: 600;">Tickets boisson dus</span>
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.02em;">497</span>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #2B2B3C;"></div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px;">
+        <div style="display: flex; flex-direction: column; gap: 9px;">
+          <label for="ha" style="font-size: 12.5px; font-weight: 700; color: #A5A2BC;">Formulaire HelloAsso relié</label>
+          <input id="ha" type="text" value="helloasso.com/associations/poly/evenements/soiree-hiver" style="box-sizing: border-box; width: 100%; height: 46px; padding: 0 14px; border-radius: 11px; border: 1px solid #343448; background: #1A1A26; color: #EDEBF5; font-family: 'Manrope', system-ui, sans-serif; font-size: 13.5px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 7px; height: 7px; border-radius: 999px; background: #45E0A0;"></span>
+            <span style="font-size: 12.5px; color: #A5A2BC;">Webhook actif — dernier billet reçu il y a 6 min</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 9px;">
+          <label for="mdp" style="font-size: 12.5px; font-weight: 700; color: #A5A2BC;">Mot de passe bénévoles</label>
+          <div style="display: flex; gap: 9px;">
+            <input id="mdp" type="text" value="hangar2026" style="box-sizing: border-box; flex-grow: 1; height: 46px; padding: 0 14px; border-radius: 11px; border: 1px solid #343448; background: #1A1A26; color: #EDEBF5; font-family: 'Manrope', system-ui, sans-serif; font-size: 15px; letter-spacing: 0.06em;">
+            <button type="button" style="height: 46px; padding: 0 16px; border-radius: 11px; background: #1F1F2E; border: 1px solid #343448; color: #EDEBF5; font-family: 'Manrope', system-ui, sans-serif; font-size: 13.5px; font-weight: 600;">Copier</button>
+          </div>
+          <div style="font-size: 12.5px; color: #A5A2BC;">À donner aux bénévoles du poste d'entrée le soir même.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #6F6C87;">Événements passés</div>
+      <div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 14px; background: #16161F; border: 1px solid #262636;">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-size: 15.5px; font-weight: 700;">Gala de rentrée</span>
+          <span style="font-size: 13px; color: #A5A2BC;">12 octobre · 186 entrées sur 193 billets</span>
+        </div>
+        <span style="padding: 5px 11px; border-radius: 999px; background: #1F1F2E; border: 1px solid #343448; color: #A5A2BC; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em;">TERMINÉ</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 14px; background: #16161F; border: 1px solid #262636;">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-size: 15.5px; font-weight: 700;">Afterwork BDE</span>
+          <span style="font-size: 13px; color: #A5A2BC;">28 septembre · 74 entrées sur 80 billets</span>
+        </div>
+        <span style="padding: 5px 11px; border-radius: 999px; background: #1F1F2E; border: 1px solid #343448; color: #A5A2BC; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em;">TERMINÉ</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
