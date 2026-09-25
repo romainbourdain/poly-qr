@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Qr } from "@/components/Qr";
+import { RealQr } from "@/components/RealQr";
 import { EVENT, useStore } from "@/lib/store";
 
 function BilletContent() {
@@ -40,7 +40,7 @@ function BilletContent() {
 
       <div className="flex flex-1 flex-col justify-center gap-3 py-5">
         <div className="flex flex-col items-center gap-4 rounded-3xl bg-[#F7F6FB] px-6 py-6">
-          <Qr seed={ticket.id} size={226} />
+          <RealQr value={`polyqr:${ticket.id}`} size={226} />
           <div className="flex flex-col items-center gap-0.5">
             <div className="font-display text-[21px] font-bold tracking-tight text-[#14131C]">
               {ticket.nom}
