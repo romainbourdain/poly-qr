@@ -20,31 +20,35 @@ function Stepper({
   return (
     <div className="flex flex-col gap-2">
       <label className="text-[13px] font-bold text-muted">{label}</label>
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          aria-label="Diminuer"
-          onClick={() => onChange(Math.max(min, value - 1))}
-          className="flex h-12.5 w-12.5 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-4"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EDEBF5" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-            <path d="M5 12h14" />
-          </svg>
-        </button>
-        <div className="flex h-12.5 w-21 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-3 font-display text-[22px] font-bold">
-          {value}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label="Diminuer"
+            onClick={() => onChange(Math.max(min, value - 1))}
+            className="flex h-12.5 w-12.5 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-4"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EDEBF5" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+              <path d="M5 12h14" />
+            </svg>
+          </button>
+          <div className="flex h-12.5 w-21 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-3 font-display text-[22px] font-bold">
+            {value}
+          </div>
+          <button
+            type="button"
+            aria-label="Augmenter"
+            onClick={() => onChange(value + 1)}
+            className="flex h-12.5 w-12.5 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-4"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EDEBF5" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
         </div>
-        <button
-          type="button"
-          aria-label="Augmenter"
-          onClick={() => onChange(value + 1)}
-          className="flex h-12.5 w-12.5 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-4"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EDEBF5" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-        </button>
-        <span className="min-w-0 flex-1 whitespace-pre-line text-[13px] leading-snug text-muted">{hint}</span>
+        <span className="min-w-0 flex-1 basis-40 text-[13px] leading-snug whitespace-pre-line text-muted">
+          {hint}
+        </span>
       </div>
     </div>
   );
@@ -70,9 +74,9 @@ export default function AdminNouveauBilletPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 px-9 py-8">
+    <div className="flex flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 md:px-9">
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-[30px] font-extrabold tracking-tight">
+        <h1 className="font-display text-[24px] font-extrabold tracking-tight sm:text-[30px]">
           Billet de permanence
         </h1>
         <div className="text-[14px] text-muted">
@@ -81,10 +85,10 @@ export default function AdminNouveauBilletPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-7">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-7">
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-5 rounded-[18px] border border-line bg-ink-2 px-7 py-6.5"
+          className="flex flex-col gap-5 rounded-[18px] border border-line bg-ink-2 px-5 py-5.5 sm:px-7 sm:py-6.5"
         >
           <div className="flex flex-col gap-2">
             <label htmlFor="nom" className="text-[13px] font-bold text-muted">
@@ -140,7 +144,7 @@ export default function AdminNouveauBilletPage() {
         </form>
 
         <div className="flex flex-col gap-4.5">
-          <div className="flex flex-col gap-3 rounded-[18px] border border-line bg-ink-2 px-6 py-5.5">
+          <div className="flex flex-col gap-3 rounded-[18px] border border-line bg-ink-2 px-5 py-5 sm:px-6 sm:py-5.5">
             <div className="text-[12px] font-bold tracking-[0.14em] text-faint uppercase">
               Créés pendant cette permanence
             </div>
@@ -152,7 +156,7 @@ export default function AdminNouveauBilletPage() {
               session.map((t, i) => (
                 <div key={t.id} className="flex flex-col gap-3">
                   {i > 0 && <div className="h-px bg-[#262636]" />}
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="flex-1 truncate text-[14.5px] font-semibold">
                       {t.nom}
                     </span>

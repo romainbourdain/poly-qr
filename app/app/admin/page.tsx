@@ -4,9 +4,9 @@ import { EVENT, useStore } from "@/lib/store";
 
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-[14px] bg-ink-4 px-4.5 py-4">
+    <div className="flex flex-col gap-1 rounded-[14px] bg-ink-4 px-4 py-3.5 sm:px-4.5 sm:py-4">
       <span className="text-[12px] font-semibold text-muted">{label}</span>
-      <span className="font-display text-[28px] font-extrabold tracking-tight">
+      <span className="font-display text-[24px] font-extrabold tracking-tight sm:text-[28px]">
         {value}
       </span>
     </div>
@@ -24,10 +24,10 @@ export default function AdminEvenementsPage() {
   const ticketsBoissonDus = tickets.reduce((s, t) => s + t.ticketsBoisson, 0);
 
   return (
-    <div className="flex flex-col gap-6 px-9 py-8">
-      <div className="flex items-end gap-5">
+    <div className="flex flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 md:px-9">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:gap-5">
         <div className="flex flex-1 flex-col gap-1">
-          <h1 className="font-display text-[30px] font-extrabold tracking-tight">
+          <h1 className="font-display text-[24px] font-extrabold tracking-tight sm:text-[30px]">
             Événements
           </h1>
           <div className="text-[14px] text-muted">
@@ -38,18 +38,18 @@ export default function AdminEvenementsPage() {
         <button
           type="button"
           disabled
-          className="flex h-11 cursor-not-allowed items-center gap-2 rounded-[11px] bg-accent px-5 text-[14.5px] font-bold text-white opacity-60"
+          className="flex h-11 shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-[11px] bg-accent px-5 text-[14.5px] font-bold text-white opacity-60 sm:self-auto"
           title="Démo : un seul événement"
         >
           + Nouvel événement
         </button>
       </div>
 
-      <div className="flex flex-col gap-5 rounded-[18px] border border-line bg-ink-2 px-7 py-6.5">
+      <div className="flex flex-col gap-5 rounded-[18px] border border-line bg-ink-2 px-5 py-5 sm:px-7 sm:py-6.5">
         <div className="flex items-start gap-4">
           <div className="flex flex-1 flex-col gap-1.5">
-            <div className="flex items-center gap-2.5">
-              <span className="font-display text-[23px] font-bold tracking-tight">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="font-display text-[20px] font-bold tracking-tight sm:text-[23px]">
                 {EVENT.nom}
               </span>
               <span className="rounded-full border border-good-line bg-good-bg px-2.5 py-1 text-[11.5px] font-bold tracking-wide text-good">
@@ -62,7 +62,7 @@ export default function AdminEvenementsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3.5">
           <Stat label="Billets émis" value={billets} />
           <Stat label="Entrées vendues" value={entreesVendues} />
           <Stat label="Entrées scannées" value={entreesScannees} />
@@ -71,7 +71,7 @@ export default function AdminEvenementsPage() {
 
         <div className="h-px bg-line" />
 
-        <div className="grid grid-cols-2 gap-6.5">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6.5">
           <div className="flex flex-col gap-2">
             <label className="text-[12.5px] font-bold text-muted">
               Formulaire HelloAsso relié
