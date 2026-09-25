@@ -12,3 +12,14 @@ Historique des choix de conception, avec l'alternative écartée quand elle écl
 - **Pas de dashboard temps réel** pendant l'événement. Jugé non nécessaire pour ce POC.
 - **Connexion réseau fiable sur les lieux des soirées** → pas de mode hors-ligne pour le scanner. À revalider si un événement futur a lieu dans un endroit avec une mauvaise couverture.
 - **Stack Next.js + Postgres sur VPS**, choisie pour la maîtrise de l'écosystème React côté développeur.
+
+## Prototype (démo cliquable)
+
+Un premier prototype a été construit pour valider le parcours avant d'investir dans la vraie base de données et l'intégration HelloAsso. Décisions propres à ce prototype, qui ne s'appliquent pas forcément à la version finale :
+
+- **Démo cliquable avec données factices, pas de vraie base de données.** Écarté : prototype fonctionnel avec Postgres et persistance réelle. Choisi pour livrer vite un support de validation du design et du parcours ; toutes les données vivent en mémoire côté navigateur (`React.Context`) et sont réinitialisées à chaque rechargement. Conséquence assumée : un billet créé en admin n'est visible/scannable que depuis le même navigateur, jamais partagé entre deux appareils.
+- **Pas de webhook HelloAsso réel branché.** Simulation uniquement via l'interface admin (création manuelle de billet). Évite de dépendre d'un compte HelloAsso de test et du point d'API pas encore vérifié (voir le risque technique identifié plus haut).
+- **QR code réellement scannable, pas seulement visuel.** Le billet encode un vrai QR (`polyqr:<id>`, généré avec `qrcode`) et le scanner utilise la caméra réelle du téléphone (`getUserMedia` + décodage `jsQR` en direct), avec un repli manuel pour tester sans caméra. Ajouté après une première version où le "QR" n'était qu'un motif visuel factice, sur demande explicite de pouvoir vraiment scanner.
+- **Un seul concept de billet également dans le prototype** (billet = nom + email + N entrées + N tickets boisson), reflet direct de la fusion actée dans le cadrage — pas de re-séparation "individuel/groupe" côté code.
+- **Espace admin responsive dès le prototype**, alors que ce n'était pas explicitement cadré au départ : la sidebar desktop fixe devient une barre du haut avec menu hamburger sous `md`, et le tableau de billets devient des cartes empilées sur mobile. Ajouté sur demande, car les organisateurs sont susceptibles d'ouvrir l'admin depuis leur téléphone.
+- **Déployé sur Vercel**, pas sur le VPS cible. Plus rapide à mettre en ligne pour un prototype jetable ; la version finale reste prévue sur le VPS de l'association (voir stack ci-dessus).

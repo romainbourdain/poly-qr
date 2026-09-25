@@ -16,6 +16,12 @@ Voir [docs/CONTEXT.md](docs/CONTEXT.md) pour le cadrage complet (périmètre, d�
 
 Les écrans (billet participant, scanner bénévole, interface admin) sont maquettés dans [design/mockup/](design/mockup/). Version interactive : https://claude.ai/artifact/7dYqDzdfVwNb6f1RRibefm (accès privé).
 
-## Stack prévue
+## Prototype
 
-Next.js + Postgres, hébergé sur un VPS.
+Un prototype cliquable est déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
+
+Code source dans [app/](app/) — voir [app/README.md](app/README.md) pour le détail des parcours couverts et leurs limites. En résumé : données factices en mémoire (pas de base de données, pas de webhook HelloAsso réel), vrai scan de QR code par caméra, espace admin responsive mobile/desktop.
+
+## Stack prévue (version finale)
+
+Next.js + Postgres, hébergé sur un VPS. Le prototype ci-dessus réutilise Next.js mais sans base de données ni hébergement définitif — voir [docs/DECISIONS.md](docs/DECISIONS.md) pour ce qui distingue le prototype de la version cible.
