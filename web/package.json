@@ -1,0 +1,47 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "prepare": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo ..)\" && husky web/.husky"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.8.0",
+    "@tanstack/react-form": "^1.33.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "jsqr": "^1.4.0",
+    "next": "16.3.6",
+    "nuqs": "^2.10.1",
+    "qrcode": "^1.5.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwind-merge": "^3.3.1",
+    "zod": "^4.6.5",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  }
+}

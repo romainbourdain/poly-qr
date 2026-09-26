@@ -20,7 +20,7 @@ Les écrans (billet participant, scanner bénévole, interface admin) sont maque
 
 Un prototype cliquable est déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 
-Code source dans [app/](app/) — voir [app/README.md](app/README.md) pour le détail des parcours couverts et leurs limites. En résumé : données factices en mémoire (pas de base de données, pas de webhook HelloAsso réel), vrai scan de QR code par caméra, espace admin responsive mobile/desktop.
+Code source dans [web/](web/) — voir [web/README.md](web/README.md) pour le détail des parcours couverts et leurs limites. En résumé : données factices en mémoire (pas de base de données, pas de webhook HelloAsso réel), vrai scan de QR code par caméra, espace admin responsive mobile/desktop.
 
 ## Stack prévue (version finale)
 

@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "poly-qr-app",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "app", "run", "dev"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--prefix", "web", "run", "dev"],
       "port": 3000
     }
   ]
