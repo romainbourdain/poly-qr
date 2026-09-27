@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import type { Sql } from "postgres";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { billets, commandes, evenements } from "@/server/db/schema";
@@ -8,12 +9,14 @@ import {
   type TestDb,
 } from "@/server/db/test-utils/test-db";
 import { hashPassword } from "@/server/services/auth";
+import { formatHeure } from "@/shared/lib/tickets";
 import {
   creerCommandePermanence,
   invaliderBillet,
   listerBillets,
   obtenirStatsBillets,
   reactiverBillet,
+  scannerBillet,
 } from "./tickets";
 
 describe("service tickets", () => {
@@ -179,6 +182,158 @@ describe("service tickets", () => {
       expect(
         apresReactivation.billets.find((b) => b.id === billetA.id)?.statut,
       ).toBe("non_scanne");
+    });
+  });
+
+  describe("scannerBillet", () => {
+    it("marque un billet non scanné comme scanné et retourne ses infos", async () => {
+      const evenementId = await creerEvenementActif();
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: "Sacha Lemoine",
+          email: "sacha@etu-poly.fr",
+          origine: "permanence",
+        })
+        .returning();
+
+      await db.insert(billets).values({
+        commandeId: commande.id,
+        code: "AAAA",
+        ticketsBoisson: 2,
+      });
+
+      const resultat = await scannerBillet(db, "AAAA");
+
+      expect(resultat.type).toBe("valide");
+      if (resultat.type !== "valide") throw new Error("type inattendu");
+      expect(resultat.billet.nom).toBe("Sacha Lemoine");
+      expect(resultat.billet.ticketsBoisson).toBe(2);
+      expect(resultat.billet.scanneA).not.toBeNull();
+
+      const [ligne] = await db
+        .select({ statut: billets.statut })
+        .from(billets)
+        .where(eq(billets.code, "AAAA"));
+      expect(ligne.statut).toBe("scanne");
+    });
+
+    it("scan concurrent : un seul gagne 'valide', l'autre voit la vraie heure du scan gagnant", async () => {
+      const evenementId = await creerEvenementActif();
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: "Sacha Lemoine",
+          email: "sacha@etu-poly.fr",
+          origine: "permanence",
+        })
+        .returning();
+
+      await db.insert(billets).values({
+        commandeId: commande.id,
+        code: "AAAA",
+      });
+
+      const [a, b] = await Promise.all([
+        scannerBillet(db, "AAAA"),
+        scannerBillet(db, "AAAA"),
+      ]);
+      const [gagnant, perdant] = a.type === "valide" ? [a, b] : [b, a];
+
+      expect(gagnant.type).toBe("valide");
+      expect(perdant.type).toBe("deja_scanne");
+      if (gagnant.type !== "valide" || perdant.type !== "deja_scanne") {
+        throw new Error("type inattendu");
+      }
+      expect(perdant.billet.scanneA).not.toBeNull();
+      expect(perdant.billet.scanneA).toBe(gagnant.billet.scanneA);
+    });
+
+    it("retourne 'déjà scanné' pour un billet déjà scanné, sans changer sa date de scan", async () => {
+      const evenementId = await creerEvenementActif();
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: "Sacha Lemoine",
+          email: "sacha@etu-poly.fr",
+          origine: "permanence",
+        })
+        .returning();
+
+      const premierScan = new Date("2026-09-30T20:00:00Z");
+      await db.insert(billets).values({
+        commandeId: commande.id,
+        code: "AAAA",
+        statut: "scanne",
+        scanneA: premierScan,
+      });
+
+      const resultat = await scannerBillet(db, "AAAA");
+
+      expect(resultat.type).toBe("deja_scanne");
+      if (resultat.type !== "deja_scanne") throw new Error("type inattendu");
+      expect(resultat.billet.scanneA).toBe(formatHeure(premierScan));
+    });
+
+    it("retourne 'invalide' pour un billet invalidé", async () => {
+      const evenementId = await creerEvenementActif();
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: "Sacha Lemoine",
+          email: "sacha@etu-poly.fr",
+          origine: "permanence",
+        })
+        .returning();
+
+      await db.insert(billets).values({
+        commandeId: commande.id,
+        code: "AAAA",
+        statut: "invalide",
+      });
+
+      const resultat = await scannerBillet(db, "AAAA");
+
+      expect(resultat.type).toBe("invalide");
+    });
+
+    it("retourne 'inconnu' pour un code qui ne correspond à aucun billet", async () => {
+      await creerEvenementActif();
+
+      const resultat = await scannerBillet(db, "INEXISTANT");
+
+      expect(resultat).toEqual({ type: "inconnu" });
+    });
+
+    it("ne modifie que le billet scanné, pas les autres billets de la commande", async () => {
+      const evenementId = await creerEvenementActif();
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: "Sacha Lemoine",
+          email: "sacha@etu-poly.fr",
+          origine: "permanence",
+        })
+        .returning();
+
+      await db.insert(billets).values([
+        { commandeId: commande.id, code: "AAAA" },
+        { commandeId: commande.id, code: "BBBB" },
+      ]);
+
+      await scannerBillet(db, "AAAA");
+
+      const [resultats] = await listerBillets(db, { q: "", statut: "tous" });
+      const a = resultats.billets.find((b) => b.code === "AAAA");
+      const b = resultats.billets.find((b) => b.code === "BBBB");
+      expect(a?.statut).toBe("scanne");
+      expect(b?.statut).toBe("non_scanne");
+      expect(b?.scanneA).toBeNull();
     });
   });
 

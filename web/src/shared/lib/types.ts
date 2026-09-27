@@ -43,3 +43,23 @@ export interface CommandeCreee {
   email: string;
   billets: { id: string; code: string; ticketsBoisson: number }[];
 }
+
+export interface BilletScanne {
+  nom: string;
+  email: string;
+  origine: Origine;
+  ticketsBoisson: number;
+  scanneA: string | null;
+}
+
+export type ResultatScan =
+  | { type: "valide"; billet: BilletScanne }
+  | { type: "deja_scanne"; billet: BilletScanne }
+  | { type: "invalide"; billet: BilletScanne }
+  | { type: "inconnu" };
+
+export interface BilletSimulable {
+  code: string;
+  nom: string;
+  statut: Statut;
+}

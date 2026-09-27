@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Badge } from "@/client/components/ui/badge";
 import { Button } from "@/client/components/ui/button";
 import { STATUT_BADGE_VARIANT } from "@/shared/lib/tickets";
-import type { Ticket } from "@/shared/lib/types";
+import type { BilletSimulable, Statut } from "@/shared/lib/types";
 
-const STATUT_SIMULATOR_LABEL: Record<Ticket["statut"], string> = {
+const STATUT_SIMULATOR_LABEL: Record<Statut, string> = {
   non_scanne: "à scanner",
   scanne: "scanné",
   invalide: "invalidé",
@@ -32,12 +32,12 @@ function ChevronIcon({ open }: { open: boolean }) {
 }
 
 export function ScanSimulator({
-  tickets,
+  billets,
   onSimulate,
   onSimulateUnknown,
 }: {
-  tickets: Ticket[];
-  onSimulate: (id: string) => void;
+  billets: BilletSimulable[];
+  onSimulate: (code: string) => void;
   onSimulateUnknown: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -59,24 +59,21 @@ export function ScanSimulator({
             Simuler un scan
           </div>
           <div className="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
-            {tickets.map((t) => (
+            {billets.map((b) => (
               <button
-                key={t.id}
+                key={b.code}
                 type="button"
-                onClick={() => onSimulate(t.id)}
+                onClick={() => onSimulate(b.code)}
                 className="flex items-center gap-3 rounded-xl border border-line-2 bg-ink-3 px-3.5 py-2.5 text-left"
               >
                 <span className="flex-1 truncate font-semibold text-[13.5px]">
-                  {t.nom}
-                </span>
-                <span className="text-[11.5px] text-muted">
-                  {t.entrees > 1 ? `${t.entrees} entrées` : "1 entrée"}
+                  {b.nom}
                 </span>
                 <Badge
-                  variant={STATUT_BADGE_VARIANT[t.statut]}
+                  variant={STATUT_BADGE_VARIANT[b.statut]}
                   className="px-2 py-0.5 text-[10.5px]"
                 >
-                  {STATUT_SIMULATOR_LABEL[t.statut]}
+                  {STATUT_SIMULATOR_LABEL[b.statut]}
                 </Badge>
               </button>
             ))}

@@ -5,7 +5,7 @@ import type * as schema from "@/server/db/schema";
 import { billets, commandes, evenements } from "@/server/db/schema";
 import type { StatutFilter } from "@/shared/lib/search-params";
 import { formatHeure } from "@/shared/lib/tickets";
-import type { CommandeAvecBillets } from "@/shared/lib/types";
+import type { CommandeAvecBillets, ResultatScan } from "@/shared/lib/types";
 import type { PermanenceCommandeInput } from "@/shared/validators/permanence";
 
 type Db = PostgresJsDatabase<typeof schema>;
@@ -169,4 +169,65 @@ export async function reactiverBillet(db: Db, billetId: string): Promise<void> {
     .update(billets)
     .set({ statut: "non_scanne", scanneA: null })
     .where(eq(billets.id, billetId));
+}
+
+/**
+ * Scanne un billet à l'entrée : le marque scanné s'il est encore valide,
+ * sans jamais toucher aux autres billets de sa commande.
+ */
+export async function scannerBillet(
+  db: Db,
+  code: string,
+): Promise<ResultatScan> {
+  const [ligne] = await db
+    .select({
+      id: billets.id,
+      statut: billets.statut,
+      ticketsBoisson: billets.ticketsBoisson,
+      scanneA: billets.scanneA,
+      nom: commandes.nom,
+      email: commandes.email,
+      origine: commandes.origine,
+    })
+    .from(billets)
+    .innerJoin(commandes, eq(billets.commandeId, commandes.id))
+    .where(eq(billets.code, code))
+    .limit(1);
+
+  if (!ligne) return { type: "inconnu" };
+
+  const versBillet = (scanneA: Date | null) => ({
+    nom: ligne.nom,
+    email: ligne.email,
+    origine: ligne.origine,
+    ticketsBoisson: ligne.ticketsBoisson,
+    scanneA: scanneA ? formatHeure(scanneA) : null,
+  });
+
+  if (ligne.statut === "invalide") {
+    return { type: "invalide", billet: versBillet(ligne.scanneA) };
+  }
+
+  if (ligne.statut === "scanne") {
+    return { type: "deja_scanne", billet: versBillet(ligne.scanneA) };
+  }
+
+  const maintenant = new Date();
+  const [misAJour] = await db
+    .update(billets)
+    .set({ statut: "scanne", scanneA: maintenant })
+    .where(and(eq(billets.id, ligne.id), eq(billets.statut, "non_scanne")))
+    .returning({ scanneA: billets.scanneA });
+
+  if (!misAJour) {
+    // Scanné entre-temps par un autre poste : on relit l'état réel pour
+    // retomber sur "déjà scanné" avec la vraie heure du premier scan.
+    const [actuel] = await db
+      .select({ scanneA: billets.scanneA })
+      .from(billets)
+      .where(eq(billets.id, ligne.id));
+    return { type: "deja_scanne", billet: versBillet(actuel?.scanneA ?? null) };
+  }
+
+  return { type: "valide", billet: versBillet(misAJour.scanneA) };
 }

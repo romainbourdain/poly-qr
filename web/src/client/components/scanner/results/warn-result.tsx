@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ResultIconCircle } from "@/client/components/scanner/result-icon-circle";
 import { Separator } from "@/client/components/ui/separator";
-import type { Ticket } from "@/shared/lib/types";
+import type { BilletScanne } from "@/shared/lib/types";
 
 function ClockIcon() {
   return (
@@ -23,10 +23,10 @@ function ClockIcon() {
 }
 
 export function WarnResult({
-  ticket,
+  billet,
   outcome,
 }: {
-  ticket: Ticket;
+  billet: BilletScanne;
   outcome: "deja_scanne" | "invalide";
 }) {
   const titre = outcome === "invalide" ? "INVALIDÉ" : "DÉJÀ SCANNÉ";
@@ -42,7 +42,7 @@ export function WarnResult({
             {titre}
           </div>
           <div className="font-bold font-display text-[25px] tracking-tight">
-            {ticket.nom}
+            {billet.nom}
           </div>
           <div className="max-w-70 text-[#C6B189] text-[14px] leading-relaxed">
             {outcome === "invalide"
@@ -57,7 +57,7 @@ export function WarnResult({
               {outcome === "invalide" ? "Statut" : "Première entrée"}
             </span>
             <span className="font-bold text-[15px]">
-              {outcome === "invalide" ? "Invalidé" : ticket.scanneA}
+              {outcome === "invalide" ? "Invalidé" : billet.scanneA}
             </span>
           </div>
           <Separator className="bg-warn-line" />
@@ -65,7 +65,7 @@ export function WarnResult({
             <span className="text-[#C6B189] text-[13.5px]">
               Entrées sur ce billet
             </span>
-            <span className="font-bold text-[15px]">{ticket.entrees}</span>
+            <span className="font-bold text-[15px]">1</span>
           </div>
           <Separator className="bg-warn-line" />
           <div className="flex items-center justify-between gap-3">
@@ -73,7 +73,7 @@ export function WarnResult({
               Tickets boisson
             </span>
             <span className="font-bold text-[15px]">
-              {ticket.ticketsBoisson}
+              {billet.ticketsBoisson}
             </span>
           </div>
         </div>

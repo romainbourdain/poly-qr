@@ -8,6 +8,7 @@ import {
   listerBillets,
   obtenirStatsBillets,
   reactiverBillet,
+  scannerBillet,
 } from "@/server/services/tickets";
 import type { StatutFilter } from "@/shared/lib/search-params";
 import {
@@ -55,4 +56,12 @@ export async function listerBilletsAction(filtres: {
 
 export async function obtenirStatsBilletsAction() {
   return obtenirStatsBillets(db);
+}
+
+export async function scannerBilletAction(code: string) {
+  const resultat = await scannerBillet(db, code);
+  if (resultat.type === "valide") {
+    revalidatePath("/admin/billets");
+  }
+  return resultat;
 }
