@@ -27,3 +27,17 @@ From `web/`: `pnpm lint`, `pnpm typecheck`, `pnpm build` must all pass. There is
 ## Language
 
 UI copy is French (student association audience). Code identifiers, types, and comments are English as usual; only user-facing strings and domain terms (`billet`, `entrees`, `scanne`...) are French — match the existing vocabulary instead of inventing translations.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues (`romainbourdain/poly-qr`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), used as-is. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: domain glossary and decisions log live at `docs/CONTEXT.md` and `docs/DECISIONS.md`. See `docs/agents/domain.md`.
