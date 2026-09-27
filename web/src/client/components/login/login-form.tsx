@@ -4,7 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
 import { Button } from "@/client/components/ui/button";
 import { TextField } from "@/client/components/ui/text-field";
-import { EVENT } from "@/shared/mock/event";
+import { login } from "@/server/actions/auth";
 import { loginSchema } from "@/shared/validators/login";
 
 export function LoginForm() {
@@ -14,13 +14,15 @@ export function LoginForm() {
     defaultValues: { password: "" },
     validators: {
       onChange: loginSchema,
-      onSubmit: ({ value }) =>
-        value.password === EVENT.motDePasse
+      onSubmitAsync: async ({ value }) => {
+        const result = await login(value.password);
+        return result.success
           ? undefined
-          : { fields: { password: "Mot de passe incorrect." } },
+          : { fields: { password: result.error } };
+      },
     },
-    onSubmit: ({ value }) => {
-      if (value.password === EVENT.motDePasse) router.push("/scanner");
+    onSubmit: () => {
+      router.push("/scanner");
     },
   });
 
