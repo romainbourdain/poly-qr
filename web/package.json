@@ -10,6 +10,9 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "prepare": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo ..)\" && husky web/.husky"
   },
   "dependencies": {
@@ -17,9 +20,11 @@
     "@tanstack/react-form": "^1.33.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.3",
     "jsqr": "^1.4.0",
     "next": "16.3.6",
     "nuqs": "^2.10.1",
+    "postgres": "^3.4.9",
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -30,18 +35,26 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22.20.4",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^18.0.4",
+    "drizzle-kit": "^0.31.11",
     "husky": "^9.1.7",
     "lint-staged": "^17.5.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.2"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,css}": [
       "biome check --write --no-errors-on-unmatched"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
     ]
   }
 }

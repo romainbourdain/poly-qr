@@ -1,6 +1,6 @@
 # PolyQR — Prototype Next.js
 
-Démo cliquable du parcours PolyQR (voir [../docs/CONTEXT.md](../docs/CONTEXT.md)). Données factices en mémoire côté client, réinitialisées à chaque rechargement — pas de base de données, pas de webhook HelloAsso réel.
+Démo cliquable du parcours PolyQR (voir [../docs/CONTEXT.md](../docs/CONTEXT.md)). L'UI tourne encore sur des données factices en mémoire côté client, réinitialisées à chaque rechargement — la base Postgres (Drizzle) existe (`server/db/`) mais n'est pas encore branchée aux pages ; pas de webhook HelloAsso réel.
 
 Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 
@@ -14,7 +14,7 @@ Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 
 ## Stack
 
-Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + TypeScript, aucune dépendance serveur pour l'instant (pas de route API, pas de DB — voir [Couches backend](#couches-backend-vides) plus bas).
+Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + TypeScript. Persistance Postgres via Drizzle (`server/db/`), pas encore consommée par l'UI — voir [Couches backend](#couches-backend) plus bas.
 
 | Domaine | Choix |
 |---|---|
@@ -28,7 +28,7 @@ Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + TypeScript, aucune dépen
 
 ## Structure des dossiers
 
-Architecture en couches, pensée pour accueillir les server actions et l'accès base de données (Drizzle, pas encore branché) sans redécouper le frontend existant :
+Architecture en couches, pensée pour accueillir les server actions au-dessus de la base de données (Drizzle, branché mais pas encore consommé par l'UI) sans redécouper le frontend existant :
 
 ```
 web/src/
@@ -60,8 +60,8 @@ Règles qui se dégagent de ce découpage :
 
 - **`app/`** reste le plus fin possible : une page assemble des composants de `client/components/`, elle ne contient pas de logique métier.
 - **`client/`** ne contient que du code `"use client"` ou consommé uniquement par du code client. Rien ici ne doit importer depuis `server/`.
-- **`server/`** (actuellement vide, juste des `.gitkeep`) accueillera les server actions ; c'est la seule couche autorisée à parler à la base de données.
-- **`shared/`** est neutre : `lib/` et `validators/` ne dépendent ni de React ni de Next.js server-only, donc importables aussi bien par un composant client que par une future server action qui voudrait revalider les mêmes schémas Zod côté serveur. `mock/` est la donnée de démo actuelle, vouée à disparaître quand `server/db/` sera branché.
+- **`server/`** est la seule couche autorisée à parler à la base de données ; `server/db/` contient le schéma et le client Drizzle, `server/actions/` et `server/services/` (encore vides, `.gitkeep`) accueilleront les server actions et la logique métier.
+- **`shared/`** est neutre : `lib/` et `validators/` ne dépendent ni de React ni de Next.js server-only, donc importables aussi bien par un composant client que par une future server action qui voudrait revalider les mêmes schémas Zod côté serveur. `mock/` est la donnée de démo actuelle, vouée à disparaître quand les pages liront `server/db/` via des server actions.
 
 ### Alias d'import
 
@@ -76,9 +76,26 @@ L'état des billets était porté par un `React.Context` : toute mutation (scan,
 
 Plus besoin de `StoreProvider` dans `app/layout.tsx`.
 
-### Couches backend vides
+### Couches backend
 
-`server/actions/`, `server/services/` et `server/db/` ne contiennent que des `.gitkeep` : aucune server action ni ORM n'est branché pour l'instant (le prototype reste 100 % données factices en mémoire, voir `shared/mock/`). L'ORM prévu pour `server/db/` est **Drizzle**, pas encore installé.
+`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). `server/actions/` et `server/services/` ne contiennent encore que des `.gitkeep` : aucune server action ni page ne lit la DB pour l'instant (le prototype reste 100 % données factices en mémoire, voir `shared/mock/`).
+
+## Base de données
+
+Postgres + [Drizzle](https://orm.drizzle.team). Copier `.env.example` en `.env.local` et renseigner `DATABASE_URL` (lu par `pnpm dev`/`pnpm build`/`drizzle-kit`). Pour les tests, renseigner `DATABASE_URL_TEST` (instance séparée) dans `.env.test`, chargé automatiquement par Vitest (`vitest.setup.mts`) — les tests appliquent les migrations et vident les tables entre chaque test.
+
+```bash
+pnpm db:generate   # génère une migration à partir de server/db/schema.ts
+pnpm db:migrate    # applique les migrations en attente (DATABASE_URL)
+```
+
+## Tests
+
+[Vitest](https://vitest.dev). Les tests qui touchent la DB (`server/db/schema.test.ts`, et les futurs tests de `server/services/`) tournent contre une vraie base Postgres de test (`DATABASE_URL_TEST`), pas des mocks — voir `server/db/test-utils/test-db.ts`.
+
+```bash
+pnpm test
+```
 
 ## Développement
 
