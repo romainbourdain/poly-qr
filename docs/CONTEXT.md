@@ -34,7 +34,7 @@ Add-on à quantité choisie à l'achat (sur HelloAsso, ou saisie en permanence),
 
 ## Ce que le système ne fait pas
 
-- **Pas de gestion de prix.** Les tarifs restent gérés par HelloAsso ou décidés au cas par cas en permanence / sur place — le système ne stocke aucun montant. Il stocke en revanche, par commande, le moyen de paiement utilisé (ex. CB, espèces, virement, HelloAsso), et par billet : nom (de la commande), email (de la commande), nombre de tickets boisson, statut (utilisé/non utilisé/invalidé).
+- **Pas de gestion de prix pour HelloAsso ni sur place.** Les tarifs y restent gérés par HelloAsso ou décidés au cas par cas — le système n'y stocke aucun montant. Pour la permanence, l'événement porte un prix par billet et un prix par ticket boisson, utilisés uniquement pour calculer et afficher le total à payer dans le formulaire de vente ; le système affiche ce total mais ne gère ni encaissement ni facturation. Il stocke par ailleurs, par commande, le moyen de paiement utilisé (ex. CB, espèces, virement, HelloAsso), et par billet : nom (de la commande), email (de la commande), nombre de tickets boisson, statut (utilisé/non utilisé/invalidé).
 - **Pas de remboursement automatique.** Cas rare, géré manuellement via un bouton d'invalidation dans l'admin.
 - **Pas de dashboard temps réel** pendant l'événement (jugé non nécessaire pour ce POC).
 
