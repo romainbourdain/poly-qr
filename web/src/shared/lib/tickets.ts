@@ -1,4 +1,9 @@
-import type { Statut } from "./types";
+import type { Origine, Statut } from "./types";
+
+export const ORIGINE_LABEL: Record<Origine, string> = {
+  helloasso: "HelloAsso",
+  permanence: "Permanence",
+};
 
 export const STATUT_LABEL: Record<Statut, string> = {
   non_scanne: "Pas encore scanné",
@@ -20,9 +25,12 @@ export const STATUT_TEXT_CLASS: Record<Statut, string> = {
 };
 
 export function nowLabel(): string {
-  const d = new Date();
-  const h = d.getHours().toString().padStart(2, "0");
-  const m = d.getMinutes().toString().padStart(2, "0");
+  return formatHeure(new Date());
+}
+
+export function formatHeure(date: Date): string {
+  const h = date.getHours().toString().padStart(2, "0");
+  const m = date.getMinutes().toString().padStart(2, "0");
   return `${h}h${m}`;
 }
 

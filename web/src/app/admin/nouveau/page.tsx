@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { NewTicketForm } from "@/client/components/admin/new-ticket-form";
+import { PermanenceForm } from "@/client/components/admin/permanence-form";
 import { SessionTicketList } from "@/client/components/admin/session-ticket-list";
-import type { Ticket } from "@/shared/lib/types";
+import type { CommandeCreee } from "@/shared/lib/types";
 
 export default function AdminNouveauBilletPage() {
-  const [session, setSession] = useState<Ticket[]>([]);
+  const [session, setSession] = useState<CommandeCreee[]>([]);
 
   return (
     <div className="flex flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 md:px-9">
@@ -21,11 +21,11 @@ export default function AdminNouveauBilletPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-7">
-        <NewTicketForm
-          onCreated={(ticket) => setSession((prev) => [ticket, ...prev])}
+        <PermanenceForm
+          onCreated={(commande) => setSession((prev) => [commande, ...prev])}
         />
         <div className="flex flex-col gap-4.5">
-          <SessionTicketList tickets={session} />
+          <SessionTicketList commandes={session} />
         </div>
       </div>
     </div>
