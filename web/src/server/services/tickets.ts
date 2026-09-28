@@ -10,6 +10,7 @@ import type {
   CommandeAvecBillets,
   ResultatScan,
 } from "@/shared/lib/types";
+import type { HelloassoCommandeInput } from "@/shared/validators/helloasso";
 import type { PermanenceCommandeInput } from "@/shared/validators/permanence";
 
 type Db = PostgresJsDatabase<typeof schema>;
@@ -82,6 +83,69 @@ export async function creerCommandePermanence(
 
     return { commande, billets: nouveauxBillets };
   });
+}
+
+/**
+ * Crée une commande à partir d'un paiement HelloAsso déjà normalisé.
+ * Idempotent sur `helloassoPaymentId` : un paiement déjà traité renvoie la
+ * commande existante sans créer de nouveaux billets (webhook rejoué).
+ */
+export async function creerCommandeDepuisHelloAsso(
+  db: Db,
+  input: HelloassoCommandeInput,
+) {
+  const [existante] = await db
+    .select()
+    .from(commandes)
+    .where(eq(commandes.helloassoPaymentId, input.helloassoPaymentId))
+    .limit(1);
+
+  if (existante) {
+    const billetsExistants = await db
+      .select()
+      .from(billets)
+      .where(eq(billets.commandeId, existante.id));
+    return {
+      commande: existante,
+      billets: billetsExistants,
+      dejaTraitee: true as const,
+    };
+  }
+
+  const evenementId = await obtenirEvenementActifId(db);
+  if (!evenementId) {
+    throw new Error("Aucun événement actif.");
+  }
+
+  const { commande, billets: nouveauxBillets } = await db.transaction(
+    async (tx) => {
+      const [commande] = await tx
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: input.nom,
+          email: input.email,
+          origine: "helloasso",
+          helloassoPaymentId: input.helloassoPaymentId,
+        })
+        .returning();
+
+      const nouveauxBillets = await tx
+        .insert(billets)
+        .values(
+          input.billets.map((billet) => ({
+            commandeId: commande.id,
+            code: genererCodeBillet(),
+            ticketsBoisson: billet.ticketsBoisson,
+          })),
+        )
+        .returning();
+
+      return { commande, billets: nouveauxBillets };
+    },
+  );
+
+  return { commande, billets: nouveauxBillets, dejaTraitee: false as const };
 }
 
 /**

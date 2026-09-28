@@ -12,6 +12,7 @@ import {
 import { hashPassword } from "@/server/services/auth";
 import { formatHeure } from "@/shared/lib/tickets";
 import {
+  creerCommandeDepuisHelloAsso,
   creerCommandePermanence,
   invaliderBillet,
   listerBillets,
@@ -77,6 +78,65 @@ describe("service tickets", () => {
         creerCommandePermanence(db, {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
+          billets: [{ ticketsBoisson: 0 }],
+        }),
+      ).rejects.toThrow("Aucun événement actif.");
+    });
+  });
+
+  describe("creerCommandeDepuisHelloAsso", () => {
+    it("crée une commande HelloAsso avec un billet par entrée du paiement", async () => {
+      await creerEvenementActif();
+
+      const {
+        commande,
+        billets: nouveauxBillets,
+        dejaTraitee,
+      } = await creerCommandeDepuisHelloAsso(db, {
+        nom: "Jean Dupont",
+        email: "jean@etu-poly.fr",
+        helloassoPaymentId: "hp-123",
+        billets: [{ ticketsBoisson: 2 }],
+      });
+
+      expect(dejaTraitee).toBe(false);
+      expect(commande.origine).toBe("helloasso");
+      expect(commande.helloassoPaymentId).toBe("hp-123");
+      expect(nouveauxBillets).toHaveLength(1);
+      expect(nouveauxBillets[0].ticketsBoisson).toBe(2);
+    });
+
+    it("est idempotente : un même paiement rejoué ne crée pas de nouvelle commande", async () => {
+      await creerEvenementActif();
+
+      const premiere = await creerCommandeDepuisHelloAsso(db, {
+        nom: "Jean Dupont",
+        email: "jean@etu-poly.fr",
+        helloassoPaymentId: "hp-123",
+        billets: [{ ticketsBoisson: 2 }],
+      });
+
+      const rejeu = await creerCommandeDepuisHelloAsso(db, {
+        nom: "Jean Dupont",
+        email: "jean@etu-poly.fr",
+        helloassoPaymentId: "hp-123",
+        billets: [{ ticketsBoisson: 2 }],
+      });
+
+      expect(rejeu.dejaTraitee).toBe(true);
+      expect(rejeu.commande.id).toBe(premiere.commande.id);
+      expect(rejeu.billets).toHaveLength(1);
+
+      const toutesLesCommandes = await db.select().from(commandes);
+      expect(toutesLesCommandes).toHaveLength(1);
+    });
+
+    it("refuse de créer une commande sans événement actif", async () => {
+      await expect(
+        creerCommandeDepuisHelloAsso(db, {
+          nom: "Jean Dupont",
+          email: "jean@etu-poly.fr",
+          helloassoPaymentId: "hp-123",
           billets: [{ ticketsBoisson: 0 }],
         }),
       ).rejects.toThrow("Aucun événement actif.");
