@@ -16,7 +16,7 @@ const SECRET = process.env.HELLOASSO_WEBHOOK_SECRET as string;
 
 function payloadValide(overrides: { id?: number | string } = {}) {
   return {
-    eventType: "Payment",
+    eventType: "Order",
     data: {
       id: overrides.id ?? 42,
       payer: {
@@ -117,6 +117,18 @@ describe("POST /api/webhooks/helloasso", () => {
     const reponse = await POST(requete({ foo: "bar" }));
 
     expect(reponse.status).toBe(400);
+    const lignes = await db.select().from(commandes);
+    expect(lignes).toHaveLength(0);
+  });
+
+  it("acquitte sans traitement un eventType Payment (même achat, webhook séparé)", async () => {
+    await creerEvenementActif();
+
+    const reponse = await POST(
+      requete({ eventType: "Payment", data: { id: 99 } }),
+    );
+
+    expect(reponse.status).toBe(200);
     const lignes = await db.select().from(commandes);
     expect(lignes).toHaveLength(0);
   });

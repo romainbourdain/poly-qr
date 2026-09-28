@@ -3,7 +3,7 @@ import { mapperPayloadHelloAsso } from "./helloasso-payload";
 
 function payloadValide(overrides: Record<string, unknown> = {}) {
   return {
-    eventType: "Payment",
+    eventType: "Order",
     data: {
       id: 12345,
       payer: {
@@ -64,9 +64,9 @@ describe("mapperPayloadHelloAsso", () => {
     expect(entree.billets).toEqual([{ ticketsBoisson: 0 }]);
   });
 
-  it("rejette un payload qui n'est pas un eventType Payment", () => {
+  it("rejette un payload qui n'est pas un eventType Order", () => {
     expect(() =>
-      mapperPayloadHelloAsso(payloadValide({ eventType: "Order" })),
+      mapperPayloadHelloAsso(payloadValide({ eventType: "Payment" })),
     ).toThrow();
   });
 

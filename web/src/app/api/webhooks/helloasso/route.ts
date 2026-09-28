@@ -27,6 +27,25 @@ function secretValide(request: Request): boolean {
   return url.searchParams.get("secret") === secret;
 }
 
+/**
+ * HelloAsso envoie un webhook par `eventType` pour un même achat (`Payment`,
+ * `Order`...) ; seul `Order` est traité (voir helloasso-payload.ts). Les
+ * autres sont acquittés avec un 200 sans traitement plutôt que rejetés, pour
+ * éviter que HelloAsso les rejoue inutilement pendant 27h.
+ */
+const EVENT_TYPES_IGNORES = new Set(["Payment", "Form", "Organization"]);
+
+function eventTypeIgnore(payload: unknown): boolean {
+  return (
+    typeof payload === "object" &&
+    payload !== null &&
+    "eventType" in payload &&
+    EVENT_TYPES_IGNORES.has(
+      String((payload as { eventType: unknown }).eventType),
+    )
+  );
+}
+
 export async function POST(request: Request) {
   if (!secretValide(request)) {
     return Response.json({ error: "Signature invalide." }, { status: 401 });
@@ -37,6 +56,10 @@ export async function POST(request: Request) {
     payload = await request.json();
   } catch {
     return Response.json({ error: "Payload invalide." }, { status: 400 });
+  }
+
+  if (eventTypeIgnore(payload)) {
+    return Response.json({ success: true, ignore: true });
   }
 
   let entree: unknown;

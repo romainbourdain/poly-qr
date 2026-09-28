@@ -46,6 +46,8 @@ Plusieurs personnes du bureau (dont le trésorier) doivent pouvoir créer des bi
 
 On ne sait pas si le webhook HelloAsso transmet directement le tarif/l'add-on tickets boisson par personne dans son payload, ou s'il faut un appel API de suivi (`GET /items/{itemId}`) pour les récupérer. HelloAsso a une API OAuth2 gratuite et illimitée pour les associations (dev.helloasso.com), mais ce point précis n'est pas documenté publiquement — à vérifier avec un webhook de test avant de coder l'intégration.
 
+**Mise à jour (webhook de test observé le 2026-09-28, environnement Sandbox)** : HelloAsso envoie un webhook distinct par `eventType` pour un même achat (`Payment` et `Order` notamment) ; seul `Order` porte le détail par billet (`data.items[]`, un item par personne inscrite) et c'est celui qu'on traite (voir `web/src/server/services/helloasso-payload.ts`). Sur ce premier essai, `items[]` ne portait aucun `customFields` ni `options` : le formulaire de test n'avait pas encore d'option "tickets boisson" configurée dessus. Reste à faire : ajouter cette option payante sur un formulaire de test et observer comment elle apparaît dans `items[]` avant de considérer ce risque levé. Pas de signature/HMAC documentée sur les webhooks HelloAsso — la vérification se fait par un secret partagé en paramètre de l'URL de callback.
+
 ## Stack
 
 Next.js + Postgres, hébergé sur un VPS géré par l'association. Choisi pour la maîtrise de l'écosystème React côté développeur, sans contrainte de budget hébergement particulière au-delà du VPS existant.

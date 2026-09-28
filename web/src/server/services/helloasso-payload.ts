@@ -7,8 +7,16 @@ const helloassoItemSchema = z.object({
     .optional(),
 });
 
+/**
+ * HelloAsso envoie un webhook distinct par `eventType` pour un même achat.
+ * `Order` est celui qu'on traite : c'est le seul dont `items[]` correspond
+ * exactement à nos billets (un item par personne inscrite). `Payment` (la
+ * confirmation de paiement) ne porte pas ce détail par billet et est ignoré
+ * ailleurs, pour ne pas créer deux commandes pour un même achat. Vérifié sur
+ * un vrai webhook de test HelloAsso Sandbox le 2026-09-28.
+ */
 const helloassoPayloadSchema = z.object({
-  eventType: z.literal("Payment"),
+  eventType: z.literal("Order"),
   data: z.object({
     id: z.union([z.string(), z.number()]),
     payer: z.object({
@@ -24,11 +32,11 @@ const NOM_CHAMP_TICKETS_BOISSON = /boisson/i;
 
 /**
  * RISQUE NON LEVÉ (voir docs/CONTEXT.md, "Risque technique à lever tôt") :
- * on ne sait pas si HelloAsso transmet le nombre de tickets boisson par
- * billet directement dans `items[].customFields`, dans `items[].options`,
- * ou seulement via un appel de suivi `GET /items/{itemId}`. On suppose ici
- * un champ personnalisé dont le nom contient "boisson" — à corriger dès
- * qu'un vrai webhook de test HelloAsso aura été observé.
+ * un vrai webhook `Order` observé ne portait aucun `customFields` (le
+ * formulaire de test n'avait pas encore d'option tickets boisson configurée
+ * dessus). On suppose ici un champ personnalisé dont le nom contient
+ * "boisson" — à corriger dès qu'un webhook avec cette option configurée aura
+ * été observé (peut-être `items[].options` plutôt que `customFields`).
  */
 function extraireTicketsBoisson(
   item: z.infer<typeof helloassoItemSchema>,
