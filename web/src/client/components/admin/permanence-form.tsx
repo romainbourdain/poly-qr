@@ -46,6 +46,7 @@ export function PermanenceForm({
         return;
       }
 
+      setError(result.emailError ?? null);
       onCreated({
         commandeId: result.commande.id,
         nom,

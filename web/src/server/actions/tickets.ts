@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/server/db/client";
 import {
+  creerSmtpSender,
+  envoyerEmailCommande,
+  getAppUrl,
+} from "@/server/services/email";
+import {
   creerCommandePermanence,
   invaliderBillet,
   listerBillets,
@@ -10,8 +15,10 @@ import {
   obtenirStatsBillets,
   reactiverBillet,
   scannerBillet,
+  versBilletListe,
 } from "@/server/services/tickets";
 import type { StatutFilter } from "@/shared/lib/search-params";
+import { EVENT } from "@/shared/mock/event";
 import { commandeIdSchema } from "@/shared/validators/commande";
 import {
   type PermanenceCommandeInput,
@@ -30,7 +37,27 @@ export async function creerPermanenceAction(input: PermanenceCommandeInput) {
       parsed.data,
     );
     revalidatePath("/admin/billets");
-    return { success: true as const, commande, billets };
+
+    let emailError: string | undefined;
+    try {
+      await envoyerEmailCommande(
+        creerSmtpSender(),
+        {
+          commandeId: commande.id,
+          nom: commande.nom,
+          email: commande.email,
+          billets: billets.map(versBilletListe),
+        },
+        EVENT,
+        getAppUrl(),
+      );
+    } catch (error) {
+      console.error("Échec de l'envoi de l'email de commande", error);
+      emailError =
+        "Billet créé, mais l'email n'a pas pu être envoyé. Réessaie ou transmets-le manuellement.";
+    }
+
+    return { success: true as const, commande, billets, emailError };
   } catch {
     return {
       success: false as const,

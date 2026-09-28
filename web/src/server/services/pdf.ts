@@ -5,7 +5,7 @@ import {
   rgb,
   StandardFonts,
 } from "pdf-lib";
-import QRCode from "qrcode";
+import { genererQrPng } from "@/server/services/qr";
 import type { BilletListe } from "@/shared/lib/types";
 
 const PAGE_WIDTH = 420;
@@ -57,13 +57,7 @@ async function dessinerPageBillet(
   const { fontRegular, fontBold } = fonts;
   const { nom, billet, evenement } = data;
 
-  const qrPng = await QRCode.toBuffer(`polyqr:${billet.code}`, {
-    type: "png",
-    errorCorrectionLevel: "M",
-    margin: 1,
-    width: QR_SIZE,
-    color: { dark: "#16161F", light: "#FFFFFF" },
-  });
+  const qrPng = await genererQrPng(billet.code, QR_SIZE);
   const qrImage = await pdfDoc.embedPng(qrPng);
 
   const titreTaille = 20;

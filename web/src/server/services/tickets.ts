@@ -18,19 +18,20 @@ export function genererCodeBillet(): string {
   return randomBytes(5).toString("hex").toUpperCase();
 }
 
-function versBilletListe(ligne: {
-  billetId: string;
+/** Convertit une ligne billet (DB) vers le format d'affichage `BilletListe`. */
+export function versBilletListe(billet: {
+  id: string;
   code: string;
   ticketsBoisson: number;
   statut: BilletListe["statut"];
   scanneA: Date | null;
 }): BilletListe {
   return {
-    id: ligne.billetId,
-    code: ligne.code,
-    ticketsBoisson: ligne.ticketsBoisson,
-    statut: ligne.statut,
-    scanneA: ligne.scanneA ? formatHeure(ligne.scanneA) : null,
+    id: billet.id,
+    code: billet.code,
+    ticketsBoisson: billet.ticketsBoisson,
+    statut: billet.statut,
+    scanneA: billet.scanneA ? formatHeure(billet.scanneA) : null,
   };
 }
 
@@ -117,7 +118,7 @@ export async function listerBillets(
       email: commandes.email,
       origine: commandes.origine,
       commandeCreeA: commandes.creeA,
-      billetId: billets.id,
+      id: billets.id,
       code: billets.code,
       ticketsBoisson: billets.ticketsBoisson,
       statut: billets.statut,
@@ -164,7 +165,7 @@ export async function obtenirCommandeAvecBillets(
       nom: commandes.nom,
       email: commandes.email,
       origine: commandes.origine,
-      billetId: billets.id,
+      id: billets.id,
       code: billets.code,
       ticketsBoisson: billets.ticketsBoisson,
       statut: billets.statut,

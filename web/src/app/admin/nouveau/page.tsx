@@ -16,7 +16,7 @@ export default function AdminNouveauBilletPage() {
         </h1>
         <div className="text-[14px] text-muted">
           Pour une personne qui paye en main propre. Le QR part par email tout
-          de suite (démo : rien n&apos;est réellement envoyé).
+          de suite.
         </div>
       </div>
 
