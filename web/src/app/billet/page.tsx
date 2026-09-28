@@ -1,5 +1,6 @@
 import { createSearchParamsCache } from "nuqs/server";
 import { BilletIntrouvable } from "@/client/components/billet/billet-introuvable";
+import { BilletPdfLink } from "@/client/components/billet/billet-pdf-link";
 import { BilletQrCard } from "@/client/components/billet/billet-qr-card";
 import { BilletStatusCard } from "@/client/components/billet/billet-status-card";
 import { BilletSwiper } from "@/client/components/billet/billet-swiper";
@@ -52,6 +53,8 @@ export default async function BilletPage({
             la luminosité de ton écran avant de le présenter.
           </span>
         </div>
+
+        <BilletPdfLink commandeId={commande.commandeId} />
       </div>
 
       <div className="border-[#22222F] border-t pt-3.5 text-[12px] text-faint">
