@@ -21,7 +21,7 @@ export default function Home() {
 
       <div className="grid gap-5 sm:grid-cols-3">
         <FeatureCard
-          href="/billet?id=t2"
+          href="/billet"
           eyebrow="Participant"
           title="Voir un billet"
           desc="L'écran reçu par email après paiement, avec le QR et les tickets boisson."

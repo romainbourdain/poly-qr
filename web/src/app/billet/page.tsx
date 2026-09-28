@@ -1,28 +1,24 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import { TicketEntryStats } from "@/client/components/billet/ticket-entry-stats";
-import { TicketQrCard } from "@/client/components/billet/ticket-qr-card";
-import { useTicket } from "@/client/store/ticket-store";
+import { createSearchParamsCache } from "nuqs/server";
+import { BilletIntrouvable } from "@/client/components/billet/billet-introuvable";
+import { BilletQrCard } from "@/client/components/billet/billet-qr-card";
+import { BilletStatusCard } from "@/client/components/billet/billet-status-card";
+import { BilletSwiper } from "@/client/components/billet/billet-swiper";
+import { obtenirCommandeAction } from "@/server/actions/tickets";
+import { billetSearchParams } from "@/shared/lib/search-params";
 import { EVENT } from "@/shared/mock/event";
 
-function BilletContent() {
-  const params = useSearchParams();
-  const id = params.get("id") ?? "t2";
-  const ticket = useTicket(id);
+const searchParamsCache = createSearchParamsCache(billetSearchParams);
 
-  if (!ticket) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-        <div className="font-display font-extrabold text-2xl">
-          Billet introuvable
-        </div>
-        <p className="text-[14px] text-muted">
-          Cet identifiant de billet n&apos;existe pas dans la démo.
-        </p>
-      </main>
-    );
+export default async function BilletPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { commande: commandeId } = await searchParamsCache.parse(searchParams);
+  const commande = commandeId ? await obtenirCommandeAction(commandeId) : null;
+
+  if (!commande || commande.billets.length === 0) {
+    return <BilletIntrouvable />;
   }
 
   return (
@@ -40,15 +36,13 @@ function BilletContent() {
       </div>
 
       <div className="flex flex-1 flex-col justify-center gap-3 py-5">
-        <TicketQrCard ticket={ticket} />
-        <TicketEntryStats ticket={ticket} />
-
-        {ticket.entrees > 1 && (
-          <div className="flex items-start gap-2.5 rounded-2xl border border-[#2E2E4A] bg-[#17172A] px-4 py-3.5 text-[#C7C4DA] text-[12.5px] leading-relaxed">
-            Présentez-vous{" "}
-            <strong className="font-bold text-fg">tous en même temps</strong> :
-            le QR est scanné une seule fois, pour les {ticket.entrees} entrées.
-          </div>
+        {commande.billets.length > 1 ? (
+          <BilletSwiper nom={commande.nom} billets={commande.billets} />
+        ) : (
+          <>
+            <BilletQrCard nom={commande.nom} billet={commande.billets[0]} />
+            <BilletStatusCard billet={commande.billets[0]} />
+          </>
         )}
 
         <div className="flex items-start gap-2.5 px-1 text-[12.5px] text-muted leading-relaxed">
@@ -64,13 +58,5 @@ function BilletContent() {
         Reçu par email après ton paiement HelloAsso.
       </div>
     </main>
-  );
-}
-
-export default function BilletPage() {
-  return (
-    <Suspense>
-      <BilletContent />
-    </Suspense>
   );
 }

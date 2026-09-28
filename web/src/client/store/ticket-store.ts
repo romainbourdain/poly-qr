@@ -74,7 +74,3 @@ export const useTicketStore = create<TicketStoreState>()((set, get) => ({
     }));
   },
 }));
-
-export function useTicket(id: string): Ticket | undefined {
-  return useTicketStore((state) => state.tickets.find((t) => t.id === id));
-}

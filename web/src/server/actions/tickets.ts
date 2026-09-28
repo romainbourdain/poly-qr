@@ -6,11 +6,13 @@ import {
   creerCommandePermanence,
   invaliderBillet,
   listerBillets,
+  obtenirCommandeAvecBillets,
   obtenirStatsBillets,
   reactiverBillet,
   scannerBillet,
 } from "@/server/services/tickets";
 import type { StatutFilter } from "@/shared/lib/search-params";
+import { commandeIdSchema } from "@/shared/validators/commande";
 import {
   type PermanenceCommandeInput,
   permanenceCommandeSchema,
@@ -56,6 +58,12 @@ export async function listerBilletsAction(filtres: {
 
 export async function obtenirStatsBilletsAction() {
   return obtenirStatsBillets(db);
+}
+
+export async function obtenirCommandeAction(commandeId: string) {
+  const parsed = commandeIdSchema.safeParse(commandeId);
+  if (!parsed.success) return null;
+  return obtenirCommandeAvecBillets(db, parsed.data);
 }
 
 export async function scannerBilletAction(code: string) {

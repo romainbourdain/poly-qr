@@ -5,13 +5,33 @@ import type * as schema from "@/server/db/schema";
 import { billets, commandes, evenements } from "@/server/db/schema";
 import type { StatutFilter } from "@/shared/lib/search-params";
 import { formatHeure } from "@/shared/lib/tickets";
-import type { CommandeAvecBillets, ResultatScan } from "@/shared/lib/types";
+import type {
+  BilletListe,
+  CommandeAvecBillets,
+  ResultatScan,
+} from "@/shared/lib/types";
 import type { PermanenceCommandeInput } from "@/shared/validators/permanence";
 
 type Db = PostgresJsDatabase<typeof schema>;
 
 export function genererCodeBillet(): string {
   return randomBytes(5).toString("hex").toUpperCase();
+}
+
+function versBilletListe(ligne: {
+  billetId: string;
+  code: string;
+  ticketsBoisson: number;
+  statut: BilletListe["statut"];
+  scanneA: Date | null;
+}): BilletListe {
+  return {
+    id: ligne.billetId,
+    code: ligne.code,
+    ticketsBoisson: ligne.ticketsBoisson,
+    statut: ligne.statut,
+    scanneA: ligne.scanneA ? formatHeure(ligne.scanneA) : null,
+  };
 }
 
 async function obtenirEvenementActifId(db: Db): Promise<string | null> {
@@ -123,16 +143,47 @@ export async function listerBillets(
       groupes.set(ligne.commandeId, groupe);
     }
 
-    groupe.billets.push({
-      id: ligne.billetId,
-      code: ligne.code,
-      ticketsBoisson: ligne.ticketsBoisson,
-      statut: ligne.statut,
-      scanneA: ligne.scanneA ? formatHeure(ligne.scanneA) : null,
-    });
+    groupe.billets.push(versBilletListe(ligne));
   }
 
   return Array.from(groupes.values());
+}
+
+/**
+ * Récupère une commande et ses billets pour la page participant, quel que
+ * soit son événement — un participant doit pouvoir revoir son billet même
+ * après la fin de l'événement.
+ */
+export async function obtenirCommandeAvecBillets(
+  db: Db,
+  commandeId: string,
+): Promise<CommandeAvecBillets | null> {
+  const lignes = await db
+    .select({
+      commandeId: commandes.id,
+      nom: commandes.nom,
+      email: commandes.email,
+      origine: commandes.origine,
+      billetId: billets.id,
+      code: billets.code,
+      ticketsBoisson: billets.ticketsBoisson,
+      statut: billets.statut,
+      scanneA: billets.scanneA,
+    })
+    .from(billets)
+    .innerJoin(commandes, eq(billets.commandeId, commandes.id))
+    .where(eq(commandes.id, commandeId))
+    .orderBy(asc(billets.creeA));
+
+  if (lignes.length === 0) return null;
+
+  return {
+    commandeId: lignes[0].commandeId,
+    nom: lignes[0].nom,
+    email: lignes[0].email,
+    origine: lignes[0].origine,
+    billets: lignes.map(versBilletListe),
+  };
 }
 
 /**

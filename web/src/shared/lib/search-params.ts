@@ -9,3 +9,7 @@ export const ticketFiltersSearchParams = {
   q: parseAsString.withDefault(""),
   statut: parseAsStringLiteral(STATUT_FILTERS).withDefault("tous"),
 };
+
+export const billetSearchParams = {
+  commande: parseAsString,
+};

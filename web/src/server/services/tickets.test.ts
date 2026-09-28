@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { Sql } from "postgres";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -14,6 +15,7 @@ import {
   creerCommandePermanence,
   invaliderBillet,
   listerBillets,
+  obtenirCommandeAvecBillets,
   obtenirStatsBillets,
   reactiverBillet,
   scannerBillet,
@@ -334,6 +336,46 @@ describe("service tickets", () => {
       expect(a?.statut).toBe("scanne");
       expect(b?.statut).toBe("non_scanne");
       expect(b?.scanneA).toBeNull();
+    });
+  });
+
+  describe("obtenirCommandeAvecBillets", () => {
+    it("retourne la commande et ses billets triés par création", async () => {
+      const evenementId = await creerEvenementActif();
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: "Sacha Lemoine",
+          email: "sacha@etu-poly.fr",
+          origine: "permanence",
+        })
+        .returning();
+
+      const [billetA, billetB] = await db
+        .insert(billets)
+        .values([
+          { commandeId: commande.id, code: "AAAA", ticketsBoisson: 1 },
+          { commandeId: commande.id, code: "BBBB", ticketsBoisson: 0 },
+        ])
+        .returning();
+
+      const resultat = await obtenirCommandeAvecBillets(db, commande.id);
+
+      expect(resultat?.nom).toBe("Sacha Lemoine");
+      expect(resultat?.billets.map((b) => b.id)).toEqual([
+        billetA.id,
+        billetB.id,
+      ]);
+      expect(resultat?.billets.map((b) => b.code)).toEqual(["AAAA", "BBBB"]);
+    });
+
+    it("retourne null si la commande n'existe pas", async () => {
+      await creerEvenementActif();
+
+      const resultat = await obtenirCommandeAvecBillets(db, randomUUID());
+
+      expect(resultat).toBeNull();
     });
   });
 
