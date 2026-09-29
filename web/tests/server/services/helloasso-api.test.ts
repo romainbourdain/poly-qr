@@ -7,7 +7,10 @@ import {
   type Mock,
   vi,
 } from "vitest";
-import { itemAOptionBoisson, obtenirTokenHelloAsso } from "./helloasso-api";
+import {
+  itemAOptionBoisson,
+  obtenirTokenHelloAsso,
+} from "@/server/services/helloasso-api";
 
 function jsonResponse(body: unknown, ok = true, status = 200): Response {
   return {

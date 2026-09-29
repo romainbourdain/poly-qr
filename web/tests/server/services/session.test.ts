@@ -1,5 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { createSessionCookie, verifySessionCookie } from "./session";
+import {
+  createSessionCookie,
+  verifySessionCookie,
+} from "@/server/services/session";
 
 describe("service session (cookie signé)", () => {
   beforeAll(() => {

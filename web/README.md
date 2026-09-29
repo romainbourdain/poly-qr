@@ -65,6 +65,8 @@ Règles qui se dégagent de ce découpage :
 
 ### Alias d'import
 
+Les tests (`web/tests/`) sont hors de `src/` et reproduisent son arborescence.
+
 `@/*` pointe vers `src/*` (`tsconfig.json`). Exemples : `@/client/components/ui/button`, `@/shared/validators/new-ticket`, `@/client/store/ticket-store`.
 
 ### Pourquoi Zustand plutôt qu'un Context React
@@ -91,7 +93,7 @@ pnpm db:migrate    # applique les migrations en attente (DATABASE_URL)
 
 ## Tests
 
-[Vitest](https://vitest.dev). Les tests qui touchent la DB (`server/db/schema.test.ts`, et les futurs tests de `server/services/`) tournent contre une vraie base Postgres de test (`DATABASE_URL_TEST`), pas des mocks — voir `server/db/test-utils/test-db.ts`.
+[Vitest](https://vitest.dev). Les tests vivent dans `web/tests/`, qui reproduit l'arborescence de `src/` (import via l'alias `@/`, jamais en relatif). Les tests qui touchent la DB (`tests/server/db/schema.test.ts`, et les tests de `tests/server/services/`) tournent contre une vraie base Postgres de test (`DATABASE_URL_TEST`), pas des mocks — voir `server/db/test-utils/test-db.ts`.
 
 ```bash
 pnpm test

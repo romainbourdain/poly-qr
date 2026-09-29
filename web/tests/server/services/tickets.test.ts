@@ -10,7 +10,6 @@ import {
   type TestDb,
 } from "@/server/db/test-utils/test-db";
 import { hashPassword } from "@/server/services/auth";
-import { formatHeure } from "@/shared/lib/tickets";
 import {
   creerCommandeDepuisHelloAsso,
   creerCommandePermanence,
@@ -20,7 +19,8 @@ import {
   obtenirStatsBillets,
   reactiverBillet,
   scannerBillet,
-} from "./tickets";
+} from "@/server/services/tickets";
+import { formatHeure } from "@/shared/lib/tickets";
 
 describe("service tickets", () => {
   let db: TestDb;

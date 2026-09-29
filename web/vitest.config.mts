@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
+    include: ["tests/**/*.test.ts"],
     setupFiles: ["./vitest.setup.mts"],
     // Les suites de `server/db` et `server/services` partagent une même base
     // Postgres de test (DATABASE_URL_TEST) : les exécuter en parallèle fait

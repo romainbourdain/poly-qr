@@ -10,6 +10,7 @@ import {
   it,
   vi,
 } from "vitest";
+import { POST } from "@/app/api/webhooks/helloasso/route";
 import { billets, commandes, evenements } from "@/server/db/schema";
 import {
   creerTestDb,
@@ -18,7 +19,6 @@ import {
   type TestDb,
 } from "@/server/db/test-utils/test-db";
 import { hashPassword } from "@/server/services/auth";
-import { POST } from "./route";
 
 const ENDPOINT = "http://localhost:3000/api/webhooks/helloasso";
 const SECRET = process.env.HELLOASSO_WEBHOOK_SECRET as string;

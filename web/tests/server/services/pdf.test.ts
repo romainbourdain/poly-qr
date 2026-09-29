@@ -1,7 +1,7 @@
 import { PDFDocument, PDFName } from "pdf-lib";
 import { describe, expect, it } from "vitest";
+import { genererPdfCommande } from "@/server/services/pdf";
 import type { BilletListe } from "@/shared/lib/types";
-import { genererPdfCommande } from "./pdf";
 
 const EVENEMENT = {
   nom: "Soirée d'hiver",

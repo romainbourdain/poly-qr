@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapperPayloadHelloAsso } from "./helloasso-payload";
+import { mapperPayloadHelloAsso } from "@/server/services/helloasso-payload";
 
 function payloadValide(overrides: Record<string, unknown> = {}) {
   return {

@@ -7,7 +7,7 @@ import {
   nettoyerTestDb,
   type TestDb,
 } from "@/server/db/test-utils/test-db";
-import { hashPassword, verifyPassword } from "./auth";
+import { hashPassword, verifyPassword } from "@/server/services/auth";
 
 describe("service auth (verifyPassword)", () => {
   let db: TestDb;

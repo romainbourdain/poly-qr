@@ -22,7 +22,7 @@ Layered: `client/` (browser), `server/` (nothing may import this from `client/`)
 
 ## Before finishing
 
-From `web/`: `pnpm lint`, `pnpm typecheck`, `pnpm build` must all pass. There is no test suite yet — validate UI changes by running `pnpm dev` and checking the affected route in a browser.
+From `web/`: `pnpm lint`, `pnpm typecheck`, `pnpm build` must all pass. Also run `pnpm test`. Tests live in `web/tests/` (mirroring `src/`, importing via `@/`), not next to the source. Validate UI changes by running `pnpm dev` and checking the affected route in a browser.
 
 ## Language
 
