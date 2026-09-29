@@ -1,20 +1,23 @@
 # PolyQR — Prototype Next.js
 
-Démo cliquable du parcours PolyQR (voir [../docs/CONTEXT.md](../docs/CONTEXT.md)). L'UI tourne encore sur des données factices en mémoire côté client, réinitialisées à chaque rechargement — la base Postgres (Drizzle) existe (`server/db/`) mais n'est pas encore branchée aux pages ; pas de webhook HelloAsso réel.
+Billetterie QR de l'association (voir [../docs/CONTEXT.md](../docs/CONTEXT.md)) : les billets sont créés soit par le webhook HelloAsso, soit en permanence par un organisateur ; un QR est envoyé par email et scanné à l'entrée par les bénévoles. Tout est persisté en Postgres (Drizzle) et lu via des server actions.
 
 Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 
 ## Parcours couverts
 
-- `/` — accueil avec les trois entrées de la démo
-- `/billet?id=t2` — billet participant (vrai QR scannable encodant `polyqr:<id>`, entrées, tickets boisson)
-- `/login` puis `/scanner` — accès bénévole (mot de passe : `hangar2026`), scan par caméra réelle (`getUserMedia` + décodage `jsQR`), avec repli manuel "Pas de caméra sous la main ?" pour tester sans matériel
-- `/scanner/resultat` — les 4 issues possibles d'un scan : valide, déjà scanné, invalidé, inconnu
-- `/admin`, `/admin/nouveau`, `/admin/billets` — événement, création de billet de permanence, liste (recherche + filtre synchronisés à l'URL) et invalidation, **responsive** (sidebar desktop fixe → barre du haut avec menu hamburger sous `md`, tableau de billets → cartes empilées sur mobile)
+- `/` — accueil avec les trois entrées (participant, bénévole, admin)
+- `/billet?commande=<id>` — page participant d'une commande : un QR scannable par billet (`polyqr:<code>`), tickets boisson, téléchargement PDF (`/billet/<id>/pdf`). Affiche l'événement *de la commande*, même après sa fin
+- `/login` puis `/scanner` — accès bénévole protégé par le mot de passe de l'événement actif (cookie de session signé), scan par caméra réelle (`getUserMedia` + décodage `jsQR`), avec repli manuel
+- `/scanner/resultat` — les 4 issues d'un scan : valide, déjà scanné, invalidé, inconnu
+- `/admin` — événement actif (création, édition : nom, date, heure, lieu, mot de passe, prix du billet et du ticket boisson), compteurs, événements passés consultables en lecture (`/admin/evenements/[id]`)
+- `/admin/nouveau` — vente de permanence, avec total à payer (affichage uniquement, aucun montant stocké)
+- `/admin/billets` — liste (recherche + filtre synchronisés à l'URL) et invalidation ; l'admin est **responsive**
+- `/api/webhooks/helloasso` — création automatique des commandes HelloAsso et envoi de l'email
 
 ## Stack
 
-Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + TypeScript. Persistance Postgres via Drizzle (`server/db/`), pas encore consommée par l'UI — voir [Couches backend](#couches-backend) plus bas.
+Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + TypeScript. Persistance Postgres via Drizzle (`server/db/`) — voir [Couches backend](#couches-backend) plus bas.
 
 | Domaine | Choix |
 |---|---|
@@ -28,7 +31,7 @@ Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + TypeScript. Persistance P
 
 ## Structure des dossiers
 
-Architecture en couches, pensée pour accueillir les server actions au-dessus de la base de données (Drizzle, branché mais pas encore consommé par l'UI) sans redécouper le frontend existant :
+Architecture en couches : les pages appellent des server actions / services, qui seuls parlent à la base de données :
 
 ```
 web/src/
@@ -45,9 +48,9 @@ web/src/
 │   ├── hooks/                  #   hooks de présentation (ex. use-ticket-filters, nuqs)
 │   └── store/                  #   état partagé client (scan-result-store.ts, Zustand)
 │
-├── server/                     # Futur : tout ce qui ne doit jamais atteindre le bundle client
-│   ├── actions/                #   "use server", un fichier par domaine (ex. tickets.ts, auth.ts)
-│   ├── services/               #   logique métier, orchestration, agnostique de la DB
+├── server/                     # Tout ce qui ne doit jamais atteindre le bundle client
+│   ├── actions/                #   "use server", un fichier par domaine (auth, tickets, evenements)
+│   ├── services/               #   logique métier (billets, événements, auth, email, PDF, HelloAsso)
 │   └── db/                     #   client + schéma Drizzle, migrations
 │
 └── shared/                     # Importable des deux côtés (client ET server)
@@ -59,8 +62,8 @@ Règles qui se dégagent de ce découpage :
 
 - **`app/`** reste le plus fin possible : une page assemble des composants de `client/components/`, elle ne contient pas de logique métier.
 - **`client/`** ne contient que du code `"use client"` ou consommé uniquement par du code client. Rien ici ne doit importer depuis `server/`.
-- **`server/`** est la seule couche autorisée à parler à la base de données ; `server/db/` contient le schéma et le client Drizzle, `server/actions/` et `server/services/` (encore vides, `.gitkeep`) accueilleront les server actions et la logique métier.
-- **`shared/`** est neutre : `lib/` et `validators/` ne dépendent ni de React ni de Next.js server-only, donc importables aussi bien par un composant client que par une future server action qui voudrait revalider les mêmes schémas Zod côté serveur.
+- **`server/`** est la seule couche autorisée à parler à la base de données ; `server/db/` contient le schéma et le client Drizzle, `server/actions/` (point d'entrée `"use server"`) et `server/services/` (logique métier) sont les seuls à l'utiliser.
+- **`shared/`** est neutre : `lib/` et `validators/` ne dépendent ni de React ni de Next.js server-only, donc importables aussi bien par un composant client que par une server action qui revalide les mêmes schémas Zod côté serveur.
 
 ### Alias d'import
 
@@ -74,7 +77,7 @@ Un `React.Context` fait re-render **tous** ses consommateurs à chaque mutation,
 
 ### Couches backend
 
-`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). `server/actions/` et `server/services/` ne contiennent encore que des `.gitkeep` : aucune server action ni page ne lit la DB pour l'instant (le prototype reste 100 % données factices en mémoire, voir `shared/mock/`).
+`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). Les pages et composants passent par `server/actions/` (`auth`, `tickets`, `evenements`), qui délèguent à `server/services/`. Un seul événement peut être `actif` à la fois (index unique partiel) ; les prix de l'événement sont en centimes et ne servent qu'au total affiché en permanence.
 
 ## Base de données
 
