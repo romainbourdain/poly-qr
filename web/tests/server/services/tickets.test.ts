@@ -467,7 +467,7 @@ describe("service tickets", () => {
   });
 
   describe("obtenirStatsEvenement", () => {
-    it("compte billets émis, entrées vendues (hors invalidés), scannées et tickets boisson dus", async () => {
+    it("compte les billets vendus par origine, les entrées scannées et les tickets boisson, hors invalidés", async () => {
       const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
@@ -501,11 +501,30 @@ describe("service tickets", () => {
         },
       ]);
 
+      const [commandeHelloasso] = await db
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: "Alix Martin",
+          email: "alix@etu-poly.fr",
+          origine: "helloasso",
+          moyenPaiement: "hello_asso",
+          helloassoPaymentId: "hpid-stats",
+        })
+        .returning();
+      await db.insert(billets).values({
+        commandeId: commandeHelloasso.id,
+        code: "DDDD",
+        ticketsBoisson: 1,
+      });
+
       await expect(obtenirStatsEvenement(db, evenementId)).resolves.toEqual({
-        billets: 3,
-        entreesVendues: 2,
+        billetsVendus: 3,
+        billetsPermanence: 2,
+        billetsHelloasso: 1,
         entreesScannees: 1,
-        ticketsBoissonDus: 3,
+        ticketsBoisson: 4,
+        ticketsBoissonPermanence: 3,
       });
     });
 
@@ -526,14 +545,12 @@ describe("service tickets", () => {
         .insert(billets)
         .values({ commandeId: commande.id, code: "OLD1" });
 
-      await expect(obtenirStatsEvenement(db, autreId)).resolves.toEqual({
-        billets: 0,
-        entreesVendues: 0,
-        entreesScannees: 0,
-        ticketsBoissonDus: 0,
+      await expect(obtenirStatsEvenement(db, autreId)).resolves.toMatchObject({
+        billetsVendus: 0,
+        ticketsBoisson: 0,
       });
       await expect(obtenirStatsEvenement(db, ancienId)).resolves.toMatchObject({
-        billets: 1,
+        billetsVendus: 1,
       });
     });
   });

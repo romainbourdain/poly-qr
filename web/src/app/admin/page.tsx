@@ -27,7 +27,7 @@ export default async function AdminEvenementPage({
     <AdminEvenementContent
       evenement={evenement}
       stats={stats}
-      webhookUrl={`${env.APP_URL}/api/webhooks/helloasso/${evenement.id}?secret=${env.HELLOASSO_WEBHOOK_SECRET}`}
+      helloassoUrl={`${env.APP_URL}/api/webhooks/helloasso/${evenement.id}?secret=${env.HELLOASSO_WEBHOOK_SECRET}`}
       scannerUrl={`${env.APP_URL}/scanner/${evenement.id}`}
       apresCreation={nouveau === "1"}
     />

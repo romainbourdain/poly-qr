@@ -3,14 +3,14 @@ import { Card } from "@/client/components/ui/card";
 import { cn } from "@/shared/lib/cn";
 
 /**
- * Guide pour relier HelloAsso à un événement : chaque événement a sa propre URL
- * de webhook. `mis_en_avant` après la création, quand c'est l'étape suivante.
+ * Guide pour relier HelloAsso à un événement : chaque événement a son propre
+ * lien, à coller dans HelloAsso. Mise en avant juste après la création.
  */
-export function HelloassoWebhookCard({
-  webhookUrl,
+export function HelloassoCard({
+  lien,
   misEnAvant,
 }: {
-  webhookUrl: string;
+  lien: string;
   misEnAvant: boolean;
 }) {
   return (
@@ -27,31 +27,28 @@ export function HelloassoWebhookCard({
             : "Relier HelloAsso"}
         </h2>
         <p className="text-[13.5px] text-muted">
-          Chaque événement a sa propre URL de webhook : c&apos;est elle qui
-          rattache les achats HelloAsso à cet événement.
+          Ce lien permet à HelloAsso de créer les billets de cet événement à
+          chaque achat.
         </p>
       </div>
       <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-[14px]">
-        <li>Copie l&apos;URL ci-dessous.</li>
+        <li>Copie le lien ci-dessous.</li>
         <li>
-          Dans le back-office HelloAsso (Mon compte, Intégrations et API),
-          remplace l&apos;URL de notification par celle-ci.
+          Dans HelloAsso, ouvre Mon compte, Intégrations et API, puis colle-le à
+          la place de l&apos;ancien lien de notification.
         </li>
         <li>
-          Fais un achat test, puis vérifie qu&apos;il apparaît dans « Billets ».
+          Fais un achat test et vérifie qu&apos;il apparaît dans « Billets ».
         </li>
       </ol>
       <div className="flex flex-col gap-2">
         <label
-          htmlFor="helloasso-webhook"
+          htmlFor="helloasso-lien"
           className="font-bold text-[12.5px] text-muted"
         >
-          URL du webhook HelloAsso
+          Lien à coller dans HelloAsso
         </label>
-        <CopyField id="helloasso-webhook" value={webhookUrl} />
-        <p className="text-[12.5px] text-muted">
-          Elle contient un secret : ne la partage qu&apos;avec HelloAsso.
-        </p>
+        <CopyField id="helloasso-lien" value={lien} />
       </div>
     </Card>
   );

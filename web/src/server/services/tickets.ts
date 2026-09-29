@@ -256,31 +256,41 @@ export async function obtenirCommandeAvecBillets(
 }
 
 /**
- * Compteurs du résumé admin pour un événement. Un billet = une personne,
- * donc une entrée ; les billets invalidés ne comptent ni comme vendus ni comme
- * tickets boisson dus.
+ * Compteurs du résumé admin pour un événement. Un billet = une personne ;
+ * les billets invalidés ne comptent nulle part.
  */
 export async function obtenirStatsEvenement(
   db: Db,
   evenementId: string,
 ): Promise<StatsEvenement> {
   const stats: StatsEvenement = {
-    billets: 0,
-    entreesVendues: 0,
+    billetsVendus: 0,
+    billetsPermanence: 0,
+    billetsHelloasso: 0,
     entreesScannees: 0,
-    ticketsBoissonDus: 0,
+    ticketsBoisson: 0,
+    ticketsBoissonPermanence: 0,
   };
   const lignes = await db
-    .select({ statut: billets.statut, ticketsBoisson: billets.ticketsBoisson })
+    .select({
+      statut: billets.statut,
+      ticketsBoisson: billets.ticketsBoisson,
+      origine: commandes.origine,
+    })
     .from(billets)
     .innerJoin(commandes, eq(billets.commandeId, commandes.id))
     .where(eq(commandes.evenementId, evenementId));
 
   for (const ligne of lignes) {
-    stats.billets += 1;
     if (ligne.statut === "invalide") continue;
-    stats.entreesVendues += 1;
-    stats.ticketsBoissonDus += ligne.ticketsBoisson;
+    stats.billetsVendus += 1;
+    stats.ticketsBoisson += ligne.ticketsBoisson;
+    if (ligne.origine === "permanence") {
+      stats.billetsPermanence += 1;
+      stats.ticketsBoissonPermanence += ligne.ticketsBoisson;
+    } else {
+      stats.billetsHelloasso += 1;
+    }
     if (ligne.statut === "scanne") stats.entreesScannees += 1;
   }
   return stats;

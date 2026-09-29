@@ -3,10 +3,13 @@ import { cn } from "@/shared/lib/cn";
 export function Stat({
   label,
   value,
+  hint,
   className,
 }: {
   label: string;
   value: number | string;
+  /** Précision sous la valeur (répartition, réserve). */
+  hint?: string;
   className?: string;
 }) {
   return (
@@ -20,6 +23,7 @@ export function Stat({
       <span className="font-display font-extrabold text-[24px] tabular-nums tracking-tight sm:text-[28px]">
         {value}
       </span>
+      {hint && <span className="text-[12px] text-faint">{hint}</span>}
     </div>
   );
 }

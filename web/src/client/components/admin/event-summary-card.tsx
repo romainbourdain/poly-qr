@@ -1,20 +1,20 @@
 import { Card } from "@/client/components/ui/card";
 import { Stat } from "@/client/components/ui/stat";
-import type { Evenement } from "@/shared/lib/types";
+import { formatEuros } from "@/shared/lib/prix";
+import type { Evenement, StatsEvenement } from "@/shared/lib/types";
 
 export function EventSummaryCard({
   evenement,
-  billets,
-  entreesVendues,
-  entreesScannees,
-  ticketsBoissonDus,
+  stats,
 }: {
   evenement: Evenement;
-  billets: number;
-  entreesVendues: number;
-  entreesScannees: number;
-  ticketsBoissonDus: number;
+  stats: StatsEvenement;
 }) {
+  // Seule la permanence a des prix connus : HelloAsso gère ses propres tarifs.
+  const ventesPermanence =
+    stats.billetsPermanence * evenement.prixBilletCentimes +
+    stats.ticketsBoissonPermanence * evenement.prixTicketBoissonCentimes;
+
   return (
     <Card className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5">
@@ -27,10 +27,21 @@ export function EventSummaryCard({
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3.5">
-        <Stat label="Billets émis" value={billets} />
-        <Stat label="Entrées vendues" value={entreesVendues} />
-        <Stat label="Entrées scannées" value={entreesScannees} />
-        <Stat label="Tickets boisson dus" value={ticketsBoissonDus} />
+        <Stat
+          label="Billets vendus"
+          value={stats.billetsVendus}
+          hint={`${stats.billetsHelloasso} HelloAsso · ${stats.billetsPermanence} permanence`}
+        />
+        <Stat
+          label="Personnes entrées"
+          value={`${stats.entreesScannees} / ${stats.billetsVendus}`}
+        />
+        <Stat label="Tickets boisson vendus" value={stats.ticketsBoisson} />
+        <Stat
+          label="Ventes en permanence"
+          value={formatEuros(ventesPermanence)}
+          hint="Hors HelloAsso"
+        />
       </div>
     </Card>
   );

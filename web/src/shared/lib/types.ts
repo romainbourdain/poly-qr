@@ -95,9 +95,13 @@ export interface EvenementResume extends Evenement {
   nbBillets: number;
 }
 
+/** Compteurs d'un événement ; les billets invalidés n'y sont pas comptés. */
 export interface StatsEvenement {
-  billets: number;
-  entreesVendues: number;
+  billetsVendus: number;
+  billetsPermanence: number;
+  billetsHelloasso: number;
   entreesScannees: number;
-  ticketsBoissonDus: number;
+  ticketsBoisson: number;
+  /** Tickets boisson vendus avec les billets de permanence (seuls à avoir un prix connu). */
+  ticketsBoissonPermanence: number;
 }

@@ -6,9 +6,11 @@ import { useEffect, useRef } from "react";
 export function RealQr({
   value,
   size = 220,
+  label = "QR code du billet",
 }: {
   value: string;
   size?: number;
+  label?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -29,7 +31,7 @@ export function RealQr({
       height={size}
       className="shrink-0 rounded-lg"
       role="img"
-      aria-label="QR code du billet"
+      aria-label={label}
     />
   );
 }

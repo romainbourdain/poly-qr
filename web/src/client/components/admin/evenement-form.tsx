@@ -24,6 +24,7 @@ export function EvenementForm({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [changerMotDePasse, setChangerMotDePasse] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -58,6 +59,8 @@ export function EvenementForm({
         return;
       }
       setSaved(true);
+      setChangerMotDePasse(false);
+      form.setFieldValue("motDePasse", "");
       router.refresh();
     },
   });
@@ -116,20 +119,59 @@ export function EvenementForm({
         </form.Field>
       </div>
 
-      <form.Field name="motDePasse">
-        {(field) => (
-          <TextField
-            field={field}
-            label="Mot de passe scanner"
-            description={
-              mode === "modifier"
-                ? "Laisser vide pour conserver le mot de passe actuel."
-                : "Demandé pour scanner les QR codes de cet événement"
-            }
-            autoComplete="off"
-          />
-        )}
-      </form.Field>
+      {mode === "modifier" && !changerMotDePasse ? (
+        <div className="flex flex-col gap-2">
+          <span className="font-bold text-[12.5px] text-muted">
+            Mot de passe scanner
+          </span>
+          <div className="flex items-center gap-2">
+            <div
+              role="img"
+              aria-label="Mot de passe défini, masqué"
+              className="flex h-12.5 min-w-0 flex-1 items-center rounded-xl border border-line-2 bg-ink-4 px-3.5 text-[18px] text-muted tracking-[0.3em]"
+            >
+              ••••••••
+            </div>
+            <Button
+              variant="secondary"
+              className="h-12.5 shrink-0"
+              onClick={() => setChangerMotDePasse(true)}
+            >
+              Changer
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <form.Field name="motDePasse">
+            {(field) => (
+              <TextField
+                field={field}
+                label={
+                  mode === "modifier"
+                    ? "Nouveau mot de passe scanner"
+                    : "Mot de passe scanner"
+                }
+                description="Demandé pour scanner les QR codes de cet événement"
+                autoComplete="off"
+              />
+            )}
+          </form.Field>
+          {mode === "modifier" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="self-start"
+              onClick={() => {
+                form.setFieldValue("motDePasse", "");
+                setChangerMotDePasse(false);
+              }}
+            >
+              Garder l&apos;actuel
+            </Button>
+          )}
+        </div>
+      )}
 
       {error && (
         <div role="alert" className="font-semibold text-[13px] text-bad">
