@@ -9,12 +9,19 @@ import { Separator } from "@/client/components/ui/separator";
 import { TextField } from "@/client/components/ui/text-field";
 import { creerPermanenceAction } from "@/server/actions/tickets";
 import { cn } from "@/shared/lib/cn";
+import {
+  calculerTotalCentimes,
+  formatEuros,
+  type PrixEvenement,
+} from "@/shared/lib/prix";
 import type { CommandeCreee } from "@/shared/lib/types";
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
 
 export function PermanenceForm({
+  prix,
   onCreated,
 }: {
+  prix: PrixEvenement;
   onCreated: (commande: CommandeCreee) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
@@ -154,16 +161,38 @@ export function PermanenceForm({
 
       <Separator />
 
-      <form.Subscribe selector={(state) => state.canSubmit}>
-        {(canSubmit) => (
-          <Button
-            type="submit"
-            disabled={!canSubmit}
-            className="h-13 text-[15.5px]"
-          >
-            Créer et envoyer le(s) QR
-          </Button>
-        )}
+      <form.Subscribe
+        selector={(state) => [state.canSubmit, state.values] as const}
+      >
+        {([canSubmit, values]) => {
+          // Le total n'apparaît que lorsque le formulaire est complet et valide.
+          const pret =
+            canSubmit && permanenceCommandeSchema.safeParse(values).success;
+          return (
+            <>
+              {pret && (
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-bold text-[13px] text-muted">
+                    Total à payer
+                  </span>
+                  <span
+                    className="font-bold font-display text-[24px]"
+                    data-testid="total-a-payer"
+                  >
+                    {formatEuros(calculerTotalCentimes(prix, values.billets))}
+                  </span>
+                </div>
+              )}
+              <Button
+                type="submit"
+                disabled={!canSubmit}
+                className="h-13 text-[15.5px]"
+              >
+                Créer et envoyer le(s) QR
+              </Button>
+            </>
+          );
+        }}
       </form.Subscribe>
     </form>
   );

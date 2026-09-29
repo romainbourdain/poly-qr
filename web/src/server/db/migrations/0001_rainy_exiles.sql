@@ -1,0 +1,2 @@
+ALTER TABLE "evenements" ADD COLUMN "prix_billet_centimes" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "evenements" ADD COLUMN "prix_ticket_boisson_centimes" integer DEFAULT 0 NOT NULL;

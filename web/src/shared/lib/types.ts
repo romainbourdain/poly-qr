@@ -63,3 +63,24 @@ export interface BilletSimulable {
   nom: string;
   statut: Statut;
 }
+
+/** Événement tel qu'affiché (date/heure formatées en français) — sans le mot de passe. */
+export interface EvenementActif {
+  id: string;
+  nom: string;
+  /** `YYYY-MM-DD`, pour préremplir un champ date. */
+  dateIso: string;
+  /** `HH:MM`, pour préremplir un champ heure. */
+  heureIso: string;
+  date: string;
+  heure: string;
+  lieu: string;
+  prixBilletCentimes: number;
+  prixTicketBoissonCentimes: number;
+}
+
+export interface EvenementResume extends EvenementActif {
+  actif: boolean;
+  nbCommandes: number;
+  nbBillets: number;
+}

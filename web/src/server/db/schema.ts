@@ -32,6 +32,12 @@ export const evenements = pgTable(
     heure: time("heure").notNull(),
     lieu: text("lieu").notNull(),
     motDePasseHash: text("mot_de_passe_hash").notNull(),
+    // Prix en centimes, utilisés uniquement pour afficher le total du formulaire
+    // de vente permanence — jamais stockés sur une commande ou un billet.
+    prixBilletCentimes: integer("prix_billet_centimes").notNull().default(0),
+    prixTicketBoissonCentimes: integer("prix_ticket_boisson_centimes")
+      .notNull()
+      .default(0),
     actif: boolean("actif").notNull().default(false),
     creeA: timestamp("cree_a", { withTimezone: true }).notNull().defaultNow(),
   },

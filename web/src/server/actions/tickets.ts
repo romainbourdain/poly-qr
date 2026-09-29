@@ -7,6 +7,7 @@ import {
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
+import { obtenirEvenementActif } from "@/server/services/evenements";
 import {
   creerCommandePermanence,
   invaliderBillet,
@@ -18,7 +19,6 @@ import {
   versBilletListe,
 } from "@/server/services/tickets";
 import type { StatutFilter } from "@/shared/lib/search-params";
-import { EVENT } from "@/shared/mock/event";
 import { commandeIdSchema } from "@/shared/validators/commande";
 import {
   type PermanenceCommandeInput,
@@ -40,6 +40,8 @@ export async function creerPermanenceAction(input: PermanenceCommandeInput) {
 
     let emailError: string | undefined;
     try {
+      const evenement = await obtenirEvenementActif(db);
+      if (!evenement) throw new Error("Aucun événement actif.");
       await envoyerEmailCommande(
         creerSmtpSender(),
         {
@@ -48,7 +50,7 @@ export async function creerPermanenceAction(input: PermanenceCommandeInput) {
           email: commande.email,
           billets: billets.map(versBilletListe),
         },
-        EVENT,
+        evenement,
         getAppUrl(),
       );
     } catch (error) {

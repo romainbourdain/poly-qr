@@ -5,8 +5,9 @@ import { BilletQrCard } from "@/client/components/billet/billet-qr-card";
 import { BilletStatusCard } from "@/client/components/billet/billet-status-card";
 import { BilletSwiper } from "@/client/components/billet/billet-swiper";
 import { obtenirCommandeAction } from "@/server/actions/tickets";
+import { db } from "@/server/db/client";
+import { obtenirEvenementDeCommande } from "@/server/services/evenements";
 import { billetSearchParams } from "@/shared/lib/search-params";
-import { EVENT } from "@/shared/mock/event";
 
 const searchParamsCache = createSearchParamsCache(billetSearchParams);
 
@@ -18,7 +19,11 @@ export default async function BilletPage({
   const { commande: commandeId } = await searchParamsCache.parse(searchParams);
   const commande = commandeId ? await obtenirCommandeAction(commandeId) : null;
 
-  if (!commande || commande.billets.length === 0) {
+  const evenement = commande
+    ? await obtenirEvenementDeCommande(db, commande.commandeId)
+    : null;
+
+  if (!commande || !evenement || commande.billets.length === 0) {
     return <BilletIntrouvable />;
   }
 
@@ -29,10 +34,10 @@ export default async function BilletPage({
           Association Poly
         </div>
         <h1 className="font-display font-extrabold text-3xl tracking-tight">
-          {EVENT.nom}
+          {evenement.nom}
         </h1>
         <div className="text-[14px] text-muted">
-          {EVENT.date} · {EVENT.heure} · {EVENT.lieu}
+          {evenement.date} · {evenement.heure} · {evenement.lieu}
         </div>
       </div>
 

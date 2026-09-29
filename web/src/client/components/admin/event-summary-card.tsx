@@ -3,14 +3,17 @@ import { Card } from "@/client/components/ui/card";
 import { Input } from "@/client/components/ui/input";
 import { Separator } from "@/client/components/ui/separator";
 import { Stat } from "@/client/components/ui/stat";
-import { EVENT } from "@/shared/mock/event";
+import { formatEuros } from "@/shared/lib/prix";
+import type { EvenementActif } from "@/shared/lib/types";
 
 export function EventSummaryCard({
+  evenement,
   billets,
   entreesVendues,
   entreesScannees,
   ticketsBoissonDus,
 }: {
+  evenement: EvenementActif;
   billets: number;
   entreesVendues: number;
   entreesScannees: number;
@@ -22,14 +25,14 @@ export function EventSummaryCard({
         <div className="flex flex-1 flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="font-bold font-display text-[20px] tracking-tight sm:text-[23px]">
-              {EVENT.nom}
+              {evenement.nom}
             </span>
             <Badge variant="good" className="tracking-wide">
               EN COURS
             </Badge>
           </div>
           <div className="text-[13.5px] text-muted">
-            {EVENT.date} · {EVENT.heure} · {EVENT.lieu}
+            {evenement.date} · {evenement.heure} · {evenement.lieu}
           </div>
         </div>
       </div>
@@ -65,20 +68,15 @@ export function EventSummaryCard({
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <label
-            htmlFor="volunteer-password"
-            className="font-bold text-[12.5px] text-muted"
-          >
-            Mot de passe bénévoles
-          </label>
-          <Input
-            id="volunteer-password"
-            readOnly
-            defaultValue={EVENT.motDePasse}
-            className="h-11.5 text-[15px] tracking-wide"
-          />
+          <span className="font-bold text-[12.5px] text-muted">
+            Tarifs permanence
+          </span>
+          <div className="text-[15px]">
+            Billet {formatEuros(evenement.prixBilletCentimes)} · Ticket boisson{" "}
+            {formatEuros(evenement.prixTicketBoissonCentimes)}
+          </div>
           <div className="text-[12.5px] text-muted">
-            À donner aux bénévoles du poste d&apos;entrée le soir même.
+            Affichés dans le formulaire de vente permanence uniquement.
           </div>
         </div>
       </div>

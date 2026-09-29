@@ -1,7 +1,12 @@
 import { FeatureCard } from "@/client/components/home/feature-card";
-import { EVENT } from "@/shared/mock/event";
+import { db } from "@/server/db/client";
+import { obtenirEvenementActif } from "@/server/services/evenements";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const evenement = await obtenirEvenementActif(db);
+
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-12 px-6 py-16">
       <div className="flex flex-col gap-3">
@@ -12,10 +17,12 @@ export default function Home() {
           PolyQR
         </h1>
         <p className="max-w-xl text-[15px] text-muted leading-relaxed">
-          Démo cliquable du système de QR code d&apos;entrée, pour la{" "}
-          {EVENT.nom} ({EVENT.date}, {EVENT.lieu}). Les données sont factices et
-          réinitialisées à chaque rechargement — ce prototype sert à valider le
-          parcours, pas à gérer une vraie soirée.
+          Démo cliquable du système de QR code d&apos;entrée
+          {evenement
+            ? ` pour la ${evenement.nom} (${evenement.date}, ${evenement.lieu})`
+            : ""}
+          . Ce prototype sert à valider le parcours, pas à gérer une vraie
+          soirée.
         </p>
       </div>
 
@@ -44,11 +51,6 @@ export default function Home() {
           cta="Ouvrir l'admin"
           accent="#FFB020"
         />
-      </div>
-
-      <div className="rounded-2xl border border-line bg-ink-2 p-5 text-[13px] text-muted leading-relaxed">
-        Mot de passe bénévole pour la démo :{" "}
-        <span className="font-bold font-mono text-fg">{EVENT.motDePasse}</span>
       </div>
     </main>
   );

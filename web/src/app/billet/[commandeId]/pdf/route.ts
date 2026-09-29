@@ -1,6 +1,7 @@
 import { obtenirCommandeAction } from "@/server/actions/tickets";
+import { db } from "@/server/db/client";
+import { obtenirEvenementDeCommande } from "@/server/services/evenements";
 import { genererPdfCommande } from "@/server/services/pdf";
-import { EVENT } from "@/shared/mock/event";
 
 export async function GET(
   _request: Request,
@@ -12,7 +13,12 @@ export async function GET(
     return new Response("Commande introuvable.", { status: 404 });
   }
 
-  const pdf = await genererPdfCommande(commande, EVENT);
+  const evenement = await obtenirEvenementDeCommande(db, commande.commandeId);
+  if (!evenement) {
+    return new Response("Événement introuvable.", { status: 404 });
+  }
+
+  const pdf = await genererPdfCommande(commande, evenement);
 
   return new Response(new Uint8Array(pdf), {
     headers: {

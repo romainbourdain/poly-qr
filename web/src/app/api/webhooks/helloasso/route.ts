@@ -4,6 +4,7 @@ import {
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
+import { obtenirEvenementActif } from "@/server/services/evenements";
 import {
   itemAOptionBoisson,
   obtenirTokenHelloAsso,
@@ -14,7 +15,6 @@ import {
   creerCommandeDepuisHelloAsso,
   versBilletListe,
 } from "@/server/services/tickets";
-import { EVENT } from "@/shared/mock/event";
 import { helloassoCommandeSchema } from "@/shared/validators/helloasso";
 
 /**
@@ -115,6 +115,8 @@ export async function POST(request: Request) {
 
   if (!resultat.dejaTraitee) {
     try {
+      const evenement = await obtenirEvenementActif(db);
+      if (!evenement) throw new Error("Aucun événement actif.");
       await envoyerEmailCommande(
         creerSmtpSender(),
         {
@@ -123,7 +125,7 @@ export async function POST(request: Request) {
           email: resultat.commande.email,
           billets: resultat.billets.map(versBilletListe),
         },
-        EVENT,
+        evenement,
         getAppUrl(),
       );
     } catch (error) {

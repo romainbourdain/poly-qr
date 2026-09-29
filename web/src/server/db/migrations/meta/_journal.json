@@ -8,6 +8,13 @@
       "when": 1790504440463,
       "tag": "0000_acoustic_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790689897559,
+      "tag": "0001_rainy_exiles",
+      "breakpoints": true
     }
   ]
 }

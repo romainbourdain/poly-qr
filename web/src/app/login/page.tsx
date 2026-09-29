@@ -1,7 +1,12 @@
 import { LoginForm } from "@/client/components/login/login-form";
-import { EVENT } from "@/shared/mock/event";
+import { db } from "@/server/db/client";
+import { obtenirEvenementActif } from "@/server/services/evenements";
 
-export default function LoginPage() {
+export const dynamic = "force-dynamic";
+
+export default async function LoginPage() {
+  const evenement = await obtenirEvenementActif(db);
+
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-8 px-7">
       <div className="flex flex-col gap-2.5">
@@ -24,7 +29,9 @@ export default function LoginPage() {
           Accès équipe
         </h1>
         <div className="text-[15px] text-muted leading-relaxed">
-          {EVENT.nom} · {EVENT.date}
+          {evenement
+            ? `${evenement.nom} · ${evenement.date}`
+            : "Aucun événement actif"}
           <br />
           Entre le mot de passe donné par l&apos;organisateur.
         </div>

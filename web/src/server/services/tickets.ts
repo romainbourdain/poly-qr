@@ -172,8 +172,10 @@ export async function creerCommandeDepuisHelloAsso(
 export async function listerBillets(
   db: Db,
   filtres: { q: string; statut: StatutFilter },
+  /** Par défaut l'événement actif ; passer un id pour consulter un événement passé. */
+  evenementIdCible?: string,
 ): Promise<CommandeAvecBillets[]> {
-  const evenementId = await obtenirEvenementActifId(db);
+  const evenementId = evenementIdCible ?? (await obtenirEvenementActifId(db));
   if (!evenementId) return [];
 
   const conditions = [eq(commandes.evenementId, evenementId)];
