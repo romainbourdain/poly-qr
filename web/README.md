@@ -25,7 +25,7 @@ Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + TypeScript. Persistance P
 | Formulaires | [TanStack Form](https://tanstack.com/form) + [Zod](https://zod.dev) pour la validation |
 | État partagé côté client | [Zustand](https://zustand.docs.pmnd.rs) |
 | État d'URL (recherche/filtres) | [nuqs](https://nuqs.dev) |
-| Variables d'environnement | [t3-env](https://env.t3.gg) (`@t3-oss/env-core`) + Zod, dans `server/env.ts` |
+| Variables d'environnement | [t3-env](https://env.t3.gg) (`@t3-oss/env-core`) + Zod, dans `server/env-schema.ts` / `server/env.ts` |
 | Lint/format | [Biome](https://biomejs.dev) (remplace ESLint + Prettier), y compris tri et raccourcissement des classes Tailwind |
 | Gestion de paquets | [pnpm](https://pnpm.io) |
 | Hooks Git | [husky](https://typicode.github.io/husky) + [lint-staged](https://github.com/okonet/lint-staged) |
@@ -122,8 +122,8 @@ Déployé sur Vercel. `npx vercel --prod` depuis ce dossier (le dossier racine d
 
 ### Variables d'environnement
 
-Toutes les variables sont déclarées et validées (Zod) dans `server/env-schema.ts` ; le reste du code lit `env` depuis `@/server/env`, jamais `process.env` (seule exception : `NODE_ENV`). `next.config.ts` importe ce module, donc `pnpm dev` et `pnpm build` échouent tôt avec la liste des variables manquantes ou invalides. `.env.example` liste toutes les variables.
+Toutes les variables sont déclarées et validées (Zod) dans `server/env-schema.ts` ; le reste du code lit `env` depuis `@/server/env`, jamais `process.env` (exceptions : `NODE_ENV`, `SKIP_ENV_VALIDATION`). `next.config.ts` importe ce module, donc `pnpm dev` et `pnpm build` échouent tôt avec la liste des variables manquantes ou invalides. `.env.example` liste toutes les variables.
 
-- `SKIP_ENV_VALIDATION=1` désactive la validation, par exemple pour builder l'image Docker sans secrets (les variables restent nécessaires au démarrage réel). Vitest l'active aussi : les tests posent leurs propres valeurs, et le schéma est testé dans `tests/server/env.test.ts`.
+- `SKIP_ENV_VALIDATION=1` désactive la validation, par exemple pour builder l'image Docker sans secrets (build uniquement : ne jamais l'activer au démarrage réel, les valeurs ne sont alors ni validées ni converties, ex. `SMTP_PORT` reste une chaîne). Vitest l'active aussi : les tests posent leurs propres valeurs, et le schéma est testé dans `tests/server/env.test.ts`.
 - `drizzle.config.ts` réutilise le schéma mais ne valide que `DATABASE_URL`.
 - `DATABASE_URL_TEST` est optionnelle (tests uniquement).
