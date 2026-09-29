@@ -11,7 +11,7 @@ function payloadValide(overrides: Record<string, unknown> = {}) {
         lastName: "Dupont",
         email: "jean.dupont@example.org",
       },
-      items: [{ customFields: [{ name: "Tickets boisson", answer: "2" }] }],
+      items: [{ id: 1 }],
     },
     ...overrides,
   };
@@ -26,7 +26,7 @@ describe("mapperPayloadHelloAsso", () => {
     expect(entree.helloassoPaymentId).toBe("12345");
   });
 
-  it("crée un billet par item, avec ses tickets boisson", () => {
+  it("extrait un identifiant d'item par billet", () => {
     const entree = mapperPayloadHelloAsso(
       payloadValide({
         data: {
@@ -36,32 +36,12 @@ describe("mapperPayloadHelloAsso", () => {
             lastName: "Curie",
             email: "marie@example.org",
           },
-          items: [
-            { customFields: [{ name: "Tickets boisson", answer: "3" }] },
-            { customFields: [] },
-          ],
+          items: [{ id: 10 }, { id: 20 }],
         },
       }),
     );
 
-    expect(entree.billets).toEqual([
-      { ticketsBoisson: 3 },
-      { ticketsBoisson: 0 },
-    ]);
-  });
-
-  it("met 0 ticket boisson quand le champ personnalisé est absent", () => {
-    const entree = mapperPayloadHelloAsso(
-      payloadValide({
-        data: {
-          id: 1,
-          payer: { firstName: "A", lastName: "B", email: "a@example.org" },
-          items: [{}],
-        },
-      }),
-    );
-
-    expect(entree.billets).toEqual([{ ticketsBoisson: 0 }]);
+    expect(entree.itemIds).toEqual([10, 20]);
   });
 
   it("rejette un payload qui n'est pas un eventType Order", () => {

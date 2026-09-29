@@ -1,6 +1,15 @@
 import { eq } from "drizzle-orm";
 import type { Sql } from "postgres";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { billets, commandes, evenements } from "@/server/db/schema";
 import {
   creerTestDb,
@@ -11,10 +20,32 @@ import {
 import { hashPassword } from "@/server/services/auth";
 import { POST } from "./route";
 
-const URL = "http://localhost:3000/api/webhooks/helloasso";
+const ENDPOINT = "http://localhost:3000/api/webhooks/helloasso";
 const SECRET = process.env.HELLOASSO_WEBHOOK_SECRET as string;
 
-function payloadValide(overrides: { id?: number | string } = {}) {
+/** Items 1 et 3 ont l'option boisson, l'item 2 non. */
+const ITEMS_AVEC_OPTION_BOISSON = new Set([1, 3]);
+
+function stubFetchHelloAsso() {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => {
+      if (url.endsWith("/oauth2/token")) {
+        return { ok: true, json: async () => ({ access_token: "token" }) };
+      }
+
+      const itemId = Number(new URL(url).pathname.split("/").pop());
+      const options = ITEMS_AVEC_OPTION_BOISSON.has(itemId)
+        ? [{ name: "Ticket boisson" }]
+        : [];
+      return { ok: true, json: async () => ({ options }) };
+    }),
+  );
+}
+
+function payloadValide(
+  overrides: { id?: number | string; itemIds?: number[] } = {},
+) {
   return {
     eventType: "Order",
     data: {
@@ -24,16 +55,13 @@ function payloadValide(overrides: { id?: number | string } = {}) {
         lastName: "Dupont",
         email: "jean.dupont@example.org",
       },
-      items: [
-        { customFields: [{ name: "Tickets boisson", answer: "2" }] },
-        { customFields: [] },
-      ],
+      items: (overrides.itemIds ?? [1, 2]).map((id) => ({ id })),
     },
   };
 }
 
 function requete(body: unknown, secret = SECRET) {
-  return new Request(`${URL}?secret=${secret}`, {
+  return new Request(`${ENDPOINT}?secret=${secret}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -48,7 +76,12 @@ describe("POST /api/webhooks/helloasso", () => {
     ({ db, client } = await creerTestDb());
   });
 
+  beforeEach(() => {
+    stubFetchHelloAsso();
+  });
+
   afterEach(async () => {
+    vi.unstubAllGlobals();
     await nettoyerTestDb(db);
   });
 
@@ -67,10 +100,12 @@ describe("POST /api/webhooks/helloasso", () => {
     });
   }
 
-  it("crée une commande et ses billets pour un paiement valide", async () => {
+  it("crée une commande et ses billets pour un paiement valide, avec 1 ticket boisson si l'option a été prise", async () => {
     await creerEvenementActif();
 
-    const reponse = await POST(requete(payloadValide({ id: 1 })));
+    const reponse = await POST(
+      requete(payloadValide({ id: 1, itemIds: [1, 2] })),
+    );
 
     expect(reponse.status).toBe(200);
 
@@ -84,6 +119,9 @@ describe("POST /api/webhooks/helloasso", () => {
       .from(billets)
       .where(eq(billets.commandeId, lignes[0].id));
     expect(lignesBillets).toHaveLength(2);
+    expect(new Set(lignesBillets.map((b) => b.ticketsBoisson))).toEqual(
+      new Set([1, 0]),
+    );
   });
 
   it("rejette un secret invalide sans créer de commande", async () => {
@@ -98,14 +136,17 @@ describe("POST /api/webhooks/helloasso", () => {
     expect(lignes).toHaveLength(0);
   });
 
-  it("ne crée pas deux commandes pour le même paiement rejoué", async () => {
+  it("ne crée pas deux commandes pour le même paiement rejoué, sans rappeler l'API HelloAsso", async () => {
     await creerEvenementActif();
 
     const premiere = await POST(requete(payloadValide({ id: 3 })));
+    const appelsApresPremiere = vi.mocked(fetch).mock.calls.length;
+
     const rejeu = await POST(requete(payloadValide({ id: 3 })));
 
     expect(premiere.status).toBe(200);
     expect(rejeu.status).toBe(200);
+    expect(vi.mocked(fetch).mock.calls.length).toBe(appelsApresPremiere);
 
     const lignes = await db.select().from(commandes);
     expect(lignes).toHaveLength(1);

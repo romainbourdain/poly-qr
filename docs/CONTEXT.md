@@ -22,7 +22,7 @@ Une personne qui achète pour plusieurs (elle-même incluse ou non) reçoit une 
 
 ## Tickets boisson
 
-Add-on à quantité choisie à l'achat (sur HelloAsso, ou saisie en permanence), **par billet** (donc par personne) plutôt que globalisé sur la commande. Toujours distribués en **papier physique** à l'entrée. Le système ne fait que dire au bénévole combien en donner au moment du scan d'un billet — aucun suivi numérique de la distribution elle-même. Pour les payeurs sur place (sans QR), le bénévole de la caisse les calcule et les remet à la main, hors système.
+Add-on **par billet** (donc par personne) plutôt que globalisé sur la commande, à quantité choisie librement en permanence (saisie par le bénévole), mais **binaire (0 ou 1) sur HelloAsso** : une "option" HelloAsso ne porte pas de quantité, elle ne peut être achetée qu'une fois par billet — voir [DECISIONS.md](DECISIONS.md). Toujours distribués en **papier physique** à l'entrée. Le système ne fait que dire au bénévole combien en donner au moment du scan d'un billet — aucun suivi numérique de la distribution elle-même. Pour les payeurs sur place (sans QR), le bénévole de la caisse les calcule et les remet à la main, hors système.
 
 ## Scan à l'entrée
 
@@ -42,11 +42,9 @@ Add-on à quantité choisie à l'achat (sur HelloAsso, ou saisie en permanence),
 
 Plusieurs personnes du bureau (dont le trésorier) doivent pouvoir créer des billets de permanence et invalider un billet, sans dépendre d'une seule personne. Accès par mot de passe partagé, pas de comptes individuels pour l'instant.
 
-## Risque technique à lever tôt
+## Risque technique — levé
 
-On ne sait pas si le webhook HelloAsso transmet directement le tarif/l'add-on tickets boisson par personne dans son payload, ou s'il faut un appel API de suivi (`GET /items/{itemId}`) pour les récupérer. HelloAsso a une API OAuth2 gratuite et illimitée pour les associations (dev.helloasso.com), mais ce point précis n'est pas documenté publiquement — à vérifier avec un webhook de test avant de coder l'intégration.
-
-**Mise à jour (webhook de test observé le 2026-09-28, environnement Sandbox)** : HelloAsso envoie un webhook distinct par `eventType` pour un même achat (`Payment` et `Order` notamment) ; seul `Order` porte le détail par billet (`data.items[]`, un item par personne inscrite) et c'est celui qu'on traite (voir `web/src/server/services/helloasso-payload.ts`). Sur ce premier essai, `items[]` ne portait aucun `customFields` ni `options` : le formulaire de test n'avait pas encore d'option "tickets boisson" configurée dessus. Reste à faire : ajouter cette option payante sur un formulaire de test et observer comment elle apparaît dans `items[]` avant de considérer ce risque levé. Pas de signature/HMAC documentée sur les webhooks HelloAsso — la vérification se fait par un secret partagé en paramètre de l'URL de callback.
+~~On ne sait pas si le webhook HelloAsso transmet directement le tarif/l'add-on tickets boisson par personne dans son payload, ou s'il faut un appel API de suivi (`GET /items/{itemId}`) pour les récupérer.~~ Vérifié avec un vrai webhook de test (environnement Sandbox, 2026-09-28) : HelloAsso envoie un webhook distinct par `eventType` pour un même achat (`Payment` et `Order` notamment) ; seul `Order` porte le détail par billet (`data.items[]`, un item par personne inscrite) et c'est celui qu'on traite (voir `web/src/server/services/helloasso-payload.ts`). Le webhook **ne transmet jamais** les options choisies pour un item, qu'elles soient configurées ou non sur le formulaire — il faut systématiquement l'appel de suivi `GET /items/{itemId}?withDetails=true`, authentifié en OAuth2 `client_credentials` (voir `web/src/server/services/helloasso-api.ts`). Par ailleurs, une option HelloAsso ne porte pas de quantité : le nombre de tickets boisson y est donc binaire (0 ou 1), voir [DECISIONS.md](DECISIONS.md). Pas de signature/HMAC documentée sur les webhooks HelloAsso — la vérification se fait par un secret partagé en paramètre de l'URL de callback.
 
 ## Stack
 

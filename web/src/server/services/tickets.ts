@@ -86,6 +86,23 @@ export async function creerCommandePermanence(
 }
 
 /**
+ * Vérifie si un paiement HelloAsso a déjà été traité, avant tout appel à
+ * l'API HelloAsso (résolution des options par item) — évite ces appels
+ * réseau superflus quand le webhook est rejoué pour un paiement déjà connu.
+ */
+export async function commandeHelloassoExiste(
+  db: Db,
+  helloassoPaymentId: string,
+): Promise<boolean> {
+  const [existante] = await db
+    .select({ id: commandes.id })
+    .from(commandes)
+    .where(eq(commandes.helloassoPaymentId, helloassoPaymentId))
+    .limit(1);
+  return existante !== undefined;
+}
+
+/**
  * Crée une commande à partir d'un paiement HelloAsso déjà normalisé.
  * Idempotent sur `helloassoPaymentId` : un paiement déjà traité renvoie la
  * commande existante sans créer de nouveaux billets (webhook rejoué).

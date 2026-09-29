@@ -4,8 +4,13 @@ import {
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
+import {
+  itemAOptionBoisson,
+  obtenirTokenHelloAsso,
+} from "@/server/services/helloasso-api";
 import { mapperPayloadHelloAsso } from "@/server/services/helloasso-payload";
 import {
+  commandeHelloassoExiste,
   creerCommandeDepuisHelloAsso,
   versBilletListe,
 } from "@/server/services/tickets";
@@ -62,14 +67,41 @@ export async function POST(request: Request) {
     return Response.json({ success: true, ignore: true });
   }
 
-  let entree: unknown;
+  let commande: ReturnType<typeof mapperPayloadHelloAsso>;
   try {
-    entree = mapperPayloadHelloAsso(payload);
+    commande = mapperPayloadHelloAsso(payload);
   } catch {
     return Response.json({ error: "Payload invalide." }, { status: 400 });
   }
 
-  const parsed = helloassoCommandeSchema.safeParse(entree);
+  // Paiement déjà traité (webhook rejoué) : on s'arrête avant tout appel à
+  // l'API HelloAsso (résolution des options) et tout envoi d'email.
+  if (await commandeHelloassoExiste(db, commande.helloassoPaymentId)) {
+    return Response.json({ success: true });
+  }
+
+  let billets: { ticketsBoisson: number }[];
+  try {
+    const token = await obtenirTokenHelloAsso();
+    billets = await Promise.all(
+      commande.itemIds.map(async (itemId) => ({
+        ticketsBoisson: (await itemAOptionBoisson(token, itemId)) ? 1 : 0,
+      })),
+    );
+  } catch (error) {
+    console.error("Échec de la résolution des options HelloAsso", error);
+    return Response.json(
+      { error: "Échec de la résolution des options HelloAsso." },
+      { status: 502 },
+    );
+  }
+
+  const parsed = helloassoCommandeSchema.safeParse({
+    nom: commande.nom,
+    email: commande.email,
+    helloassoPaymentId: commande.helloassoPaymentId,
+    billets,
+  });
   if (!parsed.success) {
     return Response.json({ error: "Payload invalide." }, { status: 400 });
   }
