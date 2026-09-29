@@ -22,6 +22,8 @@ describe("mapperPayloadHelloAsso", () => {
     const entree = mapperPayloadHelloAsso(payloadValide());
 
     expect(entree.nom).toBe("Jean Dupont");
+    expect(entree.payeurPrenom).toBe("Jean");
+    expect(entree.payeurNom).toBe("Dupont");
     expect(entree.email).toBe("jean.dupont@example.org");
     expect(entree.helloassoPaymentId).toBe("12345");
   });

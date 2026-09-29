@@ -20,7 +20,7 @@ import {
   formatEuros,
   type PrixEvenement,
 } from "@/shared/lib/prix";
-import { MOYEN_PAIEMENT_LABEL } from "@/shared/lib/tickets";
+import { MOYEN_PAIEMENT_LABEL, nomComplet } from "@/shared/lib/tickets";
 import {
   type CommandeCreee,
   MOYENS_PAIEMENT,
@@ -59,10 +59,9 @@ export function VenteForm({
 
   const form = useForm({
     defaultValues: {
-      nom: "",
       email: "",
       moyenPaiement: "" as MoyenPaiement | "",
-      billets: [{ ticketsBoisson: 0 }],
+      billets: [{ nom: "", prenom: "", ticketsBoisson: 0 }],
     },
     validators: {
       onChange: schema,
@@ -93,11 +92,13 @@ export function VenteForm({
       onCreated({
         commandeId: data.commande.id,
         origine: mode,
-        nom: input.nom,
+        nom: nomComplet(input.billets[0].prenom, input.billets[0].nom),
         email: "email" in input ? input.email : null,
         billets: data.billets.map((billet) => ({
           id: billet.id,
           code: billet.code,
+          nom: billet.nom,
+          prenom: billet.prenom,
           ticketsBoisson: billet.ticketsBoisson,
         })),
       });
@@ -115,99 +116,129 @@ export function VenteForm({
       }}
       className={cn(CARD_CLASSES, "flex flex-col gap-5")}
     >
-      <form.Field name="nom">
-        {(field) => (
-          <TextField
-            field={field}
-            label="Nom et prénom"
-            placeholder="Sacha Lemoine"
-          />
-        )}
-      </form.Field>
-
-      {!surPlace && (
-        <form.Field name="email">
-          {(field) => (
-            <TextField
-              field={field}
-              label="Email"
-              type="email"
-              placeholder="sacha.lemoine@etu-poly.fr"
-              description="C'est l'adresse qui recevra le(s) QR code(s)."
-            />
-          )}
-        </form.Field>
-      )}
-
-      <form.Field name="moyenPaiement">
-        {(field) => (
-          <SelectField
-            field={field}
-            label="Moyen de paiement"
-            placeholder="Choisir un moyen de paiement"
-            options={MOYENS_PAIEMENT.map((value) => ({
-              value,
-              label: MOYEN_PAIEMENT_LABEL[value],
-            }))}
-          />
-        )}
-      </form.Field>
-
-      <Separator />
-
       <form.Field name="billets" mode="array">
-        {(billetsField) => (
-          <div className="flex flex-col gap-4">
-            {billetsField.state.value.map((_, index) => (
-              <div key={rowIds[index]} className="flex flex-col gap-2">
-                <form.Field name={`billets[${index}].ticketsBoisson`}>
+        {(billetsField) => {
+          const nomEtPrenom = (index: number) => (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <form.Field name={`billets[${index}].nom`}>
+                {(field) => (
+                  <TextField
+                    field={field}
+                    label="Nom"
+                    placeholder="Lemoine"
+                    autoComplete="off"
+                  />
+                )}
+              </form.Field>
+              <form.Field name={`billets[${index}].prenom`}>
+                {(field) => (
+                  <TextField
+                    field={field}
+                    label="Prénom"
+                    placeholder="Sacha"
+                    autoComplete="off"
+                  />
+                )}
+              </form.Field>
+            </div>
+          );
+          const tickets = (index: number) => (
+            <form.Field name={`billets[${index}].ticketsBoisson`}>
+              {(field) => (
+                <TicketStepperField
+                  field={field}
+                  label="Tickets boisson"
+                  hint={
+                    surPlace
+                      ? "Remis en papier tout de suite,\nà l'encaissement."
+                      : "Remis en papier à l'entrée,\nen une fois, au scan du billet."
+                  }
+                />
+              )}
+            </form.Field>
+          );
+
+          return (
+            <>
+              {nomEtPrenom(0)}
+
+              {!surPlace && (
+                <form.Field name="email">
                   {(field) => (
-                    <TicketStepperField
+                    <TextField
                       field={field}
-                      label={
-                        billetsField.state.value.length > 1
-                          ? `Tickets boisson — billet ${index + 1}`
-                          : "Tickets boisson achetés (total)"
-                      }
-                      hint={
-                        surPlace
-                          ? "Remis en papier tout de suite,\nà l'encaissement."
-                          : "Remis en papier à l'entrée,\nen une fois, au scan du billet."
-                      }
+                      label="Email"
+                      type="email"
+                      placeholder="sacha.lemoine@etu-poly.fr"
+                      description="C'est l'adresse qui recevra le(s) QR code(s)."
                     />
                   )}
                 </form.Field>
-                {billetsField.state.value.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-11 self-start px-0 text-bad"
-                    onClick={() => {
-                      billetsField.removeValue(index);
-                      setRowIds((prev) => prev.filter((_, i) => i !== index));
-                    }}
-                  >
-                    Retirer ce billet
-                  </Button>
-                )}
-              </div>
-            ))}
+              )}
 
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="h-11 self-start px-4"
-              onClick={() => {
-                billetsField.pushValue({ ticketsBoisson: 0 });
-                setRowIds((prev) => [...prev, nextRowId.current++]);
-              }}
-            >
-              + Ajouter un billet
-            </Button>
-          </div>
-        )}
+              <form.Field name="moyenPaiement">
+                {(field) => (
+                  <SelectField
+                    field={field}
+                    label="Moyen de paiement"
+                    placeholder="Choisir un moyen de paiement"
+                    options={MOYENS_PAIEMENT.map((value) => ({
+                      value,
+                      label: MOYEN_PAIEMENT_LABEL[value],
+                    }))}
+                  />
+                )}
+              </form.Field>
+
+              {tickets(0)}
+
+              {billetsField.state.value.slice(1).map((_, i) => {
+                const index = i + 1;
+                return (
+                  <div
+                    key={rowIds[index]}
+                    className="flex flex-col gap-5 rounded-2xl border border-line-2 bg-ink-3 p-4"
+                  >
+                    <div className="font-bold text-[13px] text-muted">
+                      Billet {index + 1}
+                    </div>
+                    {nomEtPrenom(index)}
+                    {tickets(index)}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-11 self-start px-0 text-bad"
+                      onClick={() => {
+                        billetsField.removeValue(index);
+                        setRowIds((prev) => prev.filter((_, j) => j !== index));
+                      }}
+                    >
+                      Retirer ce billet
+                    </Button>
+                  </div>
+                );
+              })}
+
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-11 self-start px-4"
+                onClick={() => {
+                  billetsField.pushValue({
+                    nom: "",
+                    prenom: "",
+                    ticketsBoisson: 0,
+                  });
+                  setRowIds((prev) => [...prev, nextRowId.current++]);
+                }}
+              >
+                + Ajouter un billet
+              </Button>
+            </>
+          );
+        }}
       </form.Field>
 
       {error && (

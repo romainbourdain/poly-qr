@@ -44,9 +44,9 @@ export default async function BilletPage({
 
       <div className="flex flex-1 flex-col justify-center gap-3 py-5">
         {commande.billets.length > 1 ? (
-          <BilletSwiper nom={commande.nom} billets={commande.billets} />
+          <BilletSwiper billets={commande.billets} />
         ) : (
-          <BilletQrCard nom={commande.nom} billet={commande.billets[0]} />
+          <BilletQrCard billet={commande.billets[0]} />
         )}
 
         <BilletPdfLink commandeId={commande.commandeId} />

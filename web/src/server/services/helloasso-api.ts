@@ -30,17 +30,27 @@ export async function obtenirTokenHelloAsso(): Promise<string> {
 
 const NOM_OPTION_BOISSON = /boisson/i;
 
+export interface DetailsItemHelloAsso {
+  /** 1 si l'option « ticket boisson » a été prise, 0 sinon. */
+  ticketsBoisson: number;
+  /** Personne inscrite sur ce billet, quand HelloAsso la renseigne. */
+  prenom?: string;
+  nom?: string;
+}
+
 /**
  * Le webhook HelloAsso ne transmet jamais les options choisies pour un item
  * (voir docs/CONTEXT.md, "Risque technique à lever tôt") : il faut cet appel
  * de suivi pour savoir si l'option "ticket boisson" a été prise. HelloAsso ne
  * permettant pas d'en acheter plusieurs pour un même billet (voir
- * docs/DECISIONS.md), sa présence vaut 1 ticket boisson, son absence 0.
+ * docs/DECISIONS.md), sa présence vaut 1 ticket boisson, son absence 0. Le
+ * même appel donne la personne inscrite sur le billet (`user`), sinon on
+ * retombe sur celle qui a payé.
  */
-export async function itemAOptionBoisson(
+export async function detailsItemHelloAsso(
   accessToken: string,
   itemId: number,
-): Promise<boolean> {
+): Promise<DetailsItemHelloAsso> {
   const reponse = await fetch(
     `${env.HELLOASSO_API_BASE_URL}/v5/items/${itemId}?withDetails=true`,
     { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -52,11 +62,16 @@ export async function itemAOptionBoisson(
     );
   }
 
-  const { options } = (await reponse.json()) as {
+  const { options, user } = (await reponse.json()) as {
     options?: { name: string }[];
+    user?: { firstName?: string; lastName?: string };
   };
 
-  return (
-    options?.some((option) => NOM_OPTION_BOISSON.test(option.name)) ?? false
-  );
+  return {
+    ticketsBoisson: options?.some((o) => NOM_OPTION_BOISSON.test(o.name))
+      ? 1
+      : 0,
+    prenom: user?.firstName?.trim() || undefined,
+    nom: user?.lastName?.trim() || undefined,
+  };
 }

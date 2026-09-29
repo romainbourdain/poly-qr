@@ -10,7 +10,7 @@ import {
   obtenirEvenementDeCommande,
 } from "@/server/services/evenements";
 import {
-  itemAOptionBoisson,
+  detailsItemHelloAsso,
   obtenirTokenHelloAsso,
 } from "@/server/services/helloasso-api";
 import { mapperPayloadHelloAsso } from "@/server/services/helloasso-payload";
@@ -90,13 +90,19 @@ export async function POST(
     return Response.json({ success: true });
   }
 
-  let billets: { ticketsBoisson: number }[];
+  let billets: { nom: string; prenom: string; ticketsBoisson: number }[];
   try {
     const token = await obtenirTokenHelloAsso();
     billets = await Promise.all(
-      commande.itemIds.map(async (itemId) => ({
-        ticketsBoisson: (await itemAOptionBoisson(token, itemId)) ? 1 : 0,
-      })),
+      commande.itemIds.map(async (itemId) => {
+        const details = await detailsItemHelloAsso(token, itemId);
+        // Sans inscrit renseigné, le billet est au nom de celle qui a payé.
+        return {
+          nom: details.nom ?? (commande.payeurNom || "—"),
+          prenom: details.prenom ?? (commande.payeurPrenom || "—"),
+          ticketsBoisson: details.ticketsBoisson,
+        };
+      }),
     );
   } catch (error) {
     console.error("Échec de la résolution des options HelloAsso", error);

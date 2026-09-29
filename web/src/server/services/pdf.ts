@@ -6,6 +6,7 @@ import {
   StandardFonts,
 } from "pdf-lib";
 import { genererQrPng } from "@/server/services/qr";
+import { nomComplet } from "@/shared/lib/tickets";
 import type { BilletListe } from "@/shared/lib/types";
 
 // A4 portrait, une page par billet.
@@ -37,7 +38,7 @@ interface Fonts {
  * avec le même QR que la page web (`polyqr:<code>`) pour scanner identique.
  */
 export async function genererPdfCommande(
-  commande: { nom: string; billets: BilletListe[] },
+  commande: { billets: BilletListe[] },
   evenement: EvenementInfoPdf,
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
@@ -50,7 +51,7 @@ export async function genererPdfCommande(
   for (const [index, billet] of commande.billets.entries()) {
     const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     await dessinerPageBillet(pdfDoc, page, fonts, {
-      nom: commande.nom,
+      nom: nomComplet(billet.prenom, billet.nom),
       billet,
       evenement,
       rang: { index: index + 1, total: commande.billets.length },

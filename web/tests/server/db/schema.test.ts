@@ -56,8 +56,20 @@ describe("schéma DB (evenements / commandes / billets)", () => {
     const billetsCrees = await db
       .insert(billets)
       .values([
-        { commandeId: commande.id, code: "ABC123", ticketsBoisson: 1 },
-        { commandeId: commande.id, code: "ABC124", ticketsBoisson: 0 },
+        {
+          commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
+          code: "ABC123",
+          ticketsBoisson: 1,
+        },
+        {
+          commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
+          code: "ABC124",
+          ticketsBoisson: 0,
+        },
       ])
       .returning();
 
@@ -86,10 +98,20 @@ describe("schéma DB (evenements / commandes / billets)", () => {
       })
       .returning();
 
-    await db.insert(billets).values({ commandeId: commande.id, code: "DUP1" });
+    await db.insert(billets).values({
+      commandeId: commande.id,
+      nom: "Martin",
+      prenom: "Alix",
+      code: "DUP1",
+    });
 
     await expect(
-      db.insert(billets).values({ commandeId: commande.id, code: "DUP1" }),
+      db.insert(billets).values({
+        commandeId: commande.id,
+        nom: "Martin",
+        prenom: "Alix",
+        code: "DUP1",
+      }),
     ).rejects.toThrow();
   });
 

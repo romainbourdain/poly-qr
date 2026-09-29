@@ -1,12 +1,18 @@
 import { z } from "zod";
 import { MOYENS_PAIEMENT } from "@/shared/lib/types";
 
+/** Un billet nominatif : la personne qui entre, et ses tickets boisson. */
 export const permanenceBilletSchema = z.object({
+  nom: z.string().trim().min(1, "Le nom est requis."),
+  prenom: z.string().trim().min(1, "Le prénom est requis."),
   ticketsBoisson: z.number().int().min(0),
 });
 
+/**
+ * Le premier billet est celui de l'acheteur·se : son nom et son prénom sont
+ * ceux de la commande.
+ */
 export const permanenceCommandeSchema = z.object({
-  nom: z.string().trim().min(1, "Le nom est requis."),
   email: z
     .string()
     .trim()

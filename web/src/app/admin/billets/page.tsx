@@ -33,14 +33,14 @@ export default async function AdminBilletsPage({
   const evenement = await resoudreEvenementAdmin(db, demande);
   if (!evenement) return <AucunEvenement />;
 
-  const [commandes, stats] = await Promise.all([
+  const [billets, stats] = await Promise.all([
     listerBilletsAction({ evenementId: evenement.id, q, statut }),
     obtenirStatsBilletsAction({ evenementId: evenement.id }),
   ]);
 
   return (
     <AdminBilletsContent
-      commandes={unwrapAction(commandes)}
+      billets={unwrapAction(billets)}
       stats={unwrapAction(stats)}
     />
   );

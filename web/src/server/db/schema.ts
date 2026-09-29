@@ -65,6 +65,9 @@ export const billets = pgTable("billets", {
   commandeId: uuid("commande_id")
     .notNull()
     .references(() => commandes.id),
+  // Billet nominatif : chaque billet porte le nom de la personne qui entre.
+  nom: text("nom").notNull(),
+  prenom: text("prenom").notNull(),
   code: text("code").notNull().unique(),
   ticketsBoisson: integer("tickets_boisson").notNull().default(0),
   statut: statutBillet("statut").notNull().default("non_scanne"),

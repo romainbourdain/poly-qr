@@ -26,6 +26,8 @@ const SECRET = process.env.HELLOASSO_WEBHOOK_SECRET as string;
 
 /** Items 1 et 3 ont l'option boisson, l'item 2 non. */
 const ITEMS_AVEC_OPTION_BOISSON = new Set([1, 3]);
+/** L'item 2 a une personne inscrite ; les autres tombent sur celle qui a payé. */
+const INSCRITS = new Map([[2, { firstName: "Léa", lastName: "Martin" }]]);
 
 function stubFetchHelloAsso() {
   vi.stubGlobal(
@@ -39,7 +41,10 @@ function stubFetchHelloAsso() {
       const options = ITEMS_AVEC_OPTION_BOISSON.has(itemId)
         ? [{ name: "Ticket boisson" }]
         : [];
-      return { ok: true, json: async () => ({ options }) };
+      return {
+        ok: true,
+        json: async () => ({ options, user: INSCRITS.get(itemId) }),
+      };
     }),
   );
 }
@@ -132,6 +137,20 @@ describe("POST /api/webhooks/helloasso", () => {
     expect(new Set(lignesBillets.map((b) => b.ticketsBoisson))).toEqual(
       new Set([1, 0]),
     );
+  });
+
+  it("nomme chaque billet d'après la personne inscrite, sinon d'après celle qui a payé", async () => {
+    const evenementId = await creerEvenement();
+
+    await appeler(
+      requete(payloadValide({ id: 9, itemIds: [1, 2] }), evenementId),
+      evenementId,
+    );
+
+    const noms = (await db.select().from(billets)).map(
+      (b) => `${b.prenom} ${b.nom}`,
+    );
+    expect(noms.sort()).toEqual(["Jean Dupont", "Léa Martin"]);
   });
 
   it("rejette un secret invalide sans créer de commande", async () => {

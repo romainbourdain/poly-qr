@@ -8,7 +8,7 @@ import {
   vi,
 } from "vitest";
 import {
-  itemAOptionBoisson,
+  detailsItemHelloAsso,
   obtenirTokenHelloAsso,
 } from "@/server/services/helloasso-api";
 
@@ -59,35 +59,49 @@ describe("helloasso-api", () => {
     });
   });
 
-  describe("itemAOptionBoisson", () => {
-    it("renvoie true si une option contient 'boisson' dans son nom", async () => {
+  describe("detailsItemHelloAsso", () => {
+    it("compte 1 ticket boisson si une option contient 'boisson' dans son nom", async () => {
       fetchMock.mockResolvedValue(
         jsonResponse({ options: [{ name: "Ticket boisson" }] }),
       );
 
-      await expect(itemAOptionBoisson("token", 42)).resolves.toBe(true);
+      await expect(detailsItemHelloAsso("token", 42)).resolves.toMatchObject({
+        ticketsBoisson: 1,
+      });
       const [url] = fetchMock.mock.calls[0];
       expect(url).toBe(
         "https://api.helloasso-sandbox.com/v5/items/42?withDetails=true",
       );
     });
 
-    it("renvoie false si aucune option ne correspond", async () => {
-      fetchMock.mockResolvedValue(
+    it("compte 0 si aucune option ne correspond ou s'il n'y a pas d'options", async () => {
+      fetchMock.mockResolvedValueOnce(
         jsonResponse({ options: [{ name: "Repas végétarien" }] }),
       );
+      await expect(detailsItemHelloAsso("token", 42)).resolves.toMatchObject({
+        ticketsBoisson: 0,
+      });
 
-      await expect(itemAOptionBoisson("token", 42)).resolves.toBe(false);
+      fetchMock.mockResolvedValueOnce(jsonResponse({}));
+      await expect(detailsItemHelloAsso("token", 42)).resolves.toMatchObject({
+        ticketsBoisson: 0,
+      });
     });
 
-    it("renvoie false si l'item n'a pas d'options", async () => {
-      fetchMock.mockResolvedValue(jsonResponse({}));
-      await expect(itemAOptionBoisson("token", 42)).resolves.toBe(false);
+    it("renvoie la personne inscrite sur le billet quand HelloAsso la donne", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse({ user: { firstName: " Léa ", lastName: "Martin" } }),
+      );
+      await expect(detailsItemHelloAsso("token", 42)).resolves.toEqual({
+        ticketsBoisson: 0,
+        prenom: "Léa",
+        nom: "Martin",
+      });
     });
 
     it("échoue si la réponse HelloAsso n'est pas OK", async () => {
       fetchMock.mockResolvedValue(jsonResponse({}, false, 404));
-      await expect(itemAOptionBoisson("token", 42)).rejects.toThrow();
+      await expect(detailsItemHelloAsso("token", 42)).rejects.toThrow();
     });
   });
 });

@@ -10,15 +10,15 @@ Une **commande** = un achat, identifié par le nom et l'email de l'acheteur·se,
 
 Un **billet** = une personne. Chaque billet a son propre QR, son propre nombre de tickets boisson, et son propre statut (utilisé/non utilisé/invalidé) — **totalement indépendant des autres billets de la même commande**. Scanner un billet ne consomme que ce billet ; les autres billets de la commande restent valables et scannables séparément, à un autre moment, par une autre personne.
 
-Une personne qui achète pour plusieurs (elle-même incluse ou non) reçoit une commande contenant N billets, un par personne. Le regroupement par commande n'a qu'un rôle d'affichage et de commodité à l'entrée : la page billet d'une commande à plusieurs personnes permet de swiper d'un QR à l'autre sur le même téléphone, pour que le groupe présente ses billets un par un sans changer d'écran ni d'email. Ça n'implique ni arrivée simultanée, ni consommation groupée — voir la décision correspondante dans [DECISIONS.md](DECISIONS.md).
+Une personne qui achète pour plusieurs (elle-même incluse ou non) reçoit une commande contenant N billets, un par personne. **Chaque billet est nominatif** : il porte le nom et le prénom de la personne qui entre (le premier billet est celui de l'acheteur·se en vente en main propre ; sur HelloAsso, la personne inscrite sur l'item, sinon celle qui a payé). Le regroupement par commande n'a qu'un rôle d'affichage et de commodité à l'entrée : la page billet d'une commande à plusieurs personnes permet de swiper d'un QR à l'autre sur le même téléphone, pour que le groupe présente ses billets un par un sans changer d'écran ni d'email. Ça n'implique ni arrivée simultanée, ni consommation groupée — voir la décision correspondante dans [DECISIONS.md](DECISIONS.md).
 
 ## Les trois origines d'une commande (canaux de vente)
 
 | Origine | Création | QR généré ? |
 |---|---|---|
 | **HelloAsso** | Automatique, déclenché par webhook à la validation du paiement en ligne | Oui (un par billet de la commande), envoyé par email |
-| **Permanence** | Un bénévole saisit nom/email de l'acheteur·se et, pour chaque billet de la commande, son nombre de tickets boisson, dans une interface admin, lors d'une vente à l'avance en main propre (hors HelloAsso) | Oui (un par billet), généré et envoyé par email immédiatement |
-| **Sur place le soir** | Un bénévole saisit le nom et prénom (pas d'email) et les tickets boisson de chaque billet dans l'admin, à l'encaissement. Prix du billet plus élevé qu'en pré-vente. Les billets naissent déjà « scannés » : la personne entre tout de suite, l'heure de vente est son heure d'entrée. Tickets boisson remis en papier à l'encaissement | Non (aucun QR ni email) |
+| **Permanence** | Un bénévole saisit le nom, le prénom et l'email de l'acheteur·se (qui sont ceux du premier billet), puis pour chaque billet de la commande son nom, son prénom et son nombre de tickets boisson, dans une interface admin, lors d'une vente à l'avance en main propre (hors HelloAsso) | Oui (un par billet), généré et envoyé par email immédiatement |
+| **Sur place le soir** | Un bénévole saisit le nom et le prénom de chaque billet (pas d'email) et ses tickets boisson dans l'admin, à l'encaissement. Prix du billet plus élevé qu'en pré-vente. Les billets naissent déjà « scannés » : la personne entre tout de suite, l'heure de vente est son heure d'entrée. Tickets boisson remis en papier à l'encaissement | Non (aucun QR ni email) |
 
 ## Tickets boisson
 

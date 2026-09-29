@@ -1,5 +1,10 @@
 import type { MoyenPaiement, Origine, Statut } from "./types";
 
+/** « Prénom Nom », pour un affichage sur une ligne. */
+export function nomComplet(prenom: string, nom: string): string {
+  return `${prenom} ${nom}`.trim();
+}
+
 export const ORIGINE_LABEL: Record<Origine, string> = {
   helloasso: "HelloAsso",
   permanence: "Permanence",

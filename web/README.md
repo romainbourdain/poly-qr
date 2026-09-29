@@ -14,8 +14,8 @@ Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 - `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : lien HelloAsso à copier, lien et QR du scanner, édition (nom, date, heure, lieu, mot de passe scanner, prix pré-vente / sur place / ticket boisson). Le même sélecteur pilote `/admin/statistiques`, `/admin/nouveau` et `/admin/billets`
 - `/admin/statistiques` — chiffres clés, affluence par tranche de 15 min, billets par canal et avancement des entrées (graphiques Recharts), à jour au rechargement de la page
 - `/admin/evenements/nouveau` — création d'un événement, puis guide pour relier HelloAsso (URL de webhook propre à l'événement)
-- `/admin/nouveau` — vente de billets en main propre, avec total à payer (affichage uniquement, aucun montant stocké) : onglet « Pré-vente » (permanence, QR envoyé par email) ou « Sur place » (sans email, billets déjà scannés) ; l'onglet par défaut dépend de l'heure de début de l'événement
-- `/admin/billets` — liste (recherche + filtre synchronisés à l'URL) et invalidation ; l'admin est **responsive**
+- `/admin/nouveau` — vente de billets en main propre, avec total à payer (affichage uniquement, aucun montant stocké) : onglet « Pré-vente » (permanence, QR envoyé par email) ou « Sur place » (sans email, billets déjà scannés) ; nom, prénom et tickets boisson par billet ; l'onglet par défaut dépend de l'heure de début de l'événement
+- `/admin/billets` — liste à plat des billets nominatifs (nom, prénom, email, canal ; recherche + filtre synchronisés à l'URL) et invalidation ; l'admin est **responsive**
 - `/api/webhooks/helloasso/<id-événement>?secret=…` — création automatique des commandes HelloAsso pour cet événement et envoi de l'email
 
 ## Stack

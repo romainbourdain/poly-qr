@@ -1,11 +1,12 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
 import { billets, commandes } from "@/server/db/schema";
 import type { StatutFilter } from "@/shared/lib/search-params";
-import { formatHeure } from "@/shared/lib/tickets";
+import { formatHeure, nomComplet } from "@/shared/lib/tickets";
 import type {
+  BilletAdmin,
   BilletListe,
   CommandeAvecBillets,
   ResultatScan,
@@ -25,6 +26,8 @@ export function genererCodeBillet(): string {
 export function versBilletListe(billet: {
   id: string;
   code: string;
+  nom: string;
+  prenom: string;
   ticketsBoisson: number;
   statut: BilletListe["statut"];
   scanneA: Date | null;
@@ -32,10 +35,17 @@ export function versBilletListe(billet: {
   return {
     id: billet.id,
     code: billet.code,
+    nom: billet.nom,
+    prenom: billet.prenom,
     ticketsBoisson: billet.ticketsBoisson,
     statut: billet.statut,
     scanneA: billet.scanneA ? formatHeure(billet.scanneA) : null,
   };
+}
+
+/** L'acheteur·se d'une vente en main propre est la personne du premier billet. */
+function nomAcheteur(billetsSaisis: { nom: string; prenom: string }[]): string {
+  return nomComplet(billetsSaisis[0].prenom, billetsSaisis[0].nom);
 }
 
 /**
@@ -52,7 +62,7 @@ export async function creerCommandePermanence(
       .insert(commandes)
       .values({
         evenementId,
-        nom: input.nom,
+        nom: nomAcheteur(input.billets),
         email: input.email,
         origine: "permanence",
         moyenPaiement: input.moyenPaiement,
@@ -65,6 +75,8 @@ export async function creerCommandePermanence(
         input.billets.map((billet) => ({
           commandeId: commande.id,
           code: genererCodeBillet(),
+          nom: billet.nom,
+          prenom: billet.prenom,
           ticketsBoisson: billet.ticketsBoisson,
         })),
       )
@@ -89,7 +101,7 @@ export async function creerCommandeSurPlace(
       .insert(commandes)
       .values({
         evenementId,
-        nom: input.nom,
+        nom: nomAcheteur(input.billets),
         email: null,
         origine: "sur_place",
         moyenPaiement: input.moyenPaiement,
@@ -103,6 +115,8 @@ export async function creerCommandeSurPlace(
         input.billets.map((billet) => ({
           commandeId: commande.id,
           code: genererCodeBillet(),
+          nom: billet.nom,
+          prenom: billet.prenom,
           ticketsBoisson: billet.ticketsBoisson,
           statut: "scanne" as const,
           scanneA: maintenant,
@@ -179,6 +193,8 @@ export async function creerCommandeDepuisHelloAsso(
           input.billets.map((billet) => ({
             commandeId: commande.id,
             code: genererCodeBillet(),
+            nom: billet.nom,
+            prenom: billet.prenom,
             ticketsBoisson: billet.ticketsBoisson,
           })),
         )
@@ -192,14 +208,15 @@ export async function creerCommandeDepuisHelloAsso(
 }
 
 /**
- * Liste les billets d'un événement, filtrés côté serveur par
- * recherche nom/email et par statut, groupés par commande.
+ * Liste à plat les billets nominatifs d'un événement (les plus récents
+ * d'abord), filtrés côté serveur par recherche nom / prénom / email et par
+ * statut.
  */
 export async function listerBillets(
   db: Db,
   evenementId: string,
   filtres: { q: string; statut: StatutFilter },
-): Promise<CommandeAvecBillets[]> {
+): Promise<BilletAdmin[]> {
   const conditions = [eq(commandes.evenementId, evenementId)];
 
   if (filtres.statut !== "tous") {
@@ -210,7 +227,9 @@ export async function listerBillets(
   if (q) {
     const motif = `%${q}%`;
     const recherche = or(
-      ilike(commandes.nom, motif),
+      ilike(billets.nom, motif),
+      ilike(billets.prenom, motif),
+      ilike(sql`${billets.prenom} || ' ' || ${billets.nom}`, motif),
       ilike(commandes.email, motif),
     );
     if (recherche) conditions.push(recherche);
@@ -218,14 +237,13 @@ export async function listerBillets(
 
   const lignes = await db
     .select({
-      commandeId: commandes.id,
-      nom: commandes.nom,
       email: commandes.email,
       origine: commandes.origine,
       moyenPaiement: commandes.moyenPaiement,
-      commandeCreeA: commandes.creeA,
       id: billets.id,
       code: billets.code,
+      nom: billets.nom,
+      prenom: billets.prenom,
       ticketsBoisson: billets.ticketsBoisson,
       statut: billets.statut,
       scanneA: billets.scanneA,
@@ -233,28 +251,14 @@ export async function listerBillets(
     .from(billets)
     .innerJoin(commandes, eq(billets.commandeId, commandes.id))
     .where(and(...conditions))
-    .orderBy(desc(commandes.creeA), asc(billets.creeA));
+    .orderBy(desc(commandes.creeA), asc(billets.creeA), asc(billets.code));
 
-  const groupes = new Map<string, CommandeAvecBillets>();
-
-  for (const ligne of lignes) {
-    let groupe = groupes.get(ligne.commandeId);
-    if (!groupe) {
-      groupe = {
-        commandeId: ligne.commandeId,
-        nom: ligne.nom,
-        email: ligne.email,
-        origine: ligne.origine,
-        moyenPaiement: ligne.moyenPaiement,
-        billets: [],
-      };
-      groupes.set(ligne.commandeId, groupe);
-    }
-
-    groupe.billets.push(versBilletListe(ligne));
-  }
-
-  return Array.from(groupes.values());
+  return lignes.map((ligne) => ({
+    ...versBilletListe(ligne),
+    email: ligne.email,
+    origine: ligne.origine,
+    moyenPaiement: ligne.moyenPaiement,
+  }));
 }
 
 /**
@@ -269,12 +273,14 @@ export async function obtenirCommandeAvecBillets(
   const lignes = await db
     .select({
       commandeId: commandes.id,
-      nom: commandes.nom,
+      nomCommande: commandes.nom,
       email: commandes.email,
       origine: commandes.origine,
       moyenPaiement: commandes.moyenPaiement,
       id: billets.id,
       code: billets.code,
+      nom: billets.nom,
+      prenom: billets.prenom,
       ticketsBoisson: billets.ticketsBoisson,
       statut: billets.statut,
       scanneA: billets.scanneA,
@@ -288,7 +294,7 @@ export async function obtenirCommandeAvecBillets(
 
   return {
     commandeId: lignes[0].commandeId,
-    nom: lignes[0].nom,
+    nom: lignes[0].nomCommande,
     email: lignes[0].email,
     origine: lignes[0].origine,
     moyenPaiement: lignes[0].moyenPaiement,
@@ -412,7 +418,8 @@ export async function scannerBillet(
       statut: billets.statut,
       ticketsBoisson: billets.ticketsBoisson,
       scanneA: billets.scanneA,
-      nom: commandes.nom,
+      nom: billets.nom,
+      prenom: billets.prenom,
       email: commandes.email,
       origine: commandes.origine,
       moyenPaiement: commandes.moyenPaiement,
@@ -425,7 +432,7 @@ export async function scannerBillet(
   if (!ligne) return { type: "inconnu" };
 
   const versBillet = (scanneA: Date | null) => ({
-    nom: ligne.nom,
+    nom: nomComplet(ligne.prenom, ligne.nom),
     email: ligne.email,
     origine: ligne.origine,
     moyenPaiement: ligne.moyenPaiement,

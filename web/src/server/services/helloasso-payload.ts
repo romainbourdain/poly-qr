@@ -26,7 +26,11 @@ const helloassoPayloadSchema = z.object({
 });
 
 export interface HelloassoOrder {
+  /** Nom complet de la personne qui a payé. */
   nom: string;
+  /** Prénom et nom de celle qui a payé : valeur par défaut des billets sans inscrit. */
+  payeurPrenom: string;
+  payeurNom: string;
   email: string;
   helloassoPaymentId: string;
   /** Identifiants HelloAsso des items, un par billet — pas encore résolus en
@@ -45,6 +49,8 @@ export function mapperPayloadHelloAsso(payload: unknown): HelloassoOrder {
 
   return {
     nom: `${data.payer.firstName} ${data.payer.lastName}`.trim(),
+    payeurPrenom: data.payer.firstName.trim(),
+    payeurNom: data.payer.lastName.trim(),
     email: data.payer.email,
     helloassoPaymentId: String(data.id),
     itemIds: data.items.map((item) => item.id),

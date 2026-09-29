@@ -1,17 +1,15 @@
 import { BilletStatusCard } from "@/client/components/billet/billet-status-card";
 import { RealQr } from "@/client/components/billet/real-qr";
 import { Badge } from "@/client/components/ui/badge";
-import { STATUT_BADGE_VARIANT, STATUT_LABEL } from "@/shared/lib/tickets";
+import {
+  nomComplet,
+  STATUT_BADGE_VARIANT,
+  STATUT_LABEL,
+} from "@/shared/lib/tickets";
 import type { BilletListe } from "@/shared/lib/types";
 
 /** Billet façon ticket : QR sur plaque claire (contraste de scan), talon tickets boisson séparé par une perforation. */
-export function BilletQrCard({
-  nom,
-  billet,
-}: {
-  nom: string;
-  billet: BilletListe;
-}) {
+export function BilletQrCard({ billet }: { billet: BilletListe }) {
   return (
     <div className="relative rounded-3xl border border-line bg-ink-2">
       <div className="flex flex-col items-center gap-4 p-6">
@@ -20,7 +18,7 @@ export function BilletQrCard({
         </div>
         <div className="flex flex-col items-center gap-1 text-center">
           <div className="font-bold font-display text-[21px] tracking-tight">
-            {nom}
+            {nomComplet(billet.prenom, billet.nom)}
           </div>
           <div className="font-mono text-[13px] text-muted tracking-wide">
             Billet {billet.code}

@@ -7,6 +7,7 @@ import {
 } from "@/server/actions/tickets";
 import { db } from "@/server/db/client";
 import { obtenirEvenement } from "@/server/services/evenements";
+import { nomComplet } from "@/shared/lib/tickets";
 import { evenementIdSchema } from "@/shared/validators/commande";
 
 export const dynamic = "force-dynamic";
@@ -19,20 +20,18 @@ export default async function ScannerPage({
   const evenementId = evenementIdSchema.safeParse((await params).evenementId);
   if (!evenementId.success) notFound();
 
-  const [evenement, commandes, stats] = await Promise.all([
+  const [evenement, tousLesBillets, stats] = await Promise.all([
     obtenirEvenement(db, evenementId.data),
     listerBilletsScannerAction(),
     obtenirStatsBilletsScannerAction(),
   ]);
   if (!evenement) notFound();
 
-  const billets = unwrapAction(commandes).flatMap((commande) =>
-    commande.billets.map((billet) => ({
-      code: billet.code,
-      nom: commande.nom,
-      statut: billet.statut,
-    })),
-  );
+  const billets = unwrapAction(tousLesBillets).map((billet) => ({
+    code: billet.code,
+    nom: nomComplet(billet.prenom, billet.nom),
+    statut: billet.statut,
+  }));
 
   return (
     <ScannerClient

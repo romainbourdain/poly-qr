@@ -15,6 +15,8 @@ function billet(code: string): BilletListe {
   return {
     id: code,
     code,
+    nom: "Lemoine",
+    prenom: "Sacha",
     ticketsBoisson: 0,
     statut: "non_scanne",
     scanneA: null,

@@ -12,13 +12,13 @@ import {
   reactiverBilletAction,
 } from "@/server/actions/tickets";
 import { GENERIC_SERVER_ERROR } from "@/shared/lib/form-errors";
-import type { CommandeAvecBillets, Statut } from "@/shared/lib/types";
+import type { BilletAdmin, Statut } from "@/shared/lib/types";
 
 export function AdminBilletsContent({
-  commandes,
+  billets,
   stats,
 }: {
-  commandes: CommandeAvecBillets[];
+  billets: BilletAdmin[];
   stats: { total: number; scannes: number };
 }) {
   const { query, setQuery, statut, setStatut } = useTicketFilters();
@@ -71,20 +71,14 @@ export function AdminBilletsContent({
         </div>
       )}
 
-      {commandes.length === 0 ? (
+      {billets.length === 0 ? (
         <div className="rounded-2xl border border-line bg-ink-2 px-6 py-8 text-center text-[14px] text-muted">
           Aucun billet ne correspond.
         </div>
       ) : (
         <>
-          <TicketTableDesktop
-            commandes={commandes}
-            onToggleStatut={toggleStatut}
-          />
-          <TicketListMobile
-            commandes={commandes}
-            onToggleStatut={toggleStatut}
-          />
+          <TicketTableDesktop billets={billets} onToggleStatut={toggleStatut} />
+          <TicketListMobile billets={billets} onToggleStatut={toggleStatut} />
         </>
       )}
     </div>

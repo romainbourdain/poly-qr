@@ -33,9 +33,19 @@ export type ScanOutcome =
 export interface BilletListe {
   id: string;
   code: string;
+  nom: string;
+  prenom: string;
   ticketsBoisson: number;
   statut: Statut;
   scanneA: string | null;
+}
+
+/** Un billet nominatif tel qu'affiché dans la liste admin, avec les infos de sa commande. */
+export interface BilletAdmin extends BilletListe {
+  /** Absent pour une vente sur place. */
+  email: string | null;
+  origine: Origine;
+  moyenPaiement: MoyenPaiement;
 }
 
 export interface CommandeAvecBillets {
@@ -53,7 +63,13 @@ export interface CommandeCreee {
   origine: Origine;
   nom: string;
   email: string | null;
-  billets: { id: string; code: string; ticketsBoisson: number }[];
+  billets: {
+    id: string;
+    code: string;
+    nom: string;
+    prenom: string;
+    ticketsBoisson: number;
+  }[];
 }
 
 export interface BilletScanne {

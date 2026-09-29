@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { MOYENS_PAIEMENT } from "@/shared/lib/types";
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
+import { surPlaceCommandeSchema } from "@/shared/validators/sur-place";
 
 const base = {
-  nom: "Sacha Lemoine",
   email: "sacha@etu-poly.fr",
-  billets: [{ ticketsBoisson: 0 }],
+  billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 }],
 };
 
 describe("permanenceCommandeSchema", () => {
@@ -26,6 +26,39 @@ describe("permanenceCommandeSchema", () => {
     expect(
       permanenceCommandeSchema.safeParse({ ...base, moyenPaiement: "cheque" })
         .success,
+    ).toBe(false);
+  });
+
+  it("exige un nom et un prénom sur chaque billet", () => {
+    const resultat = permanenceCommandeSchema.safeParse({
+      ...base,
+      moyenPaiement: "especes",
+      billets: [
+        { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
+        { nom: "", prenom: "Robin", ticketsBoisson: 1 },
+        { nom: "Petit", prenom: " ", ticketsBoisson: 0 },
+      ],
+    });
+    expect(resultat.success).toBe(false);
+    if (resultat.success) return;
+    const chemins = resultat.error.issues.map((i) => i.path.join("."));
+    expect(chemins).toEqual(["billets.1.nom", "billets.2.prenom"]);
+  });
+});
+
+describe("surPlaceCommandeSchema", () => {
+  it("n'exige pas d'email, mais toujours un nom et un prénom", () => {
+    expect(
+      surPlaceCommandeSchema.safeParse({
+        moyenPaiement: "especes",
+        billets: base.billets,
+      }).success,
+    ).toBe(true);
+    expect(
+      surPlaceCommandeSchema.safeParse({
+        moyenPaiement: "especes",
+        billets: [{ nom: "", prenom: "", ticketsBoisson: 0 }],
+      }).success,
     ).toBe(false);
   });
 });

@@ -14,6 +14,8 @@ function billet(code: string): BilletListe {
   return {
     id: code,
     code,
+    nom: "Lemoine",
+    prenom: "Sacha",
     ticketsBoisson: 0,
     statut: "non_scanne",
     scanneA: null,
@@ -23,7 +25,7 @@ function billet(code: string): BilletListe {
 describe("genererPdfCommande", () => {
   it("génère une page par billet, chacune avec une image (le QR)", async () => {
     const octets = await genererPdfCommande(
-      { nom: "Sacha Lemoine", billets: [billet("AAAA"), billet("BBBB")] },
+      { billets: [billet("AAAA"), billet("BBBB")] },
       EVENEMENT,
     );
 
@@ -38,7 +40,7 @@ describe("genererPdfCommande", () => {
 
   it("génère une seule page pour une commande à un billet", async () => {
     const octets = await genererPdfCommande(
-      { nom: "Léa Dupont", billets: [billet("CCCC")] },
+      { billets: [billet("CCCC")] },
       EVENEMENT,
     );
 

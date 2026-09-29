@@ -61,10 +61,12 @@ describe("service tickets", () => {
 
       const { commande, billets: nouveauxBillets } =
         await creerCommandePermanence(db, evenementId, {
-          nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           moyenPaiement: "especes",
-          billets: [{ ticketsBoisson: 2 }, { ticketsBoisson: 0 }],
+          billets: [
+            { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 },
+            { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
+          ],
         });
 
       expect(commande.origine).toBe("permanence");
@@ -84,14 +86,20 @@ describe("service tickets", () => {
 
       const { commande, billets: nouveauxBillets } =
         await creerCommandeSurPlace(db, evenementId, {
-          nom: "Robin Petit",
           moyenPaiement: "especes",
-          billets: [{ ticketsBoisson: 1 }, { ticketsBoisson: 0 }],
+          billets: [
+            { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 1 },
+            { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
+          ],
         });
 
       expect(commande.origine).toBe("sur_place");
       expect(commande.email).toBeNull();
-      expect(commande.nom).toBe("Robin Petit");
+      expect(commande.nom).toBe("Sacha Lemoine");
+      expect(nouveauxBillets.map((b) => `${b.prenom} ${b.nom}`)).toEqual([
+        "Sacha Lemoine",
+        "Sacha Lemoine",
+      ]);
       expect(nouveauxBillets).toHaveLength(2);
       for (const billet of nouveauxBillets) {
         expect(billet.statut).toBe("scanne");
@@ -102,9 +110,11 @@ describe("service tickets", () => {
     it("compte les entrées sur place dans l'affluence (billets scannés)", async () => {
       const evenementId = await creerEvenement();
       await creerCommandeSurPlace(db, evenementId, {
-        nom: "Robin Petit",
         moyenPaiement: "especes",
-        billets: [{ ticketsBoisson: 0 }, { ticketsBoisson: 0 }],
+        billets: [
+          { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
+          { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
+        ],
       });
       expect(await listerScansEvenement(db, evenementId)).toHaveLength(2);
     });
@@ -122,7 +132,7 @@ describe("service tickets", () => {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
-        billets: [{ ticketsBoisson: 2 }],
+        billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 }],
       });
 
       expect(dejaTraitee).toBe(false);
@@ -140,14 +150,14 @@ describe("service tickets", () => {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
-        billets: [{ ticketsBoisson: 2 }],
+        billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 }],
       });
 
       const rejeu = await creerCommandeDepuisHelloAsso(db, evenementId, {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
-        billets: [{ ticketsBoisson: 2 }],
+        billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 }],
       });
 
       expect(rejeu.dejaTraitee).toBe(true);
@@ -188,18 +198,24 @@ describe("service tickets", () => {
       await db.insert(billets).values([
         {
           commandeId: commandeA.id,
+          nom: "Lemoine",
+          prenom: "Sacha",
           code: "AAAA",
           ticketsBoisson: 1,
           statut: "non_scanne",
         },
         {
           commandeId: commandeA.id,
+          nom: "Petit",
+          prenom: "Robin",
           code: "BBBB",
           ticketsBoisson: 0,
           statut: "invalide",
         },
         {
           commandeId: commandeB.id,
+          nom: "Dupont",
+          prenom: "Léa",
           code: "CCCC",
           ticketsBoisson: 3,
           statut: "non_scanne",
@@ -210,24 +226,27 @@ describe("service tickets", () => {
         q: "",
         statut: "tous",
       });
-      expect(tous).toHaveLength(2);
-      const sacha = tous.find((c) => c.commandeId === commandeA.id);
-      expect(sacha?.billets).toHaveLength(2);
-
-      const parNom = await listerBillets(db, evenementId, {
-        q: "léa",
-        statut: "tous",
+      expect(tous).toHaveLength(3);
+      expect(tous.find((b) => b.code === "AAAA")).toMatchObject({
+        nom: "Lemoine",
+        prenom: "Sacha",
+        email: "sacha@etu-poly.fr",
+        origine: "permanence",
       });
-      expect(parNom).toHaveLength(1);
-      expect(parNom[0].nom).toBe("Léa Dupont");
+
+      for (const q of ["léa", "dupont", "léa dupont", "lea@etu"]) {
+        const trouves = await listerBillets(db, evenementId, {
+          q,
+          statut: "tous",
+        });
+        expect(trouves.map((b) => b.code)).toEqual(["CCCC"]);
+      }
 
       const parStatut = await listerBillets(db, evenementId, {
         q: "",
         statut: "invalide",
       });
-      expect(parStatut).toHaveLength(1);
-      expect(parStatut[0].billets).toHaveLength(1);
-      expect(parStatut[0].billets[0].code).toBe("BBBB");
+      expect(parStatut.map((b) => b.code)).toEqual(["BBBB"]);
     });
   });
 
@@ -248,30 +267,42 @@ describe("service tickets", () => {
       const [billetA, billetB] = await db
         .insert(billets)
         .values([
-          { commandeId: commande.id, code: "AAAA", ticketsBoisson: 0 },
-          { commandeId: commande.id, code: "BBBB", ticketsBoisson: 0 },
+          {
+            commandeId: commande.id,
+            nom: "Martin",
+            prenom: "Alix",
+            code: "AAAA",
+            ticketsBoisson: 0,
+          },
+          {
+            commandeId: commande.id,
+            nom: "Martin",
+            prenom: "Alix",
+            code: "BBBB",
+            ticketsBoisson: 0,
+          },
         ])
         .returning();
 
       await invaliderBillet(db, billetA.id);
 
-      const [resultats] = await listerBillets(db, evenementId, {
+      const resultats = await listerBillets(db, evenementId, {
         q: "",
         statut: "tous",
       });
-      const a = resultats.billets.find((b) => b.id === billetA.id);
-      const b = resultats.billets.find((b) => b.id === billetB.id);
+      const a = resultats.find((b) => b.id === billetA.id);
+      const b = resultats.find((b) => b.id === billetB.id);
       expect(a?.statut).toBe("invalide");
       expect(b?.statut).toBe("non_scanne");
 
       await reactiverBillet(db, billetA.id);
-      const [apresReactivation] = await listerBillets(db, evenementId, {
+      const apresReactivation = await listerBillets(db, evenementId, {
         q: "",
         statut: "tous",
       });
-      expect(
-        apresReactivation.billets.find((b) => b.id === billetA.id)?.statut,
-      ).toBe("non_scanne");
+      expect(apresReactivation.find((b) => b.id === billetA.id)?.statut).toBe(
+        "non_scanne",
+      );
     });
   });
 
@@ -291,6 +322,8 @@ describe("service tickets", () => {
 
       await db.insert(billets).values({
         commandeId: commande.id,
+        nom: "Lemoine",
+        prenom: "Sacha",
         code: "AAAA",
         ticketsBoisson: 2,
       });
@@ -299,6 +332,7 @@ describe("service tickets", () => {
 
       expect(resultat.type).toBe("valide");
       if (resultat.type !== "valide") throw new Error("type inattendu");
+      // Le nom affiché est celui du billet (la personne qui entre), pas celui de l'acheteur.
       expect(resultat.billet.nom).toBe("Sacha Lemoine");
       expect(resultat.billet.ticketsBoisson).toBe(2);
       expect(resultat.billet.scanneA).not.toBeNull();
@@ -325,6 +359,8 @@ describe("service tickets", () => {
 
       await db.insert(billets).values({
         commandeId: commande.id,
+        nom: "Martin",
+        prenom: "Alix",
         code: "AAAA",
       });
 
@@ -359,6 +395,8 @@ describe("service tickets", () => {
       const premierScan = new Date("2026-09-30T20:00:00Z");
       await db.insert(billets).values({
         commandeId: commande.id,
+        nom: "Martin",
+        prenom: "Alix",
         code: "AAAA",
         statut: "scanne",
         scanneA: premierScan,
@@ -386,6 +424,8 @@ describe("service tickets", () => {
 
       await db.insert(billets).values({
         commandeId: commande.id,
+        nom: "Martin",
+        prenom: "Alix",
         code: "AAAA",
         statut: "invalide",
       });
@@ -416,9 +456,12 @@ describe("service tickets", () => {
           moyenPaiement: "especes",
         })
         .returning();
-      await db
-        .insert(billets)
-        .values({ commandeId: commande.id, code: "AAAA" });
+      await db.insert(billets).values({
+        commandeId: commande.id,
+        nom: "Martin",
+        prenom: "Alix",
+        code: "AAAA",
+      });
 
       const resultat = await scannerBillet(db, evenementId, "AAAA");
 
@@ -441,18 +484,28 @@ describe("service tickets", () => {
         .returning();
 
       await db.insert(billets).values([
-        { commandeId: commande.id, code: "AAAA" },
-        { commandeId: commande.id, code: "BBBB" },
+        {
+          commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
+          code: "AAAA",
+        },
+        {
+          commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
+          code: "BBBB",
+        },
       ]);
 
       await scannerBillet(db, evenementId, "AAAA");
 
-      const [resultats] = await listerBillets(db, evenementId, {
+      const resultats = await listerBillets(db, evenementId, {
         q: "",
         statut: "tous",
       });
-      const a = resultats.billets.find((b) => b.code === "AAAA");
-      const b = resultats.billets.find((b) => b.code === "BBBB");
+      const a = resultats.find((b) => b.code === "AAAA");
+      const b = resultats.find((b) => b.code === "BBBB");
       expect(a?.statut).toBe("scanne");
       expect(b?.statut).toBe("non_scanne");
       expect(b?.scanneA).toBeNull();
@@ -476,8 +529,20 @@ describe("service tickets", () => {
       const [billetA, billetB] = await db
         .insert(billets)
         .values([
-          { commandeId: commande.id, code: "AAAA", ticketsBoisson: 1 },
-          { commandeId: commande.id, code: "BBBB", ticketsBoisson: 0 },
+          {
+            commandeId: commande.id,
+            nom: "Martin",
+            prenom: "Alix",
+            code: "AAAA",
+            ticketsBoisson: 1,
+          },
+          {
+            commandeId: commande.id,
+            nom: "Martin",
+            prenom: "Alix",
+            code: "BBBB",
+            ticketsBoisson: 0,
+          },
         ])
         .returning();
 
@@ -517,18 +582,24 @@ describe("service tickets", () => {
       await db.insert(billets).values([
         {
           commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
           code: "AAAA",
           statut: "scanne",
           ticketsBoisson: 2,
         },
         {
           commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
           code: "BBBB",
           statut: "non_scanne",
           ticketsBoisson: 1,
         },
         {
           commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
           code: "CCCC",
           statut: "invalide",
           ticketsBoisson: 5,
@@ -548,14 +619,15 @@ describe("service tickets", () => {
         .returning();
       await db.insert(billets).values({
         commandeId: commandeHelloasso.id,
+        nom: "Martin",
+        prenom: "Alix",
         code: "DDDD",
         ticketsBoisson: 1,
       });
 
       const surPlace = await creerCommandeSurPlace(db, evenementId, {
-        nom: "Robin Petit",
         moyenPaiement: "especes",
-        billets: [{ ticketsBoisson: 2 }],
+        billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 }],
       });
       expect(surPlace.billets).toHaveLength(1);
 
@@ -585,9 +657,12 @@ describe("service tickets", () => {
           moyenPaiement: "especes",
         })
         .returning();
-      await db
-        .insert(billets)
-        .values({ commandeId: commande.id, code: "OLD1" });
+      await db.insert(billets).values({
+        commandeId: commande.id,
+        nom: "Martin",
+        prenom: "Alix",
+        code: "OLD1",
+      });
 
       await expect(obtenirStatsEvenement(db, autreId)).resolves.toMatchObject({
         billetsVendus: 0,
@@ -614,9 +689,27 @@ describe("service tickets", () => {
         .returning();
 
       await db.insert(billets).values([
-        { commandeId: commande.id, code: "AAAA", statut: "scanne" },
-        { commandeId: commande.id, code: "BBBB", statut: "non_scanne" },
-        { commandeId: commande.id, code: "CCCC", statut: "invalide" },
+        {
+          commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
+          code: "AAAA",
+          statut: "scanne",
+        },
+        {
+          commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
+          code: "BBBB",
+          statut: "non_scanne",
+        },
+        {
+          commandeId: commande.id,
+          nom: "Martin",
+          prenom: "Alix",
+          code: "CCCC",
+          statut: "invalide",
+        },
       ]);
 
       await expect(obtenirStatsBillets(db, evenementId)).resolves.toEqual({

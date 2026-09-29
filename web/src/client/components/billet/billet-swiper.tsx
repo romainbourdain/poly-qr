@@ -24,13 +24,7 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-export function BilletSwiper({
-  nom,
-  billets,
-}: {
-  nom: string;
-  billets: BilletListe[];
-}) {
+export function BilletSwiper({ billets }: { billets: BilletListe[] }) {
   const [viewportRef, emblaApi] = useEmblaCarousel({ align: "center" });
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -67,7 +61,7 @@ export function BilletSwiper({
               aria-label={`Billet ${index + 1} sur ${billets.length}`}
               className="min-w-0 flex-[0_0_100%]"
             >
-              <BilletQrCard nom={nom} billet={billet} />
+              <BilletQrCard billet={billet} />
             </div>
           ))}
         </div>

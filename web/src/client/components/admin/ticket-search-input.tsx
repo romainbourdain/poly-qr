@@ -33,7 +33,7 @@ export function TicketSearchInput({
       <Input
         value={value}
         onValueChange={onChange}
-        placeholder="Rechercher un nom ou un email…"
+        placeholder="Rechercher un nom, un prénom ou un email…"
         aria-label="Rechercher un billet"
         className="h-11.5 pr-4 pl-10.5"
       />
