@@ -9,7 +9,8 @@ export const buttonVariants = cva(
       variant: {
         primary: "bg-accent text-white",
         secondary: "border border-line-2 bg-ink-3 font-semibold text-fg",
-        ghost: "font-semibold text-muted",
+        ghost:
+          "font-semibold text-muted enabled:hover:bg-ink-4 enabled:hover:text-fg",
       },
       size: {
         md: "h-11 px-5",
