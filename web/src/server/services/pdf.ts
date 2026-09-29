@@ -11,15 +11,13 @@ import type { BilletListe } from "@/shared/lib/types";
 // A4 portrait, une page par billet.
 const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
-const MARGIN = 48;
+const MARGIN = 56;
 const CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
-const QR_SIZE = 200;
+const QR_SIZE = 240;
 
-const ACCENT = rgb(0.424, 0.294, 0.941);
 const INK = rgb(0.08, 0.08, 0.12);
-const MUTED = rgb(0.34, 0.33, 0.42);
-const LINE = rgb(0.78, 0.77, 0.84);
-const WHITE = rgb(1, 1, 1);
+const MUTED = rgb(0.4, 0.39, 0.47);
+const LINE = rgb(0.85, 0.84, 0.89);
 
 export interface EvenementInfoPdf {
   nom: string;
@@ -31,6 +29,7 @@ export interface EvenementInfoPdf {
 interface Fonts {
   regular: PDFFont;
   bold: PDFFont;
+  mono: PDFFont;
 }
 
 /**
@@ -45,6 +44,7 @@ export async function genererPdfCommande(
   const fonts: Fonts = {
     regular: await pdfDoc.embedFont(StandardFonts.Helvetica),
     bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+    mono: await pdfDoc.embedFont(StandardFonts.CourierBold),
   };
 
   for (const [index, billet] of commande.billets.entries()) {
@@ -85,7 +85,7 @@ function decouper(
 async function dessinerPageBillet(
   pdfDoc: PDFDocument,
   page: PDFPage,
-  { regular, bold }: Fonts,
+  { regular, bold, mono }: Fonts,
   data: {
     nom: string;
     billet: BilletListe;
@@ -94,206 +94,99 @@ async function dessinerPageBillet(
   },
 ): Promise<void> {
   const { nom, billet, evenement, rang } = data;
-  // Les coordonnées pdf-lib partent du bas ; on raisonne depuis le haut de page.
-  const y = (top: number) => PAGE_HEIGHT - top;
 
+  // pdf-lib place le texte par sa ligne de base, depuis le bas de page :
+  // on raisonne en distance depuis le haut.
   const texte = (
     contenu: string,
-    x: number,
     top: number,
     opts: {
+      x?: number;
       font?: PDFFont;
       size?: number;
       color?: ReturnType<typeof rgb>;
+      align?: "left" | "center" | "right";
     } = {},
-  ) =>
+  ) => {
+    const font = opts.font ?? regular;
+    const size = opts.size ?? 12;
+    const largeur = font.widthOfTextAtSize(contenu, size);
+    const x =
+      opts.align === "center"
+        ? (PAGE_WIDTH - largeur) / 2
+        : opts.align === "right"
+          ? PAGE_WIDTH - MARGIN - largeur
+          : (opts.x ?? MARGIN);
     page.drawText(contenu, {
       x,
-      y: y(top),
-      font: opts.font ?? regular,
-      size: opts.size ?? 12,
+      y: PAGE_HEIGHT - top,
+      font,
+      size,
       color: opts.color ?? INK,
     });
+  };
+  const trait = (top: number) =>
+    page.drawLine({
+      start: { x: MARGIN, y: PAGE_HEIGHT - top },
+      end: { x: PAGE_WIDTH - MARGIN, y: PAGE_HEIGHT - top },
+      thickness: 1,
+      color: LINE,
+    });
 
-  // Bandeau « Mon billet »
-  page.drawRectangle({
-    x: MARGIN,
-    y: y(40 + 44),
-    width: CONTENT_WIDTH,
-    height: 44,
-    color: ACCENT,
-  });
-  const titre = "Mon billet";
-  texte(titre, (PAGE_WIDTH - bold.widthOfTextAtSize(titre, 18)) / 2, 40 + 28, {
-    font: bold,
-    size: 18,
-    color: WHITE,
-  });
-  texte("BDE TPS", MARGIN + 14, 40 + 26, {
-    font: bold,
-    size: 10,
-    color: WHITE,
-  });
-  const rangLabel = `${rang.index} / ${rang.total}`;
-  texte(
-    rangLabel,
-    PAGE_WIDTH - MARGIN - 14 - bold.widthOfTextAtSize(rangLabel, 10),
-    40 + 26,
-    { font: bold, size: 10, color: WHITE },
-  );
+  // En-tête : émetteur et rang du billet dans la commande.
+  texte("BDE TPS", 64, { font: bold, size: 11 });
+  if (rang.total > 1) {
+    texte(`Billet ${rang.index} / ${rang.total}`, 64, {
+      size: 11,
+      color: MUTED,
+      align: "right",
+    });
+  }
+  trait(80);
 
-  // QR
-  const qrImage = await pdfDoc.embedPng(await genererQrPng(billet.code, 600));
+  // Événement.
+  let top = 128;
+  for (const ligne of decouper(evenement.nom, bold, 28, CONTENT_WIDTH)) {
+    texte(ligne, top, { font: bold, size: 28 });
+    top += 34;
+  }
+  texte(`${evenement.date} · ${evenement.heure} · ${evenement.lieu}`, top - 6, {
+    size: 13,
+    color: MUTED,
+  });
+
+  // QR et code.
+  top += 40;
+  const qrImage = await pdfDoc.embedPng(await genererQrPng(billet.code, 720));
   page.drawImage(qrImage, {
     x: (PAGE_WIDTH - QR_SIZE) / 2,
-    y: y(112 + QR_SIZE),
+    y: PAGE_HEIGHT - top - QR_SIZE,
     width: QR_SIZE,
     height: QR_SIZE,
   });
+  top += QR_SIZE + 28;
+  texte(billet.code, top, { font: mono, size: 14, align: "center" });
 
-  // Date de l'événement
-  let top = 112 + QR_SIZE + 44;
-  texte(evenement.date.toUpperCase(), MARGIN, top, { font: bold, size: 22 });
-
-  // Chronologie : heure · événement, puis lieu (façon départ / arrivée)
-  top += 34;
-  const colHeure = MARGIN;
-  const colPoint = MARGIN + 74;
-  const colTexte = MARGIN + 100;
-  const largeurTexte = 250;
-  const nomLignes = decouper(evenement.nom, bold, 15, largeurTexte);
-  const lieuLignes = decouper(evenement.lieu, bold, 15, largeurTexte);
-
-  const pointHaut = top - 5;
-  texte(evenement.heure, colHeure, top, { font: bold, size: 15 });
-  for (const [i, ligne] of nomLignes.entries()) {
-    texte(ligne, colTexte, top - i * 18, { font: bold, size: 15 });
-  }
-  texte("BDE TPS", colTexte, top + 15 + (nomLignes.length - 1) * 18, {
-    size: 10,
+  // Titulaire et tickets boisson.
+  top += 40;
+  trait(top);
+  top += 30;
+  const colDroite = MARGIN + CONTENT_WIDTH * 0.62;
+  texte("TITULAIRE", top, { font: bold, size: 9, color: MUTED });
+  texte("TICKETS BOISSON", top, {
+    x: colDroite,
+    font: bold,
+    size: 9,
     color: MUTED,
   });
-
-  const topLieu = top + 42 + (nomLignes.length - 1) * 18 + 22;
-  for (const [i, ligne] of lieuLignes.entries()) {
-    texte(ligne, colTexte, topLieu + i * 18, { font: bold, size: 15 });
-  }
-  const pointBas = topLieu - 5;
-  page.drawLine({
-    start: { x: colPoint, y: y(pointHaut) },
-    end: { x: colPoint, y: y(pointBas) },
-    thickness: 1.5,
-    color: INK,
-  });
-  for (const centre of [pointHaut, pointBas]) {
-    page.drawCircle({
-      x: colPoint,
-      y: y(centre),
-      size: 5.5,
-      color: ACCENT,
-      borderColor: INK,
-      borderWidth: 1,
-    });
-  }
-
-  // Tickets boisson (à droite, comme « Voiture / Place »)
-  const colDroite = PAGE_WIDTH - MARGIN - 110;
-  texte(String(billet.ticketsBoisson), colDroite, topLieu, {
+  top += 22;
+  texte(String(billet.ticketsBoisson), top, {
+    x: colDroite,
     font: bold,
-    size: 26,
-    color: ACCENT,
+    size: 16,
   });
-  texte(
-    `ticket${billet.ticketsBoisson > 1 ? "s" : ""} boisson`,
-    colDroite + 8 + bold.widthOfTextAtSize(String(billet.ticketsBoisson), 26),
-    topLieu - 2,
-    { size: 11 },
-  );
-
-  // Perforation
-  top = topLieu + lieuLignes.length * 18 + 22;
-  page.drawLine({
-    start: { x: MARGIN, y: y(top) },
-    end: { x: PAGE_WIDTH - MARGIN, y: y(top) },
-    thickness: 1,
-    color: LINE,
-    dashArray: [4, 4],
-  });
-
-  // Titulaire
-  top += 34;
-  texte("Billet : ", MARGIN, top, { size: 14 });
-  texte(billet.code, MARGIN + regular.widthOfTextAtSize("Billet : ", 14), top, {
-    font: bold,
-    size: 18,
-    color: ACCENT,
-  });
-  top += 24;
-  texte("Nom : ", MARGIN, top, { size: 14 });
-  const nomX = MARGIN + regular.widthOfTextAtSize("Nom : ", 14);
-  for (const [i, ligne] of decouper(
-    nom,
-    bold,
-    14,
-    CONTENT_WIDTH - 60,
-  ).entries()) {
-    texte(ligne, i === 0 ? nomX : MARGIN, top + i * 18, {
-      font: bold,
-      size: 14,
-    });
+  for (const ligne of decouper(nom, bold, 16, colDroite - MARGIN - 16)) {
+    texte(ligne, top, { font: bold, size: 16 });
+    top += 20;
   }
-  top += 24 + (decouper(nom, bold, 14, CONTENT_WIDTH - 60).length - 1) * 18;
-  texte(`Billet ${rang.index} sur ${rang.total} de la commande`, MARGIN, top, {
-    size: 10,
-    color: MUTED,
-  });
-
-  // Check-list « Prêts ? Entrez ! »
-  top += 44;
-  texte("PRÊTS ? ENTREZ !", MARGIN, top, {
-    font: bold,
-    size: 15,
-    color: ACCENT,
-  });
-  const consignes = [
-    "Je présente ce QR code à l'entrée, sur mon téléphone ou imprimé.",
-    "Je règle la luminosité de mon écran au maximum avant de le présenter.",
-  ];
-  if (billet.ticketsBoisson > 0) {
-    consignes.push(
-      `Je récupère mes ${billet.ticketsBoisson} ticket${billet.ticketsBoisson > 1 ? "s" : ""} boisson à l'entrée, lors du scan.`,
-    );
-  }
-  top += 14;
-  for (const consigne of consignes) {
-    const lignes = decouper(consigne, regular, 11, CONTENT_WIDTH - 36);
-    page.drawRectangle({
-      x: MARGIN,
-      y: y(top + 16),
-      width: 16,
-      height: 16,
-      borderColor: INK,
-      borderWidth: 1.2,
-    });
-    for (const [i, ligne] of lignes.entries()) {
-      texte(ligne, MARGIN + 28, top + 12 + i * 14, { size: 11 });
-    }
-    top += 16 + Math.max(lignes.length, 1) * 14 + 8;
-  }
-
-  // Pied de page
-  page.drawRectangle({
-    x: 0,
-    y: 0,
-    width: PAGE_WIDTH,
-    height: 36,
-    color: ACCENT,
-  });
-  const pied = `BDE TPS · ${evenement.nom} · ${evenement.date} · ${evenement.heure} · ${evenement.lieu}`;
-  texte(
-    pied,
-    Math.max(MARGIN, (PAGE_WIDTH - regular.widthOfTextAtSize(pied, 9)) / 2),
-    PAGE_HEIGHT - 14,
-    { size: 9, color: WHITE },
-  );
 }
