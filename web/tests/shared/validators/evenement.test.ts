@@ -7,7 +7,9 @@ const base = {
   heure: "20:00",
   lieu: "Hangar",
   prixBillet: "5,50",
+  prixBilletCotisant: "4",
   prixBilletSurPlace: "7",
+  prixBilletSurPlaceCotisant: "6",
   prixTicketBoisson: "1",
   motDePasse: "",
 };

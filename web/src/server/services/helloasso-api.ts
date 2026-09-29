@@ -29,10 +29,15 @@ export async function obtenirTokenHelloAsso(): Promise<string> {
 }
 
 const NOM_OPTION_BOISSON = /boisson/i;
+// Le nom du tarif HelloAsso dit s'il est réservé aux cotisants (« Billet cotisant »).
+const NOM_TARIF_COTISANT = /cotisant/i;
+const NOM_TARIF_NON_COTISANT = /non[\s-]*cotisant/i;
 
 export interface DetailsItemHelloAsso {
   /** 1 si l'option « ticket boisson » a été prise, 0 sinon. */
   ticketsBoisson: number;
+  /** Le tarif de l'item est un tarif cotisant (d'après son nom). */
+  cotisant: boolean;
   /** Personne inscrite sur ce billet, quand HelloAsso la renseigne. */
   prenom?: string;
   nom?: string;
@@ -62,12 +67,16 @@ export async function detailsItemHelloAsso(
     );
   }
 
-  const { options, user } = (await reponse.json()) as {
+  const { name, options, user } = (await reponse.json()) as {
+    name?: string;
     options?: { name: string }[];
     user?: { firstName?: string; lastName?: string };
   };
 
   return {
+    cotisant:
+      NOM_TARIF_COTISANT.test(name ?? "") &&
+      !NOM_TARIF_NON_COTISANT.test(name ?? ""),
     ticketsBoisson: options?.some((o) => NOM_OPTION_BOISSON.test(o.name))
       ? 1
       : 0,

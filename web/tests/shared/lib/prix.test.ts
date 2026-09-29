@@ -4,17 +4,32 @@ import {
   formatDateLongue,
   formatEuros,
   formatHeureEvenement,
+  montantCentimes,
   parseEuros,
+  prixBillet,
 } from "@/shared/lib/prix";
 
 describe("prix", () => {
-  it("calcule le total billets + tickets boisson", () => {
+  const prix = { billet: 600, billetCotisant: 400, ticketBoisson: 150 };
+
+  it("calcule le total billets + tickets boisson, au tarif cotisant ou non de chaque billet", () => {
     expect(
-      calculerTotalCentimes({ billet: 500, ticketBoisson: 150 }, [
-        { ticketsBoisson: 2 },
-        { ticketsBoisson: 0 },
+      calculerTotalCentimes(prix, [
+        { ticketsBoisson: 2, cotisant: false },
+        { ticketsBoisson: 0, cotisant: true },
       ]),
-    ).toBe(2 * 500 + 2 * 150);
+    ).toBe(600 + 400 + 2 * 150);
+  });
+
+  it("choisit le prix d'un billet selon la cotisation", () => {
+    expect(prixBillet(prix, true)).toBe(400);
+    expect(prixBillet(prix, false)).toBe(600);
+  });
+
+  it("calcule le montant d'un canal avec ses cotisants", () => {
+    expect(
+      montantCentimes(prix, { billets: 5, cotisants: 2, ticketsBoisson: 3 }),
+    ).toBe(3 * 600 + 2 * 400 + 3 * 150);
   });
 
   it("formate en euros", () => {

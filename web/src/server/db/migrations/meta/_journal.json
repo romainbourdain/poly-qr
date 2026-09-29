@@ -43,6 +43,13 @@
       "when": 1790700416556,
       "tag": "0005_billets_nominatifs",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790701030094,
+      "tag": "0006_cotisants",
+      "breakpoints": true
     }
   ]
 }

@@ -93,10 +93,23 @@ describe("helloasso-api", () => {
         jsonResponse({ user: { firstName: " Léa ", lastName: "Martin" } }),
       );
       await expect(detailsItemHelloAsso("token", 42)).resolves.toEqual({
+        cotisant: false,
         ticketsBoisson: 0,
         prenom: "Léa",
         nom: "Martin",
       });
+    });
+
+    it("détecte un tarif cotisant d'après son nom, sauf « non cotisant »", async () => {
+      const cotisant = async (name: string) => {
+        fetchMock.mockResolvedValueOnce(jsonResponse({ name }));
+        return (await detailsItemHelloAsso("token", 42)).cotisant;
+      };
+      expect(await cotisant("Billet cotisant")).toBe(true);
+      expect(await cotisant("Billet Cotisant BDE")).toBe(true);
+      expect(await cotisant("Billet non cotisant")).toBe(false);
+      expect(await cotisant("Billet non-cotisant")).toBe(false);
+      expect(await cotisant("Billet")).toBe(false);
     });
 
     it("échoue si la réponse HelloAsso n'est pas OK", async () => {

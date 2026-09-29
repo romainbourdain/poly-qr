@@ -6,6 +6,8 @@ export const permanenceBilletSchema = z.object({
   nom: z.string().trim().min(1, "Le nom est requis."),
   prenom: z.string().trim().min(1, "Le prénom est requis."),
   ticketsBoisson: z.number().int().min(0),
+  /** Cotisant de l'association : billet au tarif cotisant. */
+  cotisant: z.boolean(),
 });
 
 /**

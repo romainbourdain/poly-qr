@@ -1,27 +1,38 @@
 export interface PrixEvenement {
+  /** Billet non cotisant. */
   billet: number;
+  billetCotisant: number;
   ticketBoisson: number;
 }
 
-/** Total à payer pour une vente permanence, en centimes (affichage uniquement). */
+/** Prix d'un billet selon que la personne est cotisante ou non. */
+export function prixBillet(prix: PrixEvenement, cotisant: boolean): number {
+  return cotisant ? prix.billetCotisant : prix.billet;
+}
+
+/** Total à payer pour une vente en main propre, en centimes (affichage uniquement). */
 export function calculerTotalCentimes(
   prix: PrixEvenement,
-  billets: { ticketsBoisson: number }[],
+  billets: { ticketsBoisson: number; cotisant: boolean }[],
 ): number {
   return billets.reduce(
     (total, billet) =>
-      total + prix.billet + billet.ticketsBoisson * prix.ticketBoisson,
+      total +
+      prixBillet(prix, billet.cotisant) +
+      billet.ticketsBoisson * prix.ticketBoisson,
     0,
   );
 }
 
-/** Montant, en centimes, de `billets` billets et `ticketsBoisson` tickets boisson aux prix de l'événement. */
+/** Montant, en centimes, de `billets` billets dont `cotisants` au tarif cotisant, et de `ticketsBoisson` tickets boisson. */
 export function montantCentimes(
   prix: PrixEvenement,
-  ventes: { billets: number; ticketsBoisson: number },
+  ventes: { billets: number; cotisants: number; ticketsBoisson: number },
 ): number {
   return (
-    ventes.billets * prix.billet + ventes.ticketsBoisson * prix.ticketBoisson
+    (ventes.billets - ventes.cotisants) * prix.billet +
+    ventes.cotisants * prix.billetCotisant +
+    ventes.ticketsBoisson * prix.ticketBoisson
   );
 }
 

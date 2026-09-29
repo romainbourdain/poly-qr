@@ -104,9 +104,11 @@ export interface Evenement {
   date: string;
   heure: string;
   lieu: string;
-  /** Prix du billet en pré-vente (HelloAsso et permanence). */
+  /** Prix du billet en pré-vente (HelloAsso et permanence), non cotisant ; les champs « Cotisant » sont le tarif cotisant. */
   prixBilletCentimes: number;
+  prixBilletCotisantCentimes: number;
   prixBilletSurPlaceCentimes: number;
+  prixBilletSurPlaceCotisantCentimes: number;
   prixTicketBoissonCentimes: number;
 }
 
@@ -122,6 +124,10 @@ export interface StatsEvenement {
   billetsPermanence: number;
   billetsSurPlace: number;
   billetsHelloasso: number;
+  /** Billets au tarif cotisant, par canal. */
+  cotisantsHelloasso: number;
+  cotisantsPermanence: number;
+  cotisantsSurPlace: number;
   entreesScannees: number;
   ticketsBoisson: number;
   ticketsBoissonPermanence: number;

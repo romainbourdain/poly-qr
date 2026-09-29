@@ -5,7 +5,9 @@ import { surPlaceCommandeSchema } from "@/shared/validators/sur-place";
 
 const base = {
   email: "sacha@etu-poly.fr",
-  billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 }],
+  billets: [
+    { nom: "Lemoine", prenom: "Sacha", cotisant: false, ticketsBoisson: 0 },
+  ],
 };
 
 describe("permanenceCommandeSchema", () => {
@@ -34,9 +36,9 @@ describe("permanenceCommandeSchema", () => {
       ...base,
       moyenPaiement: "especes",
       billets: [
-        { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
-        { nom: "", prenom: "Robin", ticketsBoisson: 1 },
-        { nom: "Petit", prenom: " ", ticketsBoisson: 0 },
+        { nom: "Lemoine", prenom: "Sacha", cotisant: false, ticketsBoisson: 0 },
+        { nom: "", prenom: "Robin", cotisant: false, ticketsBoisson: 1 },
+        { nom: "Petit", prenom: " ", cotisant: true, ticketsBoisson: 0 },
       ],
     });
     expect(resultat.success).toBe(false);
@@ -57,7 +59,7 @@ describe("surPlaceCommandeSchema", () => {
     expect(
       surPlaceCommandeSchema.safeParse({
         moyenPaiement: "especes",
-        billets: [{ nom: "", prenom: "", ticketsBoisson: 0 }],
+        billets: [{ nom: "", prenom: "", cotisant: false, ticketsBoisson: 0 }],
       }).success,
     ).toBe(false);
   });

@@ -90,7 +90,12 @@ export async function POST(
     return Response.json({ success: true });
   }
 
-  let billets: { nom: string; prenom: string; ticketsBoisson: number }[];
+  let billets: {
+    nom: string;
+    prenom: string;
+    cotisant: boolean;
+    ticketsBoisson: number;
+  }[];
   try {
     const token = await obtenirTokenHelloAsso();
     billets = await Promise.all(
@@ -100,6 +105,7 @@ export async function POST(
         return {
           nom: details.nom ?? (commande.payeurNom || "—"),
           prenom: details.prenom ?? (commande.payeurPrenom || "—"),
+          cotisant: details.cotisant,
           ticketsBoisson: details.ticketsBoisson,
         };
       }),

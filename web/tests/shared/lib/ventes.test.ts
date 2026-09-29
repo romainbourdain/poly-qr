@@ -9,6 +9,9 @@ const stats: StatsEvenement = {
   billetsVendus: 7,
   billetsInvalides: 0,
   billetsHelloasso: 3,
+  cotisantsHelloasso: 1,
+  cotisantsPermanence: 0,
+  cotisantsSurPlace: 2,
   billetsPermanence: 2,
   billetsSurPlace: 2,
   entreesScannees: 0,
@@ -22,7 +25,9 @@ describe("calculerVentesParCanal", () => {
     const canaux = calculerVentesParCanal(
       {
         prixBilletCentimes: 500,
+        prixBilletCotisantCentimes: 300,
         prixBilletSurPlaceCentimes: 800,
+        prixBilletSurPlaceCotisantCentimes: 600,
         prixTicketBoissonCentimes: 100,
       },
       stats,
@@ -33,7 +38,7 @@ describe("calculerVentesParCanal", () => {
         label: "HelloAsso",
         billets: 3,
         ticketsBoisson: 3,
-        montantCentimes: 1800,
+        montantCentimes: 1600,
       },
       {
         id: "permanence",
@@ -47,9 +52,9 @@ describe("calculerVentesParCanal", () => {
         label: "Sur place",
         billets: 2,
         ticketsBoisson: 2,
-        montantCentimes: 1800,
+        montantCentimes: 1400,
       },
     ]);
-    expect(totalVentesCentimes(canaux)).toBe(4700);
+    expect(totalVentesCentimes(canaux)).toBe(4100);
   });
 });

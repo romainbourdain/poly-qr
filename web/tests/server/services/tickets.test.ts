@@ -64,8 +64,18 @@ describe("service tickets", () => {
           email: "sacha@etu-poly.fr",
           moyenPaiement: "especes",
           billets: [
-            { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 },
-            { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
+            {
+              nom: "Lemoine",
+              prenom: "Sacha",
+              cotisant: false,
+              ticketsBoisson: 2,
+            },
+            {
+              nom: "Lemoine",
+              prenom: "Sacha",
+              cotisant: false,
+              ticketsBoisson: 0,
+            },
           ],
         });
 
@@ -88,8 +98,18 @@ describe("service tickets", () => {
         await creerCommandeSurPlace(db, evenementId, {
           moyenPaiement: "especes",
           billets: [
-            { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 1 },
-            { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
+            {
+              nom: "Lemoine",
+              prenom: "Sacha",
+              cotisant: false,
+              ticketsBoisson: 1,
+            },
+            {
+              nom: "Lemoine",
+              prenom: "Sacha",
+              cotisant: false,
+              ticketsBoisson: 0,
+            },
           ],
         });
 
@@ -112,8 +132,18 @@ describe("service tickets", () => {
       await creerCommandeSurPlace(db, evenementId, {
         moyenPaiement: "especes",
         billets: [
-          { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
-          { nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 0 },
+          {
+            nom: "Lemoine",
+            prenom: "Sacha",
+            cotisant: false,
+            ticketsBoisson: 0,
+          },
+          {
+            nom: "Lemoine",
+            prenom: "Sacha",
+            cotisant: false,
+            ticketsBoisson: 0,
+          },
         ],
       });
       expect(await listerScansEvenement(db, evenementId)).toHaveLength(2);
@@ -132,7 +162,14 @@ describe("service tickets", () => {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
-        billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 }],
+        billets: [
+          {
+            nom: "Lemoine",
+            prenom: "Sacha",
+            cotisant: false,
+            ticketsBoisson: 2,
+          },
+        ],
       });
 
       expect(dejaTraitee).toBe(false);
@@ -150,14 +187,28 @@ describe("service tickets", () => {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
-        billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 }],
+        billets: [
+          {
+            nom: "Lemoine",
+            prenom: "Sacha",
+            cotisant: false,
+            ticketsBoisson: 2,
+          },
+        ],
       });
 
       const rejeu = await creerCommandeDepuisHelloAsso(db, evenementId, {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
-        billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 }],
+        billets: [
+          {
+            nom: "Lemoine",
+            prenom: "Sacha",
+            cotisant: false,
+            ticketsBoisson: 2,
+          },
+        ],
       });
 
       expect(rejeu.dejaTraitee).toBe(true);
@@ -594,6 +645,7 @@ describe("service tickets", () => {
           prenom: "Alix",
           code: "BBBB",
           statut: "non_scanne",
+          cotisant: true,
           ticketsBoisson: 1,
         },
         {
@@ -622,12 +674,20 @@ describe("service tickets", () => {
         nom: "Martin",
         prenom: "Alix",
         code: "DDDD",
+        cotisant: true,
         ticketsBoisson: 1,
       });
 
       const surPlace = await creerCommandeSurPlace(db, evenementId, {
         moyenPaiement: "especes",
-        billets: [{ nom: "Lemoine", prenom: "Sacha", ticketsBoisson: 2 }],
+        billets: [
+          {
+            nom: "Lemoine",
+            prenom: "Sacha",
+            cotisant: true,
+            ticketsBoisson: 2,
+          },
+        ],
       });
       expect(surPlace.billets).toHaveLength(1);
 
@@ -637,6 +697,9 @@ describe("service tickets", () => {
         billetsPermanence: 2,
         billetsSurPlace: 1,
         billetsHelloasso: 1,
+        cotisantsHelloasso: 1,
+        cotisantsPermanence: 1,
+        cotisantsSurPlace: 1,
         entreesScannees: 2,
         ticketsBoisson: 6,
         ticketsBoissonPermanence: 3,

@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   date,
   integer,
   pgEnum,
@@ -33,10 +34,19 @@ export const evenements = pgTable("evenements", {
   lieu: text("lieu").notNull(),
   motDePasseHash: text("mot_de_passe_hash").notNull(),
   // Prix en centimes, jamais stockés sur une commande ou un billet : ils servent
-  // au total des formulaires de vente et à l'estimation des ventes. Le prix du
-  // billet en pré-vente vaut pour HelloAsso et la permanence.
+  // au total des formulaires de vente et à l'estimation des ventes. Le prix en
+  // pré-vente vaut pour HelloAsso et la permanence ; les colonnes sans
+  // « cotisant » sont les prix des non cotisants.
   prixBilletCentimes: integer("prix_billet_centimes").notNull().default(0),
+  prixBilletCotisantCentimes: integer("prix_billet_cotisant_centimes")
+    .notNull()
+    .default(0),
   prixBilletSurPlaceCentimes: integer("prix_billet_sur_place_centimes")
+    .notNull()
+    .default(0),
+  prixBilletSurPlaceCotisantCentimes: integer(
+    "prix_billet_sur_place_cotisant_centimes",
+  )
     .notNull()
     .default(0),
   prixTicketBoissonCentimes: integer("prix_ticket_boisson_centimes")
@@ -70,6 +80,8 @@ export const billets = pgTable("billets", {
   prenom: text("prenom").notNull(),
   code: text("code").notNull().unique(),
   ticketsBoisson: integer("tickets_boisson").notNull().default(0),
+  // Cotisant de l'association : le billet est au tarif cotisant.
+  cotisant: boolean("cotisant").notNull().default(false),
   statut: statutBillet("statut").notNull().default("non_scanne"),
   scanneA: timestamp("scanne_a", { withTimezone: true }),
   creeA: timestamp("cree_a", { withTimezone: true }).notNull().defaultNow(),

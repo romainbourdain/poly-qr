@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { TicketStepperField } from "@/client/components/admin/ticket-stepper-field";
 import { Button } from "@/client/components/ui/button";
 import { CARD_CLASSES } from "@/client/components/ui/card";
+import { Checkbox } from "@/client/components/ui/checkbox";
 import { SelectField } from "@/client/components/ui/select-field";
 import { Separator } from "@/client/components/ui/separator";
 import { TextField } from "@/client/components/ui/text-field";
@@ -19,6 +20,7 @@ import {
   calculerTotalCentimes,
   formatEuros,
   type PrixEvenement,
+  prixBillet,
 } from "@/shared/lib/prix";
 import { MOYEN_PAIEMENT_LABEL, nomComplet } from "@/shared/lib/tickets";
 import {
@@ -61,7 +63,7 @@ export function VenteForm({
     defaultValues: {
       email: "",
       moyenPaiement: "" as MoyenPaiement | "",
-      billets: [{ nom: "", prenom: "", ticketsBoisson: 0 }],
+      billets: [{ nom: "", prenom: "", cotisant: false, ticketsBoisson: 0 }],
     },
     validators: {
       onChange: schema,
@@ -193,10 +195,29 @@ export function VenteForm({
                   key={rowIds[index]}
                   className="flex flex-col gap-5 rounded-2xl border border-line-2 bg-ink-3 p-4"
                 >
-                  <div className="font-bold text-[13px] text-muted">
-                    Billet {index + 1}
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="font-bold text-[13px] text-muted">
+                      Billet {index + 1}
+                    </span>
+                    <span className="font-bold text-[14px]">
+                      {formatEuros(
+                        prixBillet(
+                          prix,
+                          billetsField.state.value[index].cotisant,
+                        ),
+                      )}
+                    </span>
                   </div>
                   {nomEtPrenom(index)}
+                  <form.Field name={`billets[${index}].cotisant`}>
+                    {(field) => (
+                      <Checkbox
+                        label="Cotisant"
+                        checked={field.state.value}
+                        onCheckedChange={(coche) => field.handleChange(coche)}
+                      />
+                    )}
+                  </form.Field>
                   {tickets(index)}
                   {index > 0 && (
                     <Button
@@ -224,6 +245,7 @@ export function VenteForm({
                   billetsField.pushValue({
                     nom: "",
                     prenom: "",
+                    cotisant: false,
                     ticketsBoisson: 0,
                   });
                   setRowIds((prev) => [...prev, nextRowId.current++]);
@@ -247,36 +269,30 @@ export function VenteForm({
       <form.Subscribe
         selector={(state) => [state.canSubmit, state.values] as const}
       >
-        {([canSubmit, values]) => {
-          // Le total n'apparaît que lorsque le formulaire est complet et valide.
-          const pret = canSubmit && schema.safeParse(values).success;
-          return (
-            <>
-              {pret && (
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="font-bold text-[13px] text-muted">
-                    Total à payer
-                  </span>
-                  <span
-                    className="font-bold font-display text-[24px]"
-                    data-testid="total-a-payer"
-                  >
-                    {formatEuros(calculerTotalCentimes(prix, values.billets))}
-                  </span>
-                </div>
-              )}
-              <Button
-                type="submit"
-                disabled={!canSubmit}
-                className="h-13 text-[15.5px]"
+        {([canSubmit, values]) => (
+          <>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="font-bold text-[13px] text-muted">
+                Total à payer
+              </span>
+              <span
+                className="font-bold font-display text-[24px]"
+                data-testid="total-a-payer"
               >
-                {surPlace
-                  ? "Encaisser et faire entrer"
-                  : "Créer et envoyer par email"}
-              </Button>
-            </>
-          );
-        }}
+                {formatEuros(calculerTotalCentimes(prix, values.billets))}
+              </span>
+            </div>
+            <Button
+              type="submit"
+              disabled={!canSubmit}
+              className="h-13 text-[15.5px]"
+            >
+              {surPlace
+                ? "Encaisser et faire entrer"
+                : "Créer et envoyer par email"}
+            </Button>
+          </>
+        )}
       </form.Subscribe>
     </form>
   );

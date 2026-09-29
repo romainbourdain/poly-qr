@@ -28,9 +28,16 @@ export default async function AdminNouveauBilletPage({
           ? "sur_place"
           : "permanence"
       }
-      prixPrevente={evenement.prixBilletCentimes}
-      prixSurPlace={evenement.prixBilletSurPlaceCentimes}
-      prixTicketBoisson={evenement.prixTicketBoissonCentimes}
+      prixPrevente={{
+        billet: evenement.prixBilletCentimes,
+        billetCotisant: evenement.prixBilletCotisantCentimes,
+        ticketBoisson: evenement.prixTicketBoissonCentimes,
+      }}
+      prixSurPlace={{
+        billet: evenement.prixBilletSurPlaceCentimes,
+        billetCotisant: evenement.prixBilletSurPlaceCotisantCentimes,
+        ticketBoisson: evenement.prixTicketBoissonCentimes,
+      }}
     />
   );
 }

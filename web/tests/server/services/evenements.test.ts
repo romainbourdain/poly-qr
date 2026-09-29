@@ -24,7 +24,9 @@ const base = {
   heure: "22:00",
   lieu: "Le Hangar",
   prixBilletCentimes: 500,
+  prixBilletCotisantCentimes: 400,
   prixBilletSurPlaceCentimes: 700,
+  prixBilletSurPlaceCotisantCentimes: 600,
   prixTicketBoissonCentimes: 150,
 };
 
@@ -61,6 +63,9 @@ describe("service evenements", () => {
       heure: "22h00",
       lieu: "Le Hangar",
       prixBilletCentimes: 500,
+      prixBilletCotisantCentimes: 400,
+      prixBilletSurPlaceCentimes: 700,
+      prixBilletSurPlaceCotisantCentimes: 600,
       prixTicketBoissonCentimes: 150,
     });
     expect(evenement).not.toHaveProperty("motDePasseHash");

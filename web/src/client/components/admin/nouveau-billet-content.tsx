@@ -7,6 +7,7 @@ import {
   VenteForm,
 } from "@/client/components/admin/vente-form";
 import { Tabs, TabsList, TabsTab } from "@/client/components/ui/tabs";
+import type { PrixEvenement } from "@/shared/lib/prix";
 import type { CommandeCreee } from "@/shared/lib/types";
 
 export function NouveauBilletContent({
@@ -15,15 +16,13 @@ export function NouveauBilletContent({
   modeParDefaut,
   prixPrevente,
   prixSurPlace,
-  prixTicketBoisson,
 }: {
   evenementId: string;
   evenementNom: string;
   /** Pré-vente avant le début de l'événement, sur place ensuite. */
   modeParDefaut: ModeVente;
-  prixPrevente: number;
-  prixSurPlace: number;
-  prixTicketBoisson: number;
+  prixPrevente: PrixEvenement;
+  prixSurPlace: PrixEvenement;
 }) {
   const [mode, setMode] = useState<ModeVente>(modeParDefaut);
   const [session, setSession] = useState<CommandeCreee[]>([]);
@@ -54,10 +53,7 @@ export function NouveauBilletContent({
           key={mode}
           mode={mode}
           evenementId={evenementId}
-          prix={{
-            billet: mode === "sur_place" ? prixSurPlace : prixPrevente,
-            ticketBoisson: prixTicketBoisson,
-          }}
+          prix={mode === "sur_place" ? prixSurPlace : prixPrevente}
           onCreated={(commande) => setSession((prev) => [commande, ...prev])}
         />
         <div className="flex flex-col gap-4.5">

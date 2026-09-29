@@ -77,6 +77,7 @@ export async function creerCommandePermanence(
           code: genererCodeBillet(),
           nom: billet.nom,
           prenom: billet.prenom,
+          cotisant: billet.cotisant,
           ticketsBoisson: billet.ticketsBoisson,
         })),
       )
@@ -117,6 +118,7 @@ export async function creerCommandeSurPlace(
           code: genererCodeBillet(),
           nom: billet.nom,
           prenom: billet.prenom,
+          cotisant: billet.cotisant,
           ticketsBoisson: billet.ticketsBoisson,
           statut: "scanne" as const,
           scanneA: maintenant,
@@ -195,6 +197,7 @@ export async function creerCommandeDepuisHelloAsso(
             code: genererCodeBillet(),
             nom: billet.nom,
             prenom: billet.prenom,
+            cotisant: billet.cotisant,
             ticketsBoisson: billet.ticketsBoisson,
           })),
         )
@@ -316,6 +319,9 @@ export async function obtenirStatsEvenement(
     billetsPermanence: 0,
     billetsSurPlace: 0,
     billetsHelloasso: 0,
+    cotisantsHelloasso: 0,
+    cotisantsPermanence: 0,
+    cotisantsSurPlace: 0,
     entreesScannees: 0,
     ticketsBoisson: 0,
     ticketsBoissonPermanence: 0,
@@ -325,6 +331,7 @@ export async function obtenirStatsEvenement(
     .select({
       statut: billets.statut,
       ticketsBoisson: billets.ticketsBoisson,
+      cotisant: billets.cotisant,
       origine: commandes.origine,
     })
     .from(billets)
@@ -341,11 +348,14 @@ export async function obtenirStatsEvenement(
     if (ligne.origine === "permanence") {
       stats.billetsPermanence += 1;
       stats.ticketsBoissonPermanence += ligne.ticketsBoisson;
+      if (ligne.cotisant) stats.cotisantsPermanence += 1;
     } else if (ligne.origine === "sur_place") {
       stats.billetsSurPlace += 1;
       stats.ticketsBoissonSurPlace += ligne.ticketsBoisson;
+      if (ligne.cotisant) stats.cotisantsSurPlace += 1;
     } else {
       stats.billetsHelloasso += 1;
+      if (ligne.cotisant) stats.cotisantsHelloasso += 1;
     }
     if (ligne.statut === "scanne") stats.entreesScannees += 1;
   }
