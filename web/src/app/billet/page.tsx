@@ -49,19 +49,7 @@ export default async function BilletPage({
           <BilletQrCard nom={commande.nom} billet={commande.billets[0]} />
         )}
 
-        <div className="flex items-start gap-2.5 px-1 text-[13px] text-muted leading-relaxed">
-          <span>
-            Valable{" "}
-            <strong className="font-bold text-fg">une seule fois</strong>. Monte
-            la luminosité de ton écran avant de le présenter.
-          </span>
-        </div>
-
         <BilletPdfLink commandeId={commande.commandeId} />
-      </div>
-
-      <div className="border-[#22222F] border-t pt-3.5 text-[13px] text-faint">
-        Ce billet t&apos;a été envoyé par email.
       </div>
     </main>
   );
