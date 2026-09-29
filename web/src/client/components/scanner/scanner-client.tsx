@@ -13,9 +13,11 @@ import {
 import type { BilletSimulable } from "@/shared/lib/types";
 
 export function ScannerClient({
+  evenementNom,
   entreesInitial,
   billets,
 }: {
+  evenementNom: string;
   entreesInitial: number;
   billets: BilletSimulable[];
 }) {
@@ -50,7 +52,7 @@ export function ScannerClient({
 
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col bg-[#08080C] px-5">
-      <ScannerHeader entrees={entrees} />
+      <ScannerHeader evenementNom={evenementNom} entrees={entrees} />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
         <CameraScanner onDecode={handleDecode} />

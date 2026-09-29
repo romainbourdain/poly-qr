@@ -56,8 +56,8 @@ export default async function LoginPage() {
           <path d="M8 10V7a4 4 0 0 1 8 0v3" />
         </svg>
         <span>
-          Démo : mot de passe pré-rempli côté aide-mémoire sur la page
-          d&apos;accueil, un seul mot de passe partagé entre tous les bénévoles.
+          Un seul mot de passe partagé entre tous les bénévoles, donné par
+          l&apos;organisateur pour la soirée.
         </span>
       </div>
     </main>

@@ -1,4 +1,5 @@
 import { ScannerClient } from "@/client/components/scanner/scanner-client";
+import { obtenirEvenementActifAction } from "@/server/actions/evenements";
 import {
   listerBilletsAction,
   obtenirStatsBilletsAction,
@@ -7,7 +8,8 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function ScannerPage() {
-  const [commandes, stats] = await Promise.all([
+  const [evenement, commandes, stats] = await Promise.all([
+    obtenirEvenementActifAction(),
     listerBilletsAction({ q: "", statut: "tous" }),
     obtenirStatsBilletsAction(),
   ]);
@@ -20,5 +22,11 @@ export default async function ScannerPage() {
     })),
   );
 
-  return <ScannerClient entreesInitial={stats.scannes} billets={billets} />;
+  return (
+    <ScannerClient
+      evenementNom={evenement?.nom ?? "Aucun événement actif"}
+      entreesInitial={stats.scannes}
+      billets={billets}
+    />
+  );
 }
