@@ -22,14 +22,12 @@ export function AffluenceCard({ tranches }: { tranches: TrancheAffluence[] }) {
 
   return (
     <Card className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 className="font-bold text-[16px]">Affluence à l&apos;entrée</h2>
+      <h2 className="font-bold text-[16px]">Affluence à l&apos;entrée</h2>
+      {total === 0 && (
         <p className="text-[13.5px] text-muted">
-          {total === 0
-            ? "Aucune entrée pour l'instant."
-            : `Pic à ${heureCourte(pic.debut)} : ${pic.entrees} ${pic.entrees > 1 ? "entrées" : "entrée"} en 15 min.`}
+          Aucune entrée pour l&apos;instant.
         </p>
-      </div>
+      )}
       {total > 0 && (
         <ChartContainer
           config={CONFIG}

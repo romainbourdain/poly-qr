@@ -21,24 +21,14 @@ const COULEURS: Record<string, string> = {
   sur_place: "var(--color-warn)",
 };
 
-const formatteurHeure = new Intl.DateTimeFormat("fr-FR", {
-  timeZone: "Europe/Paris",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-});
-
 export function StatsContent({
   evenement,
   stats,
   tranches,
-  miseAJour,
 }: {
   evenement: Evenement;
   stats: StatsEvenement;
   tranches: TrancheAffluence[];
-  /** Instant ISO du calcul des chiffres, pour afficher leur fraîcheur. */
-  miseAJour: string;
 }) {
   const ventes = calculerVentesParCanal(evenement, stats);
   const canaux: CanalVentes[] = ventes.map((v) => ({
@@ -48,21 +38,14 @@ export function StatsContent({
 
   return (
     <div className="flex flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 md:px-9">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-display font-extrabold text-[24px] tracking-tight sm:text-[30px]">
-          Statistiques
-        </h1>
-        <p className="text-[13px] text-muted">
-          Chiffres à {formatteurHeure.format(new Date(miseAJour))} : recharge la
-          page pour les actualiser.
-        </p>
-      </div>
+      <h1 className="font-display font-extrabold text-[24px] tracking-tight sm:text-[30px]">
+        Statistiques
+      </h1>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-3.5 lg:grid-cols-4">
         <Stat
           label="Ventes totales"
           value={formatEuros(totalVentesCentimes(ventes))}
-          hint="Estimation, billets et tickets boisson"
         />
         <Stat label="Billets vendus" value={stats.billetsVendus} />
         <Stat label="Tickets boisson vendus" value={stats.ticketsBoisson} />

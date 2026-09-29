@@ -36,7 +36,6 @@ export default async function AdminStatistiquesPage({
         date: evenement.dateIso,
         heure: evenement.heureIso,
       })}
-      miseAJour={new Date().toISOString()}
     />
   );
 }
