@@ -8,7 +8,7 @@ export function DesktopSidebar() {
         <div className="font-display font-extrabold text-xl tracking-tight">
           PolyQR
         </div>
-        <div className="text-[12px] text-muted">Association Poly</div>
+        <div className="text-[12px] text-muted">BDE TPS</div>
       </div>
       <NavLinks />
       <div className="mt-auto flex flex-col gap-2.5">

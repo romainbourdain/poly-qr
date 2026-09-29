@@ -10,7 +10,7 @@ const VALID = {
   SMTP_PORT: "465",
   SMTP_USER: "association@example.org",
   SMTP_PASSWORD: "secret",
-  SMTP_FROM: "Association Poly <association@example.org>",
+  SMTP_FROM: "BDE TPS <association@example.org>",
   HELLOASSO_WEBHOOK_SECRET: "webhook-secret",
   HELLOASSO_API_BASE_URL: "https://api.helloasso.com",
   HELLOASSO_CLIENT_ID: "client-id",

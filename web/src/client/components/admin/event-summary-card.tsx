@@ -55,7 +55,7 @@ export function EventSummaryCard({
           <Input
             id="helloasso-url"
             readOnly
-            defaultValue="helloasso.com/associations/poly/evenements/soiree-hiver"
+            defaultValue="helloasso.com/associations/bde-tps/evenements/soiree-hiver"
             className="h-11.5"
           />
           <div className="flex items-center gap-2">

@@ -11,7 +11,7 @@ export default async function Home() {
     <main className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-12 px-6 py-16">
       <div className="flex flex-col gap-3">
         <div className="font-bold text-[12px] text-muted uppercase tracking-[0.18em]">
-          Association Poly · Prototype
+          BDE TPS · Prototype
         </div>
         <h1 className="font-display font-extrabold text-4xl tracking-tight sm:text-5xl">
           PolyQR

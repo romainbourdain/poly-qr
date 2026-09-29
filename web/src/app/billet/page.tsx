@@ -32,7 +32,7 @@ export default async function BilletPage({
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-6 py-7">
       <div className="flex flex-col gap-1.5">
         <div className="font-bold text-[12px] text-muted uppercase tracking-[0.18em]">
-          Association Poly
+          BDE TPS
         </div>
         <h1 className="font-display font-extrabold text-3xl tracking-tight">
           {evenement.nom}

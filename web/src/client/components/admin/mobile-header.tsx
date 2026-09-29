@@ -49,7 +49,7 @@ export function MobileHeader({
           <span className="font-display font-extrabold text-[16px] tracking-tight">
             PolyQR
           </span>
-          <span className="text-[12px] text-muted">Association Poly</span>
+          <span className="text-[12px] text-muted">BDE TPS</span>
         </div>
         <Link
           href="/scanner"

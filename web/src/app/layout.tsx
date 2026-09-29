@@ -18,7 +18,7 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "PolyQR — Prototype",
   description:
-    "Prototype cliquable du système de QR code d'entrée pour les soirées de l'association Poly.",
+    "Prototype cliquable du système de QR code d'entrée pour les soirées du BDE TPS.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

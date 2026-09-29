@@ -1,6 +1,6 @@
 # PolyQR
 
-Système de QR code pour l'entrée aux soirées de l'association Poly, en remplacement du contrôle manuel sur fichier Excel.
+Système de QR code pour l'entrée aux soirées du BDE TPS, en remplacement du contrôle manuel sur fichier Excel.
 
 ## Le problème actuel
 
