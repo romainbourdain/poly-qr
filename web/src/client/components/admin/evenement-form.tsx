@@ -75,7 +75,7 @@ export function EvenementForm({
           <TextField
             field={field}
             label="Nom de l'événement"
-            placeholder="Soirée d'hiver"
+            placeholder="Poly de Noël"
           />
         )}
       </form.Field>
@@ -91,7 +91,7 @@ export function EvenementForm({
 
       <form.Field name="lieu">
         {(field) => (
-          <TextField field={field} label="Lieu" placeholder="Le Hangar" />
+          <TextField field={field} label="Lieu" placeholder="Salle Poly" />
         )}
       </form.Field>
 
@@ -102,7 +102,6 @@ export function EvenementForm({
               field={field}
               label="Prix du billet (€)"
               inputMode="decimal"
-              description="Vente permanence uniquement."
             />
           )}
         </form.Field>
@@ -112,7 +111,6 @@ export function EvenementForm({
               field={field}
               label="Prix du ticket boisson (€)"
               inputMode="decimal"
-              description="Vente permanence uniquement."
             />
           )}
         </form.Field>
@@ -122,11 +120,11 @@ export function EvenementForm({
         {(field) => (
           <TextField
             field={field}
-            label="Mot de passe bénévoles"
+            label="Mot de passe scanner"
             description={
               mode === "modifier"
                 ? "Laisser vide pour conserver le mot de passe actuel."
-                : "À donner aux bénévoles du poste d'entrée le soir même."
+                : "Demandé pour accéder au scanner de cet événement."
             }
             autoComplete="off"
           />
