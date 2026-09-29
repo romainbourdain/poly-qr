@@ -17,6 +17,7 @@ services:
       retries: 10
 
   migrate:
+    image: ghcr.io/romainbourdain/poly-qr-migrate:${APP_TAG:-latest}
     build:
       context: .
       target: migrator
@@ -28,7 +29,7 @@ services:
     restart: "no"
 
   app:
-    image: ${APP_IMAGE:-ghcr.io/romainbourdain/poly-qr:latest}
+    image: ghcr.io/romainbourdain/poly-qr:${APP_TAG:-latest}
     build:
       context: .
     restart: unless-stopped

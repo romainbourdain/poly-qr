@@ -45,19 +45,31 @@ jobs:
         id: meta
         run: |
           image=ghcr.io/${GITHUB_REPOSITORY,,}
-          {
-            echo "tags<<EOF"
-            echo "${image}:${{ steps.tag.outputs.tag }}"
-            echo "${image}:latest"
-            echo "${image}:${GITHUB_SHA::7}"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          for name in app migrate; do
+            suffix=""; [ "$name" = migrate ] && suffix="-migrate"
+            {
+              echo "${name}<<EOF"
+              echo "${image}${suffix}:${{ steps.tag.outputs.tag }}"
+              echo "${image}${suffix}:latest"
+              echo "${image}${suffix}:${GITHUB_SHA::7}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          done
 
       - uses: docker/build-push-action@v6
         with:
           context: web
           target: runner
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.app }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Image one-shot des migrations (utilisée par le service `migrate`).
+      - uses: docker/build-push-action@v6
+        with:
+          context: web
+          target: migrator
+          push: true
+          tags: ${{ steps.meta.outputs.migrate }}
+          cache-from: type=gha
