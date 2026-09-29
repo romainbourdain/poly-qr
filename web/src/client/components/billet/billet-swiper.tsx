@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { BilletQrCard } from "@/client/components/billet/billet-qr-card";
-import { BilletStatusCard } from "@/client/components/billet/billet-status-card";
 import type { BilletListe } from "@/shared/lib/types";
 
 export function BilletSwiper({
@@ -33,12 +32,8 @@ export function BilletSwiper({
         className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
       >
         {billets.map((billet) => (
-          <div
-            key={billet.id}
-            className="flex w-full shrink-0 snap-center flex-col gap-2.5"
-          >
+          <div key={billet.id} className="w-full shrink-0 snap-center">
             <BilletQrCard nom={nom} billet={billet} />
-            <BilletStatusCard billet={billet} />
           </div>
         ))}
       </section>

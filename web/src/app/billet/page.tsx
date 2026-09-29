@@ -2,7 +2,6 @@ import { createSearchParamsCache } from "nuqs/server";
 import { BilletIntrouvable } from "@/client/components/billet/billet-introuvable";
 import { BilletPdfLink } from "@/client/components/billet/billet-pdf-link";
 import { BilletQrCard } from "@/client/components/billet/billet-qr-card";
-import { BilletStatusCard } from "@/client/components/billet/billet-status-card";
 import { BilletSwiper } from "@/client/components/billet/billet-swiper";
 import { obtenirCommandeAction } from "@/server/actions/tickets";
 import { db } from "@/server/db/client";
@@ -47,10 +46,7 @@ export default async function BilletPage({
         {commande.billets.length > 1 ? (
           <BilletSwiper nom={commande.nom} billets={commande.billets} />
         ) : (
-          <>
-            <BilletQrCard nom={commande.nom} billet={commande.billets[0]} />
-            <BilletStatusCard billet={commande.billets[0]} />
-          </>
+          <BilletQrCard nom={commande.nom} billet={commande.billets[0]} />
         )}
 
         <div className="flex items-start gap-2.5 px-1 text-[13px] text-muted leading-relaxed">
