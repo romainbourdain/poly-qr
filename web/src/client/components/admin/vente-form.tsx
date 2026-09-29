@@ -160,8 +160,6 @@ export function VenteForm({
 
           return (
             <>
-              {nomEtPrenom(0)}
-
               {!surPlace && (
                 <form.Field name="email">
                   {(field) => (
@@ -190,20 +188,17 @@ export function VenteForm({
                 )}
               </form.Field>
 
-              {tickets(0)}
-
-              {billetsField.state.value.slice(1).map((_, i) => {
-                const index = i + 1;
-                return (
-                  <div
-                    key={rowIds[index]}
-                    className="flex flex-col gap-5 rounded-2xl border border-line-2 bg-ink-3 p-4"
-                  >
-                    <div className="font-bold text-[13px] text-muted">
-                      Billet {index + 1}
-                    </div>
-                    {nomEtPrenom(index)}
-                    {tickets(index)}
+              {billetsField.state.value.map((_, index) => (
+                <div
+                  key={rowIds[index]}
+                  className="flex flex-col gap-5 rounded-2xl border border-line-2 bg-ink-3 p-4"
+                >
+                  <div className="font-bold text-[13px] text-muted">
+                    Billet {index + 1}
+                  </div>
+                  {nomEtPrenom(index)}
+                  {tickets(index)}
+                  {index > 0 && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -216,9 +211,9 @@ export function VenteForm({
                     >
                       Retirer ce billet
                     </Button>
-                  </div>
-                );
-              })}
+                  )}
+                </div>
+              ))}
 
               <Button
                 type="button"
