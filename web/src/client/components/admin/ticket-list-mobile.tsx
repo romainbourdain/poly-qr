@@ -1,5 +1,6 @@
 import { Button } from "@/client/components/ui/button";
 import {
+  MOYEN_PAIEMENT_LABEL,
   ORIGINE_LABEL,
   STATUT_LABEL,
   STATUT_TEXT_CLASS,
@@ -30,7 +31,8 @@ export function TicketListMobile({
               </span>
             </div>
             <span className="shrink-0 rounded-full border border-line-2 bg-ink-4 px-2.5 py-1 font-semibold text-[#C7C4DA] text-[12px]">
-              {ORIGINE_LABEL[commande.origine]}
+              {ORIGINE_LABEL[commande.origine]} ·{" "}
+              {MOYEN_PAIEMENT_LABEL[commande.moyenPaiement]}
             </span>
           </div>
 

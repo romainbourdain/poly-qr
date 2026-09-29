@@ -67,6 +67,7 @@ describe("service evenements", () => {
       nom: "A",
       email: "a@b.fr",
       origine: "permanence",
+      moyenPaiement: "especes",
     });
     const second = await creerEvenement(db, {
       ...base,
@@ -94,6 +95,7 @@ describe("service evenements", () => {
         nom: "A",
         email: "a@b.fr",
         origine: "permanence",
+        moyenPaiement: "especes",
       })
       .returning();
     await creerEvenement(db, { ...base, nom: "Autre", motDePasse: "deux" });

@@ -1,8 +1,17 @@
-import type { Origine, Statut } from "./types";
+import type { MoyenPaiement, Origine, Statut } from "./types";
 
 export const ORIGINE_LABEL: Record<Origine, string> = {
   helloasso: "HelloAsso",
   permanence: "Permanence",
+};
+
+export const MOYEN_PAIEMENT_LABEL: Record<MoyenPaiement, string> = {
+  virement: "Virement",
+  hello_asso: "HelloAsso",
+  lydia: "Lydia",
+  especes: "Espèces",
+  sumup: "SumUp",
+  autre: "Autre",
 };
 
 export const STATUT_LABEL: Record<Statut, string> = {

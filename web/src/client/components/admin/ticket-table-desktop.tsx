@@ -1,5 +1,6 @@
 import { Button } from "@/client/components/ui/button";
 import {
+  MOYEN_PAIEMENT_LABEL,
   ORIGINE_LABEL,
   STATUT_LABEL,
   STATUT_TEXT_CLASS,
@@ -30,7 +31,8 @@ export function TicketTableDesktop({
               </span>
             </div>
             <span className="shrink-0 font-bold text-[#8B88A3] text-[11.5px] uppercase tracking-[0.1em]">
-              {ORIGINE_LABEL[commande.origine]}
+              {ORIGINE_LABEL[commande.origine]} ·{" "}
+              {MOYEN_PAIEMENT_LABEL[commande.moyenPaiement]}
             </span>
           </div>
 

@@ -1,0 +1,2 @@
+CREATE TYPE "public"."moyen_paiement" AS ENUM('virement', 'hello_asso', 'lydia', 'especes', 'sumup', 'autre');--> statement-breakpoint
+ALTER TABLE "commandes" ADD COLUMN "moyen_paiement" "moyen_paiement" NOT NULL;

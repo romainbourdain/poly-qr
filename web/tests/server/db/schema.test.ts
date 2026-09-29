@@ -50,6 +50,7 @@ describe("schéma DB (evenements / commandes / billets)", () => {
         nom: "Alix Martin",
         email: "alix@example.com",
         origine: "permanence",
+        moyenPaiement: "especes",
       })
       .returning();
 
@@ -82,6 +83,7 @@ describe("schéma DB (evenements / commandes / billets)", () => {
         nom: "Alix Martin",
         email: "alix@example.com",
         origine: "permanence",
+        moyenPaiement: "especes",
       })
       .returning();
 
@@ -100,6 +102,7 @@ describe("schéma DB (evenements / commandes / billets)", () => {
       nom: "Alix Martin",
       email: "alix@example.com",
       origine: "helloasso",
+      moyenPaiement: "hello_asso",
       helloassoPaymentId: "hpid-1",
     });
 
@@ -109,6 +112,7 @@ describe("schéma DB (evenements / commandes / billets)", () => {
         nom: "Autre Personne",
         email: "autre@example.com",
         origine: "helloasso",
+        moyenPaiement: "hello_asso",
         helloassoPaymentId: "hpid-1",
       }),
     ).rejects.toThrow();
@@ -135,6 +139,7 @@ describe("schéma DB (evenements / commandes / billets)", () => {
         nom: "Alix Martin",
         email: "alix@example.com",
         origine: "permanence",
+        moyenPaiement: "especes",
       }),
     ).rejects.toThrow();
   });

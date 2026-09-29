@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { TicketStepperField } from "@/client/components/admin/ticket-stepper-field";
 import { Button } from "@/client/components/ui/button";
 import { CARD_CLASSES } from "@/client/components/ui/card";
+import { SelectField } from "@/client/components/ui/select-field";
 import { Separator } from "@/client/components/ui/separator";
 import { TextField } from "@/client/components/ui/text-field";
 import { creerPermanenceAction } from "@/server/actions/tickets";
@@ -14,7 +15,12 @@ import {
   formatEuros,
   type PrixEvenement,
 } from "@/shared/lib/prix";
-import type { CommandeCreee } from "@/shared/lib/types";
+import { MOYEN_PAIEMENT_LABEL } from "@/shared/lib/tickets";
+import {
+  type CommandeCreee,
+  MOYENS_PAIEMENT,
+  type MoyenPaiement,
+} from "@/shared/lib/types";
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
 
 export function PermanenceForm({
@@ -32,6 +38,7 @@ export function PermanenceForm({
     defaultValues: {
       nom: "",
       email: "",
+      moyenPaiement: "" as MoyenPaiement | "",
       billets: [{ ticketsBoisson: 0 }],
     },
     validators: {
@@ -39,12 +46,14 @@ export function PermanenceForm({
     },
     onSubmit: async ({ value }) => {
       setError(null);
+      if (value.moyenPaiement === "") return;
       const nom = value.nom.trim();
       const email = value.email.trim();
 
       const result = await creerPermanenceAction({
         nom,
         email,
+        moyenPaiement: value.moyenPaiement,
         billets: value.billets,
       });
 
@@ -96,6 +105,20 @@ export function PermanenceForm({
             type="email"
             placeholder="sacha.lemoine@etu-poly.fr"
             description="C'est l'adresse qui recevra le(s) QR code(s)."
+          />
+        )}
+      </form.Field>
+
+      <form.Field name="moyenPaiement">
+        {(field) => (
+          <SelectField
+            field={field}
+            label="Moyen de paiement"
+            placeholder="Choisir un moyen de paiement"
+            options={MOYENS_PAIEMENT.map((value) => ({
+              value,
+              label: MOYEN_PAIEMENT_LABEL[value],
+            }))}
           />
         )}
       </form.Field>

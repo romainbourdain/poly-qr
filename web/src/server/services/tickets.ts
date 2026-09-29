@@ -68,6 +68,7 @@ export async function creerCommandePermanence(
         nom: input.nom,
         email: input.email,
         origine: "permanence",
+        moyenPaiement: input.moyenPaiement,
       })
       .returning();
 
@@ -144,6 +145,7 @@ export async function creerCommandeDepuisHelloAsso(
           nom: input.nom,
           email: input.email,
           origine: "helloasso",
+          moyenPaiement: "hello_asso",
           helloassoPaymentId: input.helloassoPaymentId,
         })
         .returning();
@@ -201,6 +203,7 @@ export async function listerBillets(
       nom: commandes.nom,
       email: commandes.email,
       origine: commandes.origine,
+      moyenPaiement: commandes.moyenPaiement,
       commandeCreeA: commandes.creeA,
       id: billets.id,
       code: billets.code,
@@ -223,6 +226,7 @@ export async function listerBillets(
         nom: ligne.nom,
         email: ligne.email,
         origine: ligne.origine,
+        moyenPaiement: ligne.moyenPaiement,
         billets: [],
       };
       groupes.set(ligne.commandeId, groupe);
@@ -249,6 +253,7 @@ export async function obtenirCommandeAvecBillets(
       nom: commandes.nom,
       email: commandes.email,
       origine: commandes.origine,
+      moyenPaiement: commandes.moyenPaiement,
       id: billets.id,
       code: billets.code,
       ticketsBoisson: billets.ticketsBoisson,
@@ -267,6 +272,7 @@ export async function obtenirCommandeAvecBillets(
     nom: lignes[0].nom,
     email: lignes[0].email,
     origine: lignes[0].origine,
+    moyenPaiement: lignes[0].moyenPaiement,
     billets: lignes.map(versBilletListe),
   };
 }

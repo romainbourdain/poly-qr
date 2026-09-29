@@ -17,6 +17,15 @@ export const origineCommande = pgEnum("origine_commande", [
   "permanence",
 ]);
 
+export const moyenPaiement = pgEnum("moyen_paiement", [
+  "virement",
+  "hello_asso",
+  "lydia",
+  "especes",
+  "sumup",
+  "autre",
+]);
+
 export const statutBillet = pgEnum("statut_billet", [
   "non_scanne",
   "scanne",
@@ -57,6 +66,8 @@ export const commandes = pgTable("commandes", {
   nom: text("nom").notNull(),
   email: text("email").notNull(),
   origine: origineCommande("origine").notNull(),
+  // Simple marqueur pour la trésorerie : jamais de montant, jamais modifiable.
+  moyenPaiement: moyenPaiement("moyen_paiement").notNull(),
   helloassoPaymentId: text("helloasso_payment_id").unique(),
   creeA: timestamp("cree_a", { withTimezone: true }).notNull().defaultNow(),
 });

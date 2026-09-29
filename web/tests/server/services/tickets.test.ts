@@ -62,10 +62,12 @@ describe("service tickets", () => {
         await creerCommandePermanence(db, {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
+          moyenPaiement: "especes",
           billets: [{ ticketsBoisson: 2 }, { ticketsBoisson: 0 }],
         });
 
       expect(commande.origine).toBe("permanence");
+      expect(commande.moyenPaiement).toBe("especes");
       expect(nouveauxBillets).toHaveLength(2);
       expect(nouveauxBillets[0].statut).toBe("non_scanne");
       expect(nouveauxBillets[0].code).not.toBe(nouveauxBillets[1].code);
@@ -79,6 +81,7 @@ describe("service tickets", () => {
         creerCommandePermanence(db, {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
+          moyenPaiement: "especes",
           billets: [{ ticketsBoisson: 0 }],
         }),
       ).rejects.toThrow("Aucun événement actif.");
@@ -102,6 +105,7 @@ describe("service tickets", () => {
 
       expect(dejaTraitee).toBe(false);
       expect(commande.origine).toBe("helloasso");
+      expect(commande.moyenPaiement).toBe("hello_asso");
       expect(commande.helloassoPaymentId).toBe("hp-123");
       expect(nouveauxBillets).toHaveLength(1);
       expect(nouveauxBillets[0].ticketsBoisson).toBe(2);
@@ -155,6 +159,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -165,6 +170,7 @@ describe("service tickets", () => {
           nom: "Léa Dupont",
           email: "lea@etu-poly.fr",
           origine: "helloasso",
+          moyenPaiement: "hello_asso",
         })
         .returning();
 
@@ -218,6 +224,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -258,6 +265,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -291,6 +299,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -323,6 +332,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -350,6 +360,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -381,6 +392,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -410,6 +422,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -450,6 +463,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 
@@ -491,6 +505,7 @@ describe("service tickets", () => {
           nom: "A",
           email: "a@b.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
       await db
@@ -534,6 +549,7 @@ describe("service tickets", () => {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           origine: "permanence",
+          moyenPaiement: "especes",
         })
         .returning();
 

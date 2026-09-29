@@ -7,6 +7,7 @@ import { listerEvenements } from "@/server/services/evenements";
 import { listerBillets } from "@/server/services/tickets";
 import { cn } from "@/shared/lib/cn";
 import {
+  MOYEN_PAIEMENT_LABEL,
   ORIGINE_LABEL,
   STATUT_BADGE_VARIANT,
   STATUT_LABEL,
@@ -69,7 +70,8 @@ export default async function AdminEvenementPage({
                 <span className="font-bold">{commande.nom}</span>
                 <span className="text-[13px] text-muted">{commande.email}</span>
                 <span className="text-[12.5px] text-faint">
-                  {ORIGINE_LABEL[commande.origine]}
+                  {ORIGINE_LABEL[commande.origine]} ·{" "}
+                  {MOYEN_PAIEMENT_LABEL[commande.moyenPaiement]}
                 </span>
               </div>
               {commande.billets.map((billet) => (

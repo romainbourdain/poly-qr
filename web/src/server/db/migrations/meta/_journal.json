@@ -15,6 +15,13 @@
       "when": 1790689897559,
       "tag": "0001_rainy_exiles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790691354759,
+      "tag": "0002_square_forgotten_one",
+      "breakpoints": true
     }
   ]
 }

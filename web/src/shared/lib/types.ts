@@ -1,4 +1,13 @@
 export type Origine = "helloasso" | "permanence";
+export const MOYENS_PAIEMENT = [
+  "virement",
+  "hello_asso",
+  "lydia",
+  "especes",
+  "sumup",
+  "autre",
+] as const;
+export type MoyenPaiement = (typeof MOYENS_PAIEMENT)[number];
 export type Statut = "non_scanne" | "scanne" | "invalide";
 
 export interface Ticket {
@@ -34,6 +43,7 @@ export interface CommandeAvecBillets {
   nom: string;
   email: string;
   origine: Origine;
+  moyenPaiement: MoyenPaiement;
   billets: BilletListe[];
 }
 
