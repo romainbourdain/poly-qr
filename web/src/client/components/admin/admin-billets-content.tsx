@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { TicketListMobile } from "@/client/components/admin/ticket-list-mobile";
+import { TicketPagination } from "@/client/components/admin/ticket-pagination";
 import { TicketSearchInput } from "@/client/components/admin/ticket-search-input";
 import { TicketStatusTabs } from "@/client/components/admin/ticket-status-tabs";
 import { TicketTableDesktop } from "@/client/components/admin/ticket-table-desktop";
@@ -16,12 +16,24 @@ import type { BilletAdmin, Statut } from "@/shared/lib/types";
 
 export function AdminBilletsContent({
   billets,
+  totalPages,
   stats,
 }: {
   billets: BilletAdmin[];
+  totalPages: number;
   stats: { total: number; scannes: number };
 }) {
-  const { query, setQuery, statut, setStatut } = useTicketFilters();
+  const {
+    query,
+    setQuery,
+    statut,
+    setStatut,
+    tri,
+    ordre,
+    setTri,
+    page,
+    setPage,
+  } = useTicketFilters();
   const [, startTransition] = useTransition();
   const [erreur, setErreur] = useState<string | null>(null);
 
@@ -76,11 +88,20 @@ export function AdminBilletsContent({
           Aucun billet ne correspond.
         </div>
       ) : (
-        <>
-          <TicketTableDesktop billets={billets} onToggleStatut={toggleStatut} />
-          <TicketListMobile billets={billets} onToggleStatut={toggleStatut} />
-        </>
+        <TicketTableDesktop
+          billets={billets}
+          onToggleStatut={toggleStatut}
+          tri={tri}
+          ordre={ordre}
+          onSort={setTri}
+        />
       )}
+
+      <TicketPagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

@@ -1,9 +1,13 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
 import { billets, commandes } from "@/server/db/schema";
-import type { StatutFilter } from "@/shared/lib/search-params";
+import type {
+  SortOrder,
+  StatutFilter,
+  TicketSort,
+} from "@/shared/lib/search-params";
 import { formatHeure, nomComplet } from "@/shared/lib/tickets";
 import type {
   BilletAdmin,
@@ -218,10 +222,85 @@ export async function creerCommandeDepuisHelloAsso(
 export async function listerBillets(
   db: Db,
   evenementId: string,
-  filtres: { q: string; statut: StatutFilter },
+  filtres: {
+    q: string;
+    statut: StatutFilter;
+    tri?: TicketSort;
+    ordre?: SortOrder;
+  },
+  pagination?: { page: number; limit: number },
 ): Promise<BilletAdmin[]> {
   const conditions = [eq(commandes.evenementId, evenementId)];
+  const { statut, tri = "cree_a", ordre = "desc" } = filtres;
 
+  if (statut !== "tous") {
+    conditions.push(eq(billets.statut, statut));
+  }
+
+  const q = filtres.q.trim();
+  if (q) {
+    const motif = `%${q}%`;
+    const recherche = or(
+      ilike(billets.nom, motif),
+      ilike(billets.prenom, motif),
+      ilike(sql`${billets.prenom} || ' ' || ${billets.nom}`, motif),
+      ilike(commandes.email, motif),
+    );
+    if (recherche) conditions.push(recherche);
+  }
+
+  const column = {
+    cree_a: commandes.creeA,
+    nom: billets.nom,
+    prenom: billets.prenom,
+    email: commandes.email,
+    origine: commandes.origine,
+    cotisant: billets.cotisant,
+    tickets_boisson: billets.ticketsBoisson,
+    statut: billets.statut,
+  }[tri];
+  const sort = ordre === "asc" ? asc(column) : desc(column);
+
+  const requete = db
+    .select({
+      email: commandes.email,
+      origine: commandes.origine,
+      moyenPaiement: commandes.moyenPaiement,
+      id: billets.id,
+      code: billets.code,
+      nom: billets.nom,
+      prenom: billets.prenom,
+      cotisant: billets.cotisant,
+      ticketsBoisson: billets.ticketsBoisson,
+      statut: billets.statut,
+      scanneA: billets.scanneA,
+    })
+    .from(billets)
+    .innerJoin(commandes, eq(billets.commandeId, commandes.id))
+    .where(and(...conditions))
+    .orderBy(sort, asc(billets.creeA), asc(billets.code));
+  const lignes = pagination
+    ? await requete
+        .limit(pagination.limit)
+        .offset((pagination.page - 1) * pagination.limit)
+    : await requete;
+
+  return lignes.map((ligne) => ({
+    ...versBilletListe(ligne),
+    cotisant: ligne.cotisant,
+    email: ligne.email,
+    origine: ligne.origine,
+    moyenPaiement: ligne.moyenPaiement,
+  }));
+}
+
+/** Compte les billets correspondant aux critères de la liste admin. */
+export async function compterBillets(
+  db: Db,
+  evenementId: string,
+  filtres: { q: string; statut: StatutFilter },
+): Promise<number> {
+  const conditions = [eq(commandes.evenementId, evenementId)];
   if (filtres.statut !== "tous") {
     conditions.push(eq(billets.statut, filtres.statut));
   }
@@ -238,30 +317,12 @@ export async function listerBillets(
     if (recherche) conditions.push(recherche);
   }
 
-  const lignes = await db
-    .select({
-      email: commandes.email,
-      origine: commandes.origine,
-      moyenPaiement: commandes.moyenPaiement,
-      id: billets.id,
-      code: billets.code,
-      nom: billets.nom,
-      prenom: billets.prenom,
-      ticketsBoisson: billets.ticketsBoisson,
-      statut: billets.statut,
-      scanneA: billets.scanneA,
-    })
+  const [resultat] = await db
+    .select({ total: count() })
     .from(billets)
     .innerJoin(commandes, eq(billets.commandeId, commandes.id))
-    .where(and(...conditions))
-    .orderBy(desc(commandes.creeA), asc(billets.creeA), asc(billets.code));
-
-  return lignes.map((ligne) => ({
-    ...versBilletListe(ligne),
-    email: ligne.email,
-    origine: ligne.origine,
-    moyenPaiement: ligne.moyenPaiement,
-  }));
+    .where(and(...conditions));
+  return resultat.total;
 }
 
 /**
@@ -442,7 +503,8 @@ export async function scannerBillet(
   if (!ligne) return { type: "inconnu" };
 
   const versBillet = (scanneA: Date | null) => ({
-    nom: nomComplet(ligne.prenom, ligne.nom),
+    nom: ligne.nom,
+    prenom: ligne.prenom,
     email: ligne.email,
     origine: ligne.origine,
     moyenPaiement: ligne.moyenPaiement,

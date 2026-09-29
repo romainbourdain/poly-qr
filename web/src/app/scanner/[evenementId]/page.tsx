@@ -1,10 +1,7 @@
 import { notFound } from "next/navigation";
 import { ScannerClient } from "@/client/components/scanner/scanner-client";
 import { unwrapAction } from "@/server/actions/safe-action";
-import {
-  listerBilletsScannerAction,
-  obtenirStatsBilletsScannerAction,
-} from "@/server/actions/tickets";
+import { listerBilletsScannerAction } from "@/server/actions/tickets";
 import { db } from "@/server/db/client";
 import { obtenirEvenement } from "@/server/services/evenements";
 import { nomComplet } from "@/shared/lib/tickets";
@@ -20,10 +17,9 @@ export default async function ScannerPage({
   const evenementId = evenementIdSchema.safeParse((await params).evenementId);
   if (!evenementId.success) notFound();
 
-  const [evenement, tousLesBillets, stats] = await Promise.all([
+  const [evenement, tousLesBillets] = await Promise.all([
     obtenirEvenement(db, evenementId.data),
     listerBilletsScannerAction(),
-    obtenirStatsBilletsScannerAction(),
   ]);
   if (!evenement) notFound();
 
@@ -37,7 +33,6 @@ export default async function ScannerPage({
     <ScannerClient
       evenementId={evenement.id}
       evenementNom={evenement.nom}
-      entreesInitial={unwrapAction(stats).scannes}
       billets={billets}
     />
   );

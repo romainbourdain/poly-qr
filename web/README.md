@@ -11,11 +11,11 @@ Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 - `/login` — accès admin, protégé par `ADMIN_PASSWORD` (variable d'environnement, cookie de session signé)
 - `/scanner/<id-événement>` — un scanner par événement, protégé par le mot de passe *de cet événement* (`/scanner/<id>/login`, session valable pour cet événement seulement) ; scan par caméra réelle (`getUserMedia` + décodage `jsQR`), avec repli manuel
 - `/scanner/<id-événement>/resultat` — les 4 issues d'un scan : valide, déjà scanné, invalidé, inconnu (un billet d'un autre événement est « inconnu »)
-- `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : lien HelloAsso à copier, lien et QR du scanner, édition (nom, date, heure, lieu, mot de passe scanner, prix pré-vente / sur place / ticket boisson). Le même sélecteur pilote `/admin/statistiques`, `/admin/nouveau` et `/admin/billets`
+- `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : lien HelloAsso à copier, lien et QR du scanner, édition (nom, date, heure, lieu, mot de passe scanner, tarifs cotisant et non cotisant en pré-vente et sur place, prix du ticket boisson). Le même sélecteur pilote `/admin/statistiques`, `/admin/nouveau` et `/admin/billets`
 - `/admin/statistiques` — chiffres clés, affluence par tranche de 15 min, billets par canal et avancement des entrées (graphiques Recharts), à jour au rechargement de la page
 - `/admin/evenements/nouveau` — création d'un événement, puis guide pour relier HelloAsso (URL de webhook propre à l'événement)
-- `/admin/nouveau` — vente de billets en main propre, avec total à payer (affichage uniquement, aucun montant stocké) : onglet « Pré-vente » (permanence, QR envoyé par email) ou « Sur place » (sans email, billets déjà scannés) ; nom, prénom et tickets boisson par billet ; l'onglet par défaut dépend de l'heure de début de l'événement
-- `/admin/billets` — liste à plat des billets nominatifs (nom, prénom, email, canal ; recherche + filtre synchronisés à l'URL) et invalidation ; l'admin est **responsive**
+- `/admin/nouveau` — vente de billets en main propre, avec total à payer (affichage uniquement, aucun montant stocké) : onglet « Pré-vente » (permanence, QR envoyé par email) ou « Sur place » (sans email, billets déjà scannés) ; nom, prénom, statut cotisant et tickets boisson par billet ; l'onglet par défaut dépend de l'heure de début de l'événement
+- `/admin/billets` — liste à plat des billets nominatifs (nom, prénom, email, canal, tarif cotisant ou non) ; recherche et filtre de statut synchronisés à l'URL, tri au clic sur les en-têtes, pagination de 20 billets et invalidation ; l'admin est **responsive**
 - `/api/webhooks/helloasso/<id-événement>?secret=…` — création automatique des commandes HelloAsso pour cet événement et envoi de l'email
 
 ## Stack
@@ -82,7 +82,7 @@ Un `React.Context` fait re-render **tous** ses consommateurs à chaque mutation,
 
 ### Couches backend
 
-`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). Les pages et composants passent par `server/actions/` (`auth`, `tickets`, `evenements`), qui délèguent à `server/services/`. Un seul événement peut être `actif` à la fois (index unique partiel) ; les prix de l'événement sont en centimes et ne servent qu'au total affiché en permanence.
+`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). Les pages et composants passent par `server/actions/` (`auth`, `tickets`, `evenements`), qui délèguent à `server/services/`. Il n'y a pas d'événement « actif » : l'admin en choisit un explicitement. Les prix de l'événement sont en centimes : pré-vente et sur place, chacun avec un tarif cotisant et non cotisant ; ils servent au total affiché en vente et aux estimations des statistiques.
 
 ## Base de données
 

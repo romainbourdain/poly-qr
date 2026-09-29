@@ -2,36 +2,32 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { BilletSearch } from "@/client/components/scanner/billet-search";
 import { CameraScanner } from "@/client/components/scanner/camera-scanner";
-import { ScanSimulator } from "@/client/components/scanner/scan-simulator";
 import { ScannerHeader } from "@/client/components/scanner/scanner-header";
 import { useScanResultStore } from "@/client/store/scan-result-store";
-import {
-  obtenirStatsBilletsScannerAction,
-  scannerBilletAction,
-} from "@/server/actions/tickets";
+import { scannerBilletAction } from "@/server/actions/tickets";
 import {
   GENERIC_SERVER_ERROR,
   UNAUTHORIZED_ERROR,
 } from "@/shared/lib/form-errors";
-import type { BilletSimulable } from "@/shared/lib/types";
+import type { BilletRecherchable } from "@/shared/lib/types";
 
 export function ScannerClient({
   evenementId,
   evenementNom,
-  entreesInitial,
   billets,
 }: {
   evenementId: string;
   evenementNom: string;
-  entreesInitial: number;
-  billets: BilletSimulable[];
+  billets: BilletRecherchable[];
 }) {
   const router = useRouter();
   const setResultat = useScanResultStore((state) => state.setResultat);
-  const [entrees, setEntrees] = useState(entreesInitial);
   const [erreur, setErreur] = useState<string | null>(null);
 
+  // Un QR scanné ou un billet choisi par nom passent par le même chemin : le
+  // billet est validé côté serveur, puis on affiche le résultat.
   const traiterScan = useCallback(
     async (code: string | null) => {
       if (!code) {
@@ -50,12 +46,7 @@ export function ScannerClient({
         }
         return;
       }
-      const resultat = scan.data;
-      if (resultat.type === "valide") {
-        const stats = await obtenirStatsBilletsScannerAction();
-        if (stats?.data) setEntrees(stats.data.scannes);
-      }
-      setResultat(resultat);
+      setResultat(scan.data);
       router.push(`/scanner/${evenementId}/resultat`);
     },
     [router, setResultat, evenementId],
@@ -69,23 +60,21 @@ export function ScannerClient({
   );
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col bg-[#08080C] px-5">
-      <ScannerHeader evenementNom={evenementNom} entrees={entrees} />
+    <main className="min-h-dvh w-full bg-[#08080C]">
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-6">
+        <ScannerHeader evenementNom={evenementNom} />
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
-        <CameraScanner onDecode={handleDecode} />
-        {erreur && (
-          <div role="alert" className="font-semibold text-[14px] text-bad">
-            {erreur}
-          </div>
-        )}
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
+          <CameraScanner onDecode={handleDecode} />
+          {erreur && (
+            <div role="alert" className="font-semibold text-[14px] text-bad">
+              {erreur}
+            </div>
+          )}
+        </div>
+
+        <BilletSearch billets={billets} onSelect={traiterScan} />
       </div>
-
-      <ScanSimulator
-        billets={billets}
-        onSimulate={traiterScan}
-        onSimulateUnknown={() => traiterScan(null)}
-      />
     </main>
   );
 }

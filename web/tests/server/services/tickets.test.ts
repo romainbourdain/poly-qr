@@ -252,6 +252,7 @@ describe("service tickets", () => {
           nom: "Lemoine",
           prenom: "Sacha",
           code: "AAAA",
+          cotisant: true,
           ticketsBoisson: 1,
           statut: "non_scanne",
         },
@@ -283,6 +284,7 @@ describe("service tickets", () => {
         prenom: "Sacha",
         email: "sacha@etu-poly.fr",
         origine: "permanence",
+        cotisant: true,
       });
 
       for (const q of ["léa", "dupont", "léa dupont", "lea@etu"]) {
@@ -298,6 +300,26 @@ describe("service tickets", () => {
         statut: "invalide",
       });
       expect(parStatut.map((b) => b.code)).toEqual(["BBBB"]);
+
+      const triesParTickets = await listerBillets(db, evenementId, {
+        q: "",
+        statut: "tous",
+        tri: "tickets_boisson",
+        ordre: "desc",
+      });
+      expect(triesParTickets.map((b) => b.code)).toEqual([
+        "CCCC",
+        "AAAA",
+        "BBBB",
+      ]);
+
+      const premierePage = await listerBillets(
+        db,
+        evenementId,
+        { q: "", statut: "tous" },
+        { page: 1, limit: 2 },
+      );
+      expect(premierePage).toHaveLength(2);
     });
   });
 
@@ -383,8 +405,9 @@ describe("service tickets", () => {
 
       expect(resultat.type).toBe("valide");
       if (resultat.type !== "valide") throw new Error("type inattendu");
-      // Le nom affiché est celui du billet (la personne qui entre), pas celui de l'acheteur.
-      expect(resultat.billet.nom).toBe("Sacha Lemoine");
+      // L'identité est celle du billet (la personne qui entre), pas celle de l'acheteur.
+      expect(resultat.billet.prenom).toBe("Sacha");
+      expect(resultat.billet.nom).toBe("Lemoine");
       expect(resultat.billet.ticketsBoisson).toBe(2);
       expect(resultat.billet.scanneA).not.toBeNull();
 

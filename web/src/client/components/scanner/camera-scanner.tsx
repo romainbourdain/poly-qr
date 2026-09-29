@@ -170,8 +170,8 @@ export function CameraScanner({
 
       {state === "error" && (
         <div className="max-w-65 text-center text-[14px] text-muted leading-relaxed">
-          Caméra indisponible sur cet appareil ou ce navigateur. Utilise la
-          simulation ci-dessous.
+          Caméra indisponible sur cet appareil ou ce navigateur. Cherche la
+          personne par son nom ci-dessous.
         </div>
       )}
     </div>

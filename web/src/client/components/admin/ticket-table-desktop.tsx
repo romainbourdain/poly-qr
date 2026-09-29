@@ -1,4 +1,5 @@
 import { Button } from "@/client/components/ui/button";
+import type { SortOrder, TicketSort } from "@/shared/lib/search-params";
 import {
   MOYEN_PAIEMENT_LABEL,
   ORIGINE_LABEL,
@@ -11,35 +12,121 @@ const TH =
   "px-4 py-3 text-left font-bold text-[12px] text-faint uppercase tracking-[0.1em] first:pl-6 last:pr-6";
 const TD = "px-4 py-3.5 text-[14px] first:pl-6 last:pr-6";
 
+function SortableHeader({
+  label,
+  column,
+  tri,
+  ordre,
+  onSort,
+}: {
+  label: string;
+  column: Exclude<TicketSort, "cree_a">;
+  tri: TicketSort;
+  ordre: SortOrder;
+  onSort: (column: TicketSort) => void;
+}) {
+  const active = tri === column;
+  const direction = active
+    ? ordre === "asc"
+      ? "croissant"
+      : "décroissant"
+    : "";
+
+  return (
+    <button
+      type="button"
+      className="-my-2 -ml-2 flex min-h-9 items-center gap-1 rounded-md px-2 text-left hover:text-fg focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
+      onClick={() => onSort(column)}
+      aria-label={`Trier par ${label}${direction ? `, ordre ${direction}` : ""}`}
+    >
+      {label}
+      <span aria-hidden="true" className={active ? "text-fg" : "text-faint"}>
+        {active ? (ordre === "asc" ? "↑" : "↓") : "↕"}
+      </span>
+    </button>
+  );
+}
+
 export function TicketTableDesktop({
   billets,
   onToggleStatut,
+  tri,
+  ordre,
+  onSort,
 }: {
   billets: BilletAdmin[];
   onToggleStatut: (billetId: string, statutActuel: Statut) => void;
+  tri: TicketSort;
+  ordre: SortOrder;
+  onSort: (column: TicketSort) => void;
 }) {
   return (
-    <div className="hidden overflow-hidden rounded-2xl border border-line bg-ink-2 md:block">
-      <table className="w-full border-collapse">
+    <div className="overflow-x-auto rounded-2xl border border-line bg-ink-2">
+      <table className="w-full min-w-[880px] border-collapse">
         <thead className="border-line border-b bg-[#1B1B27]">
           <tr>
             <th scope="col" className={TH}>
-              Nom
+              <SortableHeader
+                label="Nom"
+                column="nom"
+                tri={tri}
+                ordre={ordre}
+                onSort={onSort}
+              />
             </th>
             <th scope="col" className={TH}>
-              Prénom
+              <SortableHeader
+                label="Prénom"
+                column="prenom"
+                tri={tri}
+                ordre={ordre}
+                onSort={onSort}
+              />
             </th>
             <th scope="col" className={TH}>
-              Email
+              <SortableHeader
+                label="Email"
+                column="email"
+                tri={tri}
+                ordre={ordre}
+                onSort={onSort}
+              />
             </th>
             <th scope="col" className={TH}>
-              Canal
+              <SortableHeader
+                label="Canal"
+                column="origine"
+                tri={tri}
+                ordre={ordre}
+                onSort={onSort}
+              />
             </th>
             <th scope="col" className={TH}>
-              Tickets boisson
+              <SortableHeader
+                label="Tarif"
+                column="cotisant"
+                tri={tri}
+                ordre={ordre}
+                onSort={onSort}
+              />
             </th>
             <th scope="col" className={TH}>
-              Statut
+              <SortableHeader
+                label="Tickets boisson"
+                column="tickets_boisson"
+                tri={tri}
+                ordre={ordre}
+                onSort={onSort}
+              />
+            </th>
+            <th scope="col" className={TH}>
+              <SortableHeader
+                label="Statut"
+                column="statut"
+                tri={tri}
+                ordre={ordre}
+                onSort={onSort}
+              />
             </th>
             <th scope="col" className={TH}>
               <span className="sr-only">Action</span>
@@ -60,6 +147,9 @@ export function TicketTableDesktop({
               <td className={`${TD} whitespace-nowrap text-muted`}>
                 {ORIGINE_LABEL[billet.origine]} ·{" "}
                 {MOYEN_PAIEMENT_LABEL[billet.moyenPaiement]}
+              </td>
+              <td className={`${TD} whitespace-nowrap`}>
+                {billet.cotisant ? "Cotisant" : "Non cotisant"}
               </td>
               <td className={`${TD} font-bold`}>
                 {billet.ticketsBoisson} ticket

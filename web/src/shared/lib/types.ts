@@ -42,6 +42,8 @@ export interface BilletListe {
 
 /** Un billet nominatif tel qu'affiché dans la liste admin, avec les infos de sa commande. */
 export interface BilletAdmin extends BilletListe {
+  /** La personne bénéficie du tarif cotisant. */
+  cotisant: boolean;
   /** Absent pour une vente sur place. */
   email: string | null;
   origine: Origine;
@@ -74,6 +76,7 @@ export interface CommandeCreee {
 
 export interface BilletScanne {
   nom: string;
+  prenom: string;
   email: string | null;
   origine: Origine;
   moyenPaiement: MoyenPaiement;
@@ -87,7 +90,8 @@ export type ResultatScan =
   | { type: "invalide"; billet: BilletScanne }
   | { type: "inconnu" };
 
-export interface BilletSimulable {
+/** Billet proposé par la recherche par nom du scanner (`nom` = « Prénom Nom »). */
+export interface BilletRecherchable {
   code: string;
   nom: string;
   statut: Statut;

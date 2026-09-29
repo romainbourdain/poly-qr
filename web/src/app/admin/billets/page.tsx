@@ -28,19 +28,31 @@ export default async function AdminBilletsPage({
   const {
     q,
     statut,
+    tri,
+    ordre,
+    page,
     evenement: demande,
   } = await searchParamsCache.parse(searchParams);
   const evenement = await resoudreEvenementAdmin(db, demande);
   if (!evenement) return <AucunEvenement />;
 
   const [billets, stats] = await Promise.all([
-    listerBilletsAction({ evenementId: evenement.id, q, statut }),
+    listerBilletsAction({
+      evenementId: evenement.id,
+      q,
+      statut,
+      tri,
+      ordre,
+      page,
+    }),
     obtenirStatsBilletsAction({ evenementId: evenement.id }),
   ]);
 
+  const resultat = unwrapAction(billets);
   return (
     <AdminBilletsContent
-      billets={unwrapAction(billets)}
+      billets={resultat.billets}
+      totalPages={resultat.totalPages}
       stats={unwrapAction(stats)}
     />
   );

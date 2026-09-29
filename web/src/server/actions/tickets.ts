@@ -19,6 +19,7 @@ import {
   obtenirEvenementDeCommande,
 } from "@/server/services/evenements";
 import {
+  compterBillets,
   creerCommandePermanence,
   creerCommandeSurPlace,
   invaliderBillet,
@@ -29,7 +30,11 @@ import {
   scannerBillet,
   versBilletListe,
 } from "@/server/services/tickets";
-import { STATUT_FILTERS } from "@/shared/lib/search-params";
+import {
+  SORT_ORDERS,
+  STATUT_FILTERS,
+  TICKET_SORTS,
+} from "@/shared/lib/search-params";
 import {
   billetIdSchema,
   commandeIdSchema,
@@ -42,6 +47,9 @@ import { surPlaceCommandeSchema } from "@/shared/validators/sur-place";
 const filtresSchema = z.object({
   q: z.string(),
   statut: z.enum(STATUT_FILTERS),
+  tri: z.enum(TICKET_SORTS),
+  ordre: z.enum(SORT_ORDERS),
+  page: z.number().int().min(1),
 });
 
 const evenementSchema = z.object({ evenementId: evenementIdSchema });
@@ -117,9 +125,17 @@ export const reactiverBilletAction = adminActionClient
 /** Admin : billets d'un événement choisi. */
 export const listerBilletsAction = adminActionClient
   .inputSchema(filtresSchema.extend(evenementSchema.shape))
-  .action(({ parsedInput: { evenementId, ...filtres } }) =>
-    listerBillets(db, evenementId, filtres),
-  );
+  .action(async ({ parsedInput: { evenementId, page, ...filtres } }) => {
+    const limit = 20;
+    const [billets, total] = await Promise.all([
+      listerBillets(db, evenementId, filtres, { page, limit }),
+      compterBillets(db, evenementId, filtres),
+    ]);
+    return {
+      billets,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+  });
 
 export const obtenirStatsBilletsAction = adminActionClient
   .inputSchema(evenementSchema)
@@ -127,13 +143,9 @@ export const obtenirStatsBilletsAction = adminActionClient
     obtenirStatsBillets(db, evenementId),
   );
 
-/** Scanner : liste des billets de l'événement de la session (pour le simulateur). */
+/** Scanner : billets de l'événement de la session, pour la recherche par nom. */
 export const listerBilletsScannerAction = scannerActionClient.action(
   ({ ctx }) => listerBillets(db, ctx.evenementId, { q: "", statut: "tous" }),
-);
-
-export const obtenirStatsBilletsScannerAction = scannerActionClient.action(
-  ({ ctx }) => obtenirStatsBillets(db, ctx.evenementId),
 );
 
 /** Public : la page billet est accessible à l'acheteur via l'UUID de sa commande. */
