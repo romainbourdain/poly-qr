@@ -23,11 +23,7 @@ import {
   prixBillet,
 } from "@/shared/lib/prix";
 import { MOYEN_PAIEMENT_LABEL, nomComplet } from "@/shared/lib/tickets";
-import {
-  type CommandeCreee,
-  MOYENS_PAIEMENT,
-  type MoyenPaiement,
-} from "@/shared/lib/types";
+import { MOYENS_PAIEMENT, type MoyenPaiement } from "@/shared/lib/types";
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
 import { surPlaceCommandeSchema } from "@/shared/validators/sur-place";
 
@@ -42,12 +38,10 @@ export function VenteForm({
   mode,
   evenementId,
   prix,
-  onCreated,
 }: {
   mode: ModeVente;
   evenementId: string;
   prix: PrixEvenement;
-  onCreated: (commande: CommandeCreee) => void;
 }) {
   const surPlace = mode === "sur_place";
   // Sur place, le champ email n'existe pas : le formulaire garde `email` vide et
@@ -56,6 +50,7 @@ export function VenteForm({
     surPlace ? surPlaceCommandeSchema : permanenceCommandeSchema
   ) as typeof permanenceCommandeSchema;
   const [error, setError] = useState<string | null>(null);
+  const [succes, setSucces] = useState<string | null>(null);
   const nextRowId = useRef(1);
   const [rowIds, setRowIds] = useState<number[]>([0]);
 
@@ -70,6 +65,7 @@ export function VenteForm({
     },
     onSubmit: async ({ value }) => {
       setError(null);
+      setSucces(null);
       // Déjà validé par le schéma ; le parse affine seulement le type de `moyenPaiement`.
       const input = schema.parse(value);
       const result = surPlace
@@ -91,19 +87,13 @@ export function VenteForm({
 
       const emailError = "emailError" in data ? data.emailError : undefined;
       setError(typeof emailError === "string" ? emailError : null);
-      onCreated({
-        commandeId: data.commande.id,
-        origine: mode,
-        nom: nomComplet(input.billets[0].prenom, input.billets[0].nom),
-        email: "email" in input ? input.email : null,
-        billets: data.billets.map((billet) => ({
-          id: billet.id,
-          code: billet.code,
-          nom: billet.nom,
-          prenom: billet.prenom,
-          ticketsBoisson: billet.ticketsBoisson,
-        })),
-      });
+      const nb = data.billets.length;
+      const qui = nomComplet(input.billets[0].prenom, input.billets[0].nom);
+      setSucces(
+        surPlace
+          ? `${nb} billet${nb > 1 ? "s" : ""} encaissé${nb > 1 ? "s" : ""} pour ${qui}.`
+          : `${nb} billet${nb > 1 ? "s" : ""} envoyé${nb > 1 ? "s" : ""} à ${"email" in input ? input.email : qui}.`,
+      );
       form.reset();
       nextRowId.current = 1;
       setRowIds([0]);
@@ -116,7 +106,7 @@ export function VenteForm({
         e.preventDefault();
         form.handleSubmit();
       }}
-      className={cn(CARD_CLASSES, "flex flex-col gap-5")}
+      className={cn(CARD_CLASSES, "flex w-full max-w-2xl flex-col gap-5")}
     >
       <form.Field name="billets" mode="array">
         {(billetsField) => {
@@ -261,6 +251,11 @@ export function VenteForm({
       {error && (
         <div role="alert" className="font-semibold text-[13px] text-bad">
           {error}
+        </div>
+      )}
+      {succes && !error && (
+        <div role="status" className="font-semibold text-[13px] text-good">
+          {succes}
         </div>
       )}
 

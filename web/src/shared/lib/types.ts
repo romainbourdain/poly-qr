@@ -60,20 +60,6 @@ export interface CommandeAvecBillets {
   billets: BilletListe[];
 }
 
-export interface CommandeCreee {
-  commandeId: string;
-  origine: Origine;
-  nom: string;
-  email: string | null;
-  billets: {
-    id: string;
-    code: string;
-    nom: string;
-    prenom: string;
-    ticketsBoisson: number;
-  }[];
-}
-
 export interface BilletScanne {
   nom: string;
   prenom: string;

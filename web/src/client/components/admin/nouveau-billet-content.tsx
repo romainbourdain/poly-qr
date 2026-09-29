@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { SessionTicketList } from "@/client/components/admin/session-ticket-list";
 import {
   type ModeVente,
   VenteForm,
 } from "@/client/components/admin/vente-form";
 import { Tabs, TabsList, TabsTab } from "@/client/components/ui/tabs";
 import type { PrixEvenement } from "@/shared/lib/prix";
-import type { CommandeCreee } from "@/shared/lib/types";
 
 export function NouveauBilletContent({
   evenementId,
@@ -25,7 +23,6 @@ export function NouveauBilletContent({
   prixSurPlace: PrixEvenement;
 }) {
   const [mode, setMode] = useState<ModeVente>(modeParDefaut);
-  const [session, setSession] = useState<CommandeCreee[]>([]);
 
   return (
     <div className="flex flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 md:px-9">
@@ -48,18 +45,12 @@ export function NouveauBilletContent({
         </TabsList>
       </Tabs>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-7">
-        <VenteForm
-          key={mode}
-          mode={mode}
-          evenementId={evenementId}
-          prix={mode === "sur_place" ? prixSurPlace : prixPrevente}
-          onCreated={(commande) => setSession((prev) => [commande, ...prev])}
-        />
-        <div className="flex flex-col gap-4.5">
-          <SessionTicketList commandes={session} />
-        </div>
-      </div>
+      <VenteForm
+        key={mode}
+        mode={mode}
+        evenementId={evenementId}
+        prix={mode === "sur_place" ? prixSurPlace : prixPrevente}
+      />
     </div>
   );
 }
