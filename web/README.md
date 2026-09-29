@@ -11,7 +11,8 @@ Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 - `/login` — accès admin, protégé par `ADMIN_PASSWORD` (variable d'environnement, cookie de session signé)
 - `/scanner/<id-événement>` — un scanner par événement, protégé par le mot de passe *de cet événement* (`/scanner/<id>/login`, session valable pour cet événement seulement) ; scan par caméra réelle (`getUserMedia` + décodage `jsQR`), avec repli manuel
 - `/scanner/<id-événement>/resultat` — les 4 issues d'un scan : valide, déjà scanné, invalidé, inconnu (un billet d'un autre événement est « inconnu »)
-- `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : compteurs, URL du webhook HelloAsso à copier, lien du scanner, édition (nom, date, heure, lieu, mot de passe bénévoles, prix). Le même sélecteur pilote `/admin/nouveau` et `/admin/billets`
+- `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : lien HelloAsso à copier, lien et QR du scanner, édition (nom, date, heure, lieu, mot de passe scanner, prix). Le même sélecteur pilote `/admin/statistiques`, `/admin/nouveau` et `/admin/billets`
+- `/admin/statistiques` — chiffres clés, affluence par tranche de 15 min, billets par canal et avancement des entrées (graphiques Recharts), rafraîchis toutes les 30 s
 - `/admin/evenements/nouveau` — création d'un événement, puis guide pour relier HelloAsso (URL de webhook propre à l'événement)
 - `/admin/nouveau` — vente de permanence, avec total à payer (affichage uniquement, aucun montant stocké)
 - `/admin/billets` — liste (recherche + filtre synchronisés à l'URL) et invalidation ; l'admin est **responsive**

@@ -46,6 +46,15 @@ const NAV = [
     ),
   },
   {
+    href: "/admin/statistiques",
+    label: "Statistiques",
+    icon: (
+      <Icon>
+        <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+      </Icon>
+    ),
+  },
+  {
     href: "/admin/nouveau",
     label: "Nouveau billet",
     icon: (

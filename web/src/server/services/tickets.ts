@@ -300,6 +300,22 @@ export async function obtenirStatsEvenement(
   return stats;
 }
 
+/** Heures de scan des billets actuellement « scannés » d'un événement. */
+export async function listerScansEvenement(
+  db: Db,
+  evenementId: string,
+): Promise<Date[]> {
+  const lignes = await db
+    .select({ scanneA: billets.scanneA })
+    .from(billets)
+    .innerJoin(commandes, eq(billets.commandeId, commandes.id))
+    .where(
+      and(eq(commandes.evenementId, evenementId), eq(billets.statut, "scanne")),
+    )
+    .orderBy(asc(billets.scanneA));
+  return lignes.flatMap((l) => (l.scanneA ? [l.scanneA] : []));
+}
+
 /**
  * Statistiques globales d'un événement, indépendantes des filtres
  * de recherche appliqués à la liste.

@@ -8,6 +8,7 @@ import { SidebarTopBar, SidebarTrigger } from "@/client/components/ui/sidebar";
 import { cn } from "@/shared/lib/cn";
 
 const PAGES: Record<string, string> = {
+  "/admin/statistiques": "Statistiques",
   "/admin/nouveau": "Nouveau billet",
   "/admin/billets": "Billets",
 };
