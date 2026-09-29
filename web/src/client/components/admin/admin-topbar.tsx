@@ -33,7 +33,7 @@ function segments(
     : [{ label: evenement.nom }];
 }
 
-/** Fil d'Ariane « Événement › Page » et création d'événement, sur chaque page admin. */
+/** Fil d'Ariane « Événement › Page » et accès au scanner de l'événement, sur chaque page admin. */
 export function AdminTopbar({
   evenement,
   avecEvenement,
@@ -82,28 +82,31 @@ export function AdminTopbar({
           })}
         </ol>
       </nav>
-      <Link
-        href="/admin/evenements/nouveau"
-        aria-label="Nouvel événement"
-        className={cn(
-          buttonVariants({ variant: "secondary", size: "sm" }),
-          "shrink-0 max-md:size-11 max-md:px-0",
-        )}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          aria-hidden="true"
+      {evenement && !pathname.startsWith("/admin/evenements") && (
+        <Link
+          href={`/scanner/${evenement.id}`}
+          aria-label="Ouvrir le scanner"
+          className={cn(
+            buttonVariants({ variant: "secondary", size: "sm" }),
+            "shrink-0 max-md:size-11 max-md:px-0",
+          )}
         >
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        <span className="max-md:hidden">Nouvel événement</span>
-      </Link>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M4 12h16" />
+          </svg>
+          <span className="max-md:hidden">Ouvrir le scanner</span>
+        </Link>
+      )}
     </SidebarTopBar>
   );
 }
