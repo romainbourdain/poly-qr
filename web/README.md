@@ -22,6 +22,7 @@ Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + TypeScript. Persistance P
 | Domaine | Choix |
 |---|---|
 | Composants UI | [Base UI](https://base-ui.com) (headless) + design system maison dans `client/components/ui/` (pattern shadcn : on possède et stylise le code, pas une lib de composants finis) |
+| Server actions | [next-safe-action](https://next-safe-action.dev) : clients `actionClient` / `adminActionClient` / `scannerActionClient` dans `server/actions/safe-action.ts` (session, validation Zod, erreurs génériques) |
 | Formulaires | [TanStack Form](https://tanstack.com/form) + [Zod](https://zod.dev) pour la validation |
 | État partagé côté client | [Zustand](https://zustand.docs.pmnd.rs) |
 | État d'URL (recherche/filtres) | [nuqs](https://nuqs.dev) |
@@ -56,7 +57,7 @@ web/src/
 │
 └── shared/                     # Importable des deux côtés (client ET server)
     ├── lib/                    #   fonctions utilitaires + types (cn, search-params, tickets, types)
-    ├── validators/             #   schémas Zod (contrat de validation partagé formulaire ↔ futures actions)
+    ├── validators/             #   schémas Zod (contrat de validation partagé formulaire ↔ server actions)
 ```
 
 Règles qui se dégagent de ce découpage :

@@ -10,6 +10,10 @@ import {
   obtenirStatsBilletsAction,
   scannerBilletAction,
 } from "@/server/actions/tickets";
+import {
+  GENERIC_SERVER_ERROR,
+  UNAUTHORIZED_ERROR,
+} from "@/shared/lib/form-errors";
 import type { BilletSimulable } from "@/shared/lib/types";
 
 export function ScannerClient({
@@ -24,6 +28,7 @@ export function ScannerClient({
   const router = useRouter();
   const setResultat = useScanResultStore((state) => state.setResultat);
   const [entrees, setEntrees] = useState(entreesInitial);
+  const [erreur, setErreur] = useState<string | null>(null);
 
   const traiterScan = useCallback(
     async (code: string | null) => {
@@ -32,11 +37,15 @@ export function ScannerClient({
         router.push("/scanner/resultat");
         return;
       }
+      setErreur(null);
       const scan = await scannerBilletAction(code);
       if (!scan?.data) {
-        // Session expirée ou erreur serveur : rien n'a été consommé.
-        setResultat({ type: "inconnu" });
-        router.push("/scanner/resultat");
+        // Rien n'a été consommé : on ne le présente pas comme un billet inconnu.
+        if (scan?.serverError === UNAUTHORIZED_ERROR) {
+          router.push("/login");
+        } else {
+          setErreur(scan?.serverError ?? GENERIC_SERVER_ERROR);
+        }
         return;
       }
       const resultat = scan.data;
@@ -63,6 +72,11 @@ export function ScannerClient({
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
         <CameraScanner onDecode={handleDecode} />
+        {erreur && (
+          <div role="alert" className="font-semibold text-[13px] text-bad">
+            {erreur}
+          </div>
+        )}
       </div>
 
       <ScanSimulator

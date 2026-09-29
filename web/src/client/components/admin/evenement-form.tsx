@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/client/components/ui/button";
 import { CARD_CLASSES } from "@/client/components/ui/card";
 import { TextField } from "@/client/components/ui/text-field";
+import { applyFieldErrors } from "@/client/lib/apply-action-errors";
 import { enregistrerEvenementAction } from "@/server/actions/evenements";
 import { cn } from "@/shared/lib/cn";
 import { actionErrorsToForm } from "@/shared/lib/form-errors";
@@ -38,19 +39,17 @@ export function EvenementForm({
       ),
       motDePasse: "",
     },
-    validators: {
-      onChange: evenementSchema,
-      onSubmitAsync: async ({ value }) => {
-        setError(null);
-        setSaved(false);
-        const result = await enregistrerEvenementAction({ ...value, mode });
-        if (result?.data?.success) return undefined;
+    validators: { onChange: evenementSchema },
+    onSubmit: async ({ value }) => {
+      setError(null);
+      setSaved(false);
+      const result = await enregistrerEvenementAction({ ...value, mode });
+      if (!result?.data?.success) {
         const errors = actionErrorsToForm(result);
+        applyFieldErrors(form, errors.fields);
         setError(errors.form ?? null);
-        return errors;
-      },
-    },
-    onSubmit: () => {
+        return;
+      }
       setSaved(true);
       router.refresh();
       if (mode === "creer") form.reset();

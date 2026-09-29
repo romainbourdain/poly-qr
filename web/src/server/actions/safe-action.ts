@@ -43,3 +43,18 @@ export const scannerActionClient = actionClient.use(async ({ next }) => {
   await requireSession();
   return next();
 });
+
+type ActionResult<T> =
+  | { data?: T; serverError?: string; validationErrors?: unknown }
+  | undefined;
+
+/**
+ * For server components: returns the action's data, or throws so the failure
+ * reaches the error boundary instead of rendering as empty data.
+ */
+export function unwrapAction<T>(result: ActionResult<T>): T {
+  if (result?.data === undefined) {
+    throw new Error(result?.serverError ?? "Action sans résultat.");
+  }
+  return result.data;
+}

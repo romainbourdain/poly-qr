@@ -3,6 +3,7 @@ import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
 import { billets, commandes, evenements } from "@/server/db/schema";
+import { AucunEvenementActifError } from "@/server/services/evenements";
 import type { StatutFilter } from "@/shared/lib/search-params";
 import { formatHeure } from "@/shared/lib/tickets";
 import type {
@@ -57,7 +58,7 @@ export async function creerCommandePermanence(
 ) {
   const evenementId = await obtenirEvenementActifId(db);
   if (!evenementId) {
-    throw new Error("Aucun événement actif.");
+    throw new AucunEvenementActifError();
   }
 
   return db.transaction(async (tx) => {
@@ -133,7 +134,7 @@ export async function creerCommandeDepuisHelloAsso(
 
   const evenementId = await obtenirEvenementActifId(db);
   if (!evenementId) {
-    throw new Error("Aucun événement actif.");
+    throw new AucunEvenementActifError();
   }
 
   const { commande, billets: nouveauxBillets } = await db.transaction(

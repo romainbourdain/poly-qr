@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { TicketListMobile } from "@/client/components/admin/ticket-list-mobile";
 import { TicketSearchInput } from "@/client/components/admin/ticket-search-input";
 import { TicketStatusTabs } from "@/client/components/admin/ticket-status-tabs";
@@ -11,6 +11,7 @@ import {
   invaliderBilletAction,
   reactiverBilletAction,
 } from "@/server/actions/tickets";
+import { GENERIC_SERVER_ERROR } from "@/shared/lib/form-errors";
 import type { CommandeAvecBillets, Statut } from "@/shared/lib/types";
 
 export function AdminBilletsContent({
@@ -22,13 +23,17 @@ export function AdminBilletsContent({
 }) {
   const { query, setQuery, statut, setStatut } = useTicketFilters();
   const [, startTransition] = useTransition();
+  const [erreur, setErreur] = useState<string | null>(null);
 
   function toggleStatut(billetId: string, statutActuel: Statut) {
-    startTransition(() => {
-      if (statutActuel === "invalide") {
-        void reactiverBilletAction(billetId);
-      } else {
-        void invaliderBilletAction(billetId);
+    setErreur(null);
+    startTransition(async () => {
+      const result =
+        statutActuel === "invalide"
+          ? await reactiverBilletAction(billetId)
+          : await invaliderBilletAction(billetId);
+      if (result?.serverError || result?.validationErrors) {
+        setErreur(result.serverError ?? GENERIC_SERVER_ERROR);
       }
     });
   }
@@ -59,6 +64,12 @@ export function AdminBilletsContent({
         <TicketSearchInput value={query} onChange={setQuery} />
         <TicketStatusTabs value={statut} onChange={setStatut} />
       </div>
+
+      {erreur && (
+        <div role="alert" className="font-semibold text-[13px] text-bad">
+          {erreur}
+        </div>
+      )}
 
       {commandes.length === 0 ? (
         <div className="rounded-2xl border border-line bg-ink-2 px-6 py-8 text-center text-[14px] text-muted">

@@ -18,6 +18,7 @@ import {
   actionClient,
   adminActionClient,
   scannerActionClient,
+  unwrapAction,
 } from "@/server/actions/safe-action";
 import { createSessionCookie } from "@/server/services/session";
 import {
@@ -97,5 +98,22 @@ describe("clients next-safe-action", () => {
     expect(result?.serverError).toBe(GENERIC_SERVER_ERROR);
     expect(JSON.stringify(result)).not.toContain("secret");
     expect(console.error).toHaveBeenCalled();
+  });
+
+  describe("unwrapAction", () => {
+    it("renvoie les données", () => {
+      expect(unwrapAction({ data: [1] })).toEqual([1]);
+    });
+
+    it("accepte null comme donnée valide", () => {
+      expect(unwrapAction({ data: null })).toBeNull();
+    });
+
+    it("lève l'erreur serveur plutôt que de renvoyer du vide", () => {
+      expect(() => unwrapAction({ serverError: UNAUTHORIZED_ERROR })).toThrow(
+        UNAUTHORIZED_ERROR,
+      );
+      expect(() => unwrapAction(undefined)).toThrow();
+    });
   });
 });

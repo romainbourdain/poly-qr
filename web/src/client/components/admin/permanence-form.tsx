@@ -8,6 +8,7 @@ import { CARD_CLASSES } from "@/client/components/ui/card";
 import { SelectField } from "@/client/components/ui/select-field";
 import { Separator } from "@/client/components/ui/separator";
 import { TextField } from "@/client/components/ui/text-field";
+import { applyFieldErrors } from "@/client/lib/apply-action-errors";
 import { creerPermanenceAction } from "@/server/actions/tickets";
 import { cn } from "@/shared/lib/cn";
 import { actionErrorsToForm } from "@/shared/lib/form-errors";
@@ -33,11 +34,6 @@ export function PermanenceForm({
 }) {
   const [error, setError] = useState<string | null>(null);
   const nextRowId = useRef(1);
-  const created = useRef<{
-    commande: { id: string };
-    billets: { id: string; code: string; ticketsBoisson: number }[];
-    emailError?: string;
-  } | null>(null);
   const [rowIds, setRowIds] = useState<number[]>([0]);
 
   const form = useForm({
@@ -49,25 +45,20 @@ export function PermanenceForm({
     },
     validators: {
       onChange: permanenceCommandeSchema,
-      onSubmitAsync: async ({ value }) => {
-        setError(null);
-        // Déjà validé par le schéma ; le parse affine seulement le type de `moyenPaiement`.
-        const result = await creerPermanenceAction(
-          permanenceCommandeSchema.parse(value),
-        );
-        if (result?.data) {
-          created.current = result.data;
-          return undefined;
-        }
-        const errors = actionErrorsToForm(result);
-        setError(errors.form ?? null);
-        return errors;
-      },
     },
-    onSubmit: ({ value }) => {
-      const data = created.current;
-      if (!data) return;
-      const { nom, email } = value;
+    onSubmit: async ({ value }) => {
+      setError(null);
+      // Déjà validé par le schéma ; le parse affine seulement le type de `moyenPaiement`.
+      const input = permanenceCommandeSchema.parse(value);
+      const result = await creerPermanenceAction(input);
+      const data = result?.data;
+      if (!data) {
+        const errors = actionErrorsToForm(result);
+        applyFieldErrors(form, errors.fields);
+        setError(errors.form ?? null);
+        return;
+      }
+      const { nom, email } = input;
 
       setError(data.emailError ?? null);
       onCreated({

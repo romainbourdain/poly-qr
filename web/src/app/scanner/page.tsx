@@ -1,5 +1,6 @@
 import { ScannerClient } from "@/client/components/scanner/scanner-client";
 import { obtenirEvenementActifAction } from "@/server/actions/evenements";
+import { unwrapAction } from "@/server/actions/safe-action";
 import {
   listerBilletsAction,
   obtenirStatsBilletsAction,
@@ -14,7 +15,7 @@ export default async function ScannerPage() {
     obtenirStatsBilletsAction(),
   ]);
 
-  const billets = (commandes?.data ?? []).flatMap((commande) =>
+  const billets = unwrapAction(commandes).flatMap((commande) =>
     commande.billets.map((billet) => ({
       code: billet.code,
       nom: commande.nom,
@@ -24,8 +25,8 @@ export default async function ScannerPage() {
 
   return (
     <ScannerClient
-      evenementNom={evenement?.data?.nom ?? "Aucun événement actif"}
-      entreesInitial={stats?.data?.scannes ?? 0}
+      evenementNom={unwrapAction(evenement)?.nom ?? "Aucun événement actif"}
+      entreesInitial={unwrapAction(stats).scannes}
       billets={billets}
     />
   );

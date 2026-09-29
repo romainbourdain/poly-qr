@@ -8,6 +8,12 @@ import type { EvenementActif, EvenementResume } from "@/shared/lib/types";
 
 type Db = PostgresJsDatabase<typeof schema>;
 
+export class AucunEvenementActifError extends Error {
+  constructor() {
+    super("Aucun événement actif.");
+  }
+}
+
 export interface EvenementDonnees {
   nom: string;
   /** `YYYY-MM-DD` */
@@ -139,6 +145,6 @@ export async function modifierEvenementActif(
     .where(eq(evenements.actif, true))
     .returning();
 
-  if (!ligne) throw new Error("Aucun événement actif.");
+  if (!ligne) throw new AucunEvenementActifError();
   return versEvenementActif(ligne);
 }

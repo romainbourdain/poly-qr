@@ -14,7 +14,10 @@ import {
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
-import { obtenirEvenementDeCommande } from "@/server/services/evenements";
+import {
+  AucunEvenementActifError,
+  obtenirEvenementDeCommande,
+} from "@/server/services/evenements";
 import {
   creerCommandePermanence,
   invaliderBillet,
@@ -33,8 +36,6 @@ import {
 } from "@/shared/validators/commande";
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
 
-const AUCUN_EVENEMENT_ACTIF = "Aucun événement actif.";
-
 const filtresSchema = z.object({
   q: z.string(),
   statut: z.enum(STATUT_FILTERS),
@@ -45,7 +46,7 @@ export const creerPermanenceAction = adminActionClient
   .action(async ({ parsedInput }) => {
     const creation = await creerCommandePermanence(db, parsedInput).catch(
       (error) => {
-        if (error instanceof Error && error.message === AUCUN_EVENEMENT_ACTIF) {
+        if (error instanceof AucunEvenementActifError) {
           return returnServerError(
             "Aucun événement actif : impossible de créer le billet.",
           );

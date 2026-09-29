@@ -8,6 +8,7 @@ import {
 } from "@/server/actions/safe-action";
 import { db } from "@/server/db/client";
 import {
+  AucunEvenementActifError,
   creerEvenement,
   listerEvenements,
   modifierEvenementActif,
@@ -45,10 +46,12 @@ export const enregistrerEvenementAction = adminActionClient
     if (parsedInput.mode === "creer") {
       await creerEvenement(db, donnees);
     } else {
-      if (!(await obtenirEvenementActif(db))) {
-        returnServerError("Aucun événement actif à modifier.");
-      }
-      await modifierEvenementActif(db, donnees);
+      await modifierEvenementActif(db, donnees).catch((error) => {
+        if (error instanceof AucunEvenementActifError) {
+          return returnServerError("Aucun événement actif à modifier.");
+        }
+        throw error;
+      });
     }
 
     revalidatePath("/", "layout");

@@ -1,5 +1,6 @@
 import { createSearchParamsCache } from "nuqs/server";
 import { AdminBilletsContent } from "@/client/components/admin/admin-billets-content";
+import { unwrapAction } from "@/server/actions/safe-action";
 import {
   listerBilletsAction,
   obtenirStatsBilletsAction,
@@ -22,8 +23,8 @@ export default async function AdminBilletsPage({
 
   return (
     <AdminBilletsContent
-      commandes={commandes?.data ?? []}
-      stats={stats?.data ?? { total: 0, scannes: 0 }}
+      commandes={unwrapAction(commandes)}
+      stats={unwrapAction(stats)}
     />
   );
 }
