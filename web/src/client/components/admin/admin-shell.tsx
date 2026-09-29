@@ -1,9 +1,14 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
-import { DesktopSidebar } from "@/client/components/admin/desktop-sidebar";
+import type { ReactNode } from "react";
+import { AdminSidebar } from "@/client/components/admin/admin-sidebar";
 import type { EvenementOption } from "@/client/components/admin/evenement-switcher";
-import { MobileHeader } from "@/client/components/admin/mobile-header";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTopBar,
+  SidebarTrigger,
+} from "@/client/components/ui/sidebar";
 import { useEvenementSelectionne } from "@/client/hooks/use-evenement-selectionne";
 
 export function AdminShell({
@@ -13,25 +18,27 @@ export function AdminShell({
   evenements: EvenementOption[];
   children: ReactNode;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const { evenementId, avecEvenement } = useEvenementSelectionne(evenements);
 
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row">
-      <MobileHeader
-        open={menuOpen}
-        onToggle={() => setMenuOpen((v) => !v)}
-        onClose={() => setMenuOpen(false)}
+    <SidebarProvider>
+      <SidebarTopBar>
+        <SidebarTrigger />
+        <div className="flex flex-col leading-tight">
+          <span className="font-display font-extrabold text-[16px] tracking-tight">
+            PolyQR
+          </span>
+          <span className="text-[12px] text-muted">
+            {evenements.find((e) => e.id === evenementId)?.nom ?? "BDE TPS"}
+          </span>
+        </div>
+      </SidebarTopBar>
+      <AdminSidebar
         evenements={evenements}
         evenementId={evenementId}
         avecEvenement={avecEvenement}
       />
-      <DesktopSidebar
-        evenements={evenements}
-        evenementId={evenementId}
-        avecEvenement={avecEvenement}
-      />
-      <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
-    </div>
+      <SidebarInset>{children}</SidebarInset>
+    </SidebarProvider>
   );
 }

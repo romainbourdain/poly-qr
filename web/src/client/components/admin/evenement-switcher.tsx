@@ -19,11 +19,9 @@ export interface EvenementOption {
 export function EvenementSwitcher({
   evenements,
   evenementId,
-  onNavigate,
 }: {
   evenements: EvenementOption[];
   evenementId: string | null;
-  onNavigate?: () => void;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,7 +30,6 @@ export function EvenementSwitcher({
     return (
       <Link
         href="/admin/evenements/nouveau"
-        onClick={onNavigate}
         className="flex h-11 items-center justify-center rounded-xl bg-accent px-4 font-bold text-[14px] text-white"
       >
         Créer un événement
@@ -57,7 +54,6 @@ export function EvenementSwitcher({
             ? "/admin"
             : pathname;
           router.push(`${cible}?evenement=${value}`);
-          onNavigate?.();
         }}
       >
         <Select.Label className="font-bold text-[12px] text-muted uppercase tracking-[0.12em]">
@@ -99,7 +95,6 @@ export function EvenementSwitcher({
       </Select.Root>
       <Link
         href="/admin/evenements/nouveau"
-        onClick={onNavigate}
         className="flex h-11 items-center px-1 font-semibold text-[13.5px] text-accent-3"
       >
         + Nouvel événement
