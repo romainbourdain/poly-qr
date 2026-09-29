@@ -61,8 +61,15 @@ export async function enregistrerEvenementAction(
     } else {
       await modifierEvenementActif(db, donnees);
     }
-  } catch {
-    return { success: false, error: "Aucun événement actif à modifier." };
+  } catch (error) {
+    console.error("Échec de l'enregistrement de l'événement", error);
+    return {
+      success: false,
+      error:
+        mode === "modifier"
+          ? "Aucun événement actif à modifier."
+          : "L'événement n'a pas pu être créé.",
+    };
   }
 
   revalidatePath("/", "layout");

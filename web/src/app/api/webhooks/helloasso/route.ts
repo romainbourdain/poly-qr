@@ -4,7 +4,7 @@ import {
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
-import { obtenirEvenementActif } from "@/server/services/evenements";
+import { obtenirEvenementDeCommande } from "@/server/services/evenements";
 import {
   itemAOptionBoisson,
   obtenirTokenHelloAsso,
@@ -115,7 +115,10 @@ export async function POST(request: Request) {
 
   if (!resultat.dejaTraitee) {
     try {
-      const evenement = await obtenirEvenementActif(db);
+      const evenement = await obtenirEvenementDeCommande(
+        db,
+        resultat.commande.id,
+      );
       if (!evenement) throw new Error("Aucun événement actif.");
       await envoyerEmailCommande(
         creerSmtpSender(),

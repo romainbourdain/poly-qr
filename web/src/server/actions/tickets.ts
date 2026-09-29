@@ -7,7 +7,7 @@ import {
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
-import { obtenirEvenementActif } from "@/server/services/evenements";
+import { obtenirEvenementDeCommande } from "@/server/services/evenements";
 import {
   creerCommandePermanence,
   invaliderBillet,
@@ -40,7 +40,7 @@ export async function creerPermanenceAction(input: PermanenceCommandeInput) {
 
     let emailError: string | undefined;
     try {
-      const evenement = await obtenirEvenementActif(db);
+      const evenement = await obtenirEvenementDeCommande(db, commande.id);
       if (!evenement) throw new Error("Aucun événement actif.");
       await envoyerEmailCommande(
         creerSmtpSender(),
