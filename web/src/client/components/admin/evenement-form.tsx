@@ -124,7 +124,7 @@ export function EvenementForm({
             description={
               mode === "modifier"
                 ? "Laisser vide pour conserver le mot de passe actuel."
-                : "Demandé pour accéder au scanner de cet événement."
+                : "Demandé pour scanner les QR codes de cet événement"
             }
             autoComplete="off"
           />
