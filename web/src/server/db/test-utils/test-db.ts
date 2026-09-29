@@ -3,8 +3,9 @@ import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres, { type Sql } from "postgres";
 import * as schema from "@/server/db/schema";
+import { env } from "@/server/env";
 
-const connectionString = process.env.DATABASE_URL_TEST;
+const connectionString = env.DATABASE_URL_TEST;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL_TEST n'est pas défini");

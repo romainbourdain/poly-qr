@@ -1,14 +1,10 @@
 // Web Crypto (not `node:crypto`): this module is imported by `proxy.ts`,
 // which runs in the Edge runtime by default — no access to the `node:crypto` API.
 
+import { env } from "@/server/env";
+
 export const SESSION_COOKIE = "polyqr_session";
 const SESSION_DURATION_MS = 12 * 60 * 60 * 1000; // 12h, well beyond a single event
-
-function getSecret(): string {
-  const value = process.env.SESSION_SECRET;
-  if (!value) throw new Error("SESSION_SECRET is not set");
-  return value;
-}
 
 function hexToBytes(hex: string): Uint8Array | null {
   if (hex.length === 0 || hex.length % 2 !== 0) return null;
@@ -30,7 +26,7 @@ function bytesToHex(buffer: ArrayBuffer): string {
 async function hmacKey(): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(getSecret()),
+    new TextEncoder().encode(env.SESSION_SECRET),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"],

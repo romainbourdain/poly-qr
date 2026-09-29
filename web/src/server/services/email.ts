@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { env } from "@/server/env";
 import {
   type EvenementInfoPdf,
   genererPdfCommande,
@@ -30,35 +31,18 @@ export interface EmailSender {
   envoyer(email: EmailAEnvoyer): Promise<void>;
 }
 
-function getSmtpConfig() {
-  const host = process.env.SMTP_HOST;
-  const port = process.env.SMTP_PORT;
-  const user = process.env.SMTP_USER;
-  const password = process.env.SMTP_PASSWORD;
-  const from = process.env.SMTP_FROM;
-
-  if (!host || !port || !user || !password || !from) {
-    throw new Error(
-      "Configuration SMTP incomplète (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM).",
-    );
-  }
-
-  return { host, port: Number(port), user, password, from };
-}
-
 export function creerSmtpSender(): EmailSender {
-  const config = getSmtpConfig();
   const transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.port === 465,
-    auth: { user: config.user, pass: config.password },
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_PORT === 465,
+    auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD },
   });
 
   return {
     async envoyer(email) {
       await transporter.sendMail({
-        from: config.from,
+        from: env.SMTP_FROM,
         to: email.to,
         subject: email.subject,
         html: email.html,
@@ -69,9 +53,7 @@ export function creerSmtpSender(): EmailSender {
 }
 
 export function getAppUrl(): string {
-  const value = process.env.APP_URL;
-  if (!value) throw new Error("APP_URL n'est pas défini");
-  return value;
+  return env.APP_URL;
 }
 
 export interface CommandeEmailInput {

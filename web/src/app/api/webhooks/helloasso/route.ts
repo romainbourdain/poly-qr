@@ -1,4 +1,5 @@
 import { db } from "@/server/db/client";
+import { env } from "@/server/env";
 import {
   creerSmtpSender,
   envoyerEmailCommande,
@@ -23,13 +24,8 @@ import { helloassoCommandeSchema } from "@/shared/validators/helloasso";
  * dans le back-office HelloAsso (`.../webhooks/helloasso?secret=...`).
  */
 function secretValide(request: Request): boolean {
-  const secret = process.env.HELLOASSO_WEBHOOK_SECRET;
-  if (!secret) {
-    throw new Error("HELLOASSO_WEBHOOK_SECRET n'est pas défini");
-  }
-
   const url = new URL(request.url);
-  return url.searchParams.get("secret") === secret;
+  return url.searchParams.get("secret") === env.HELLOASSO_WEBHOOK_SECRET;
 }
 
 /**

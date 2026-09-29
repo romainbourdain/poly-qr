@@ -1,19 +1,4 @@
-function getApiBaseUrl(): string {
-  const value = process.env.HELLOASSO_API_BASE_URL;
-  if (!value) throw new Error("HELLOASSO_API_BASE_URL n'est pas défini");
-  return value;
-}
-
-function getClientCredentials(): { clientId: string; clientSecret: string } {
-  const clientId = process.env.HELLOASSO_CLIENT_ID;
-  const clientSecret = process.env.HELLOASSO_CLIENT_SECRET;
-  if (!clientId || !clientSecret) {
-    throw new Error(
-      "Configuration HelloAsso incomplète (HELLOASSO_CLIENT_ID, HELLOASSO_CLIENT_SECRET).",
-    );
-  }
-  return { clientId, clientSecret };
-}
+import { env } from "@/server/env";
 
 /**
  * Authentification serveur-à-serveur (OAuth2 client_credentials) : pas
@@ -21,15 +6,13 @@ function getClientCredentials(): { clientId: string; clientSecret: string } {
  * l'association (Mon Compte > Intégrations et API sur HelloAsso).
  */
 export async function obtenirTokenHelloAsso(): Promise<string> {
-  const { clientId, clientSecret } = getClientCredentials();
-
-  const reponse = await fetch(`${getApiBaseUrl()}/oauth2/token`, {
+  const reponse = await fetch(`${env.HELLOASSO_API_BASE_URL}/oauth2/token`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "client_credentials",
-      client_id: clientId,
-      client_secret: clientSecret,
+      client_id: env.HELLOASSO_CLIENT_ID,
+      client_secret: env.HELLOASSO_CLIENT_SECRET,
     }),
   });
 
@@ -59,7 +42,7 @@ export async function itemAOptionBoisson(
   itemId: number,
 ): Promise<boolean> {
   const reponse = await fetch(
-    `${getApiBaseUrl()}/v5/items/${itemId}?withDetails=true`,
+    `${env.HELLOASSO_API_BASE_URL}/v5/items/${itemId}?withDetails=true`,
     { headers: { Authorization: `Bearer ${accessToken}` } },
   );
 
