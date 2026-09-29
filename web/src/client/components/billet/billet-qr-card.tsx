@@ -13,7 +13,7 @@ export function BilletQrCard({
   billet: BilletListe;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-line bg-ink-2">
+    <div className="relative rounded-3xl border border-line bg-ink-2">
       <div className="flex flex-col items-center gap-4 p-6">
         <div className="rounded-2xl bg-white p-3">
           <RealQr value={`polyqr:${billet.code}`} size={210} />
@@ -37,8 +37,8 @@ export function BilletQrCard({
       </div>
 
       <div aria-hidden="true" className="relative h-0">
-        <span className="absolute -top-3 -left-3 size-6 rounded-full border border-line bg-ink" />
-        <span className="absolute -top-3 -right-3 size-6 rounded-full border border-line bg-ink" />
+        <span className="absolute -top-3 -left-[13px] size-6 rounded-full border border-line border-l-transparent bg-ink" />
+        <span className="absolute -top-3 -right-[13px] size-6 rounded-full border border-line border-r-transparent bg-ink" />
         <div className="mx-6 border-line-2 border-t border-dashed" />
       </div>
 
