@@ -6,7 +6,15 @@ import { SessionTicketList } from "@/client/components/admin/session-ticket-list
 import type { PrixEvenement } from "@/shared/lib/prix";
 import type { CommandeCreee } from "@/shared/lib/types";
 
-export function NouveauBilletContent({ prix }: { prix: PrixEvenement }) {
+export function NouveauBilletContent({
+  evenementId,
+  evenementNom,
+  prix,
+}: {
+  evenementId: string;
+  evenementNom: string;
+  prix: PrixEvenement;
+}) {
   const [session, setSession] = useState<CommandeCreee[]>([]);
 
   return (
@@ -16,13 +24,14 @@ export function NouveauBilletContent({ prix }: { prix: PrixEvenement }) {
           Billet de permanence
         </h1>
         <div className="text-[14px] text-muted">
-          Pour une personne qui paye en main propre. Le QR part par email tout
-          de suite.
+          {evenementNom} · Pour une personne qui paye en main propre. Le QR part
+          par email tout de suite.
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-7">
         <PermanenceForm
+          evenementId={evenementId}
           prix={prix}
           onCreated={(commande) => setSession((prev) => [commande, ...prev])}
         />

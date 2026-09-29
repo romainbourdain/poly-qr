@@ -20,11 +20,17 @@ import {
   scannerActionClient,
   unwrapAction,
 } from "@/server/actions/safe-action";
-import { createSessionCookie } from "@/server/services/session";
+import {
+  ADMIN_SUBJECT,
+  createSessionCookie,
+  scannerSubject,
+} from "@/server/services/session";
 import {
   GENERIC_SERVER_ERROR,
   UNAUTHORIZED_ERROR,
 } from "@/shared/lib/form-errors";
+
+const EVENEMENT = "5b1c8f0e-1c1e-4f1a-9a55-2f4b8d3c9e10";
 
 describe("clients next-safe-action", () => {
   beforeAll(() => {
@@ -49,17 +55,36 @@ describe("clients next-safe-action", () => {
     });
 
     it("refuse un cookie invalide", async () => {
-      cookieJar.value = "123.deadbeef";
+      cookieJar.value = "admin.123.deadbeef";
       const result = await action();
       expect(result?.serverError).toBe(UNAUTHORIZED_ERROR);
     });
+  });
 
-    it("laisse passer une session valide", async () => {
-      cookieJar.value = (await createSessionCookie()).value;
-      const result = await action();
-      expect(result?.data).toBe("ok");
-      expect(result?.serverError).toBeUndefined();
-    });
+  it("le client admin laisse passer une session admin, pas une session de scanner", async () => {
+    const action = adminActionClient.action(async () => "ok");
+
+    cookieJar.value = (await createSessionCookie(ADMIN_SUBJECT)).value;
+    expect((await action())?.data).toBe("ok");
+
+    cookieJar.value = (
+      await createSessionCookie(scannerSubject(EVENEMENT))
+    ).value;
+    expect((await action())?.serverError).toBe(UNAUTHORIZED_ERROR);
+  });
+
+  it("le client scanner expose l'événement de la session, pas une session admin", async () => {
+    const action = scannerActionClient.action(
+      async ({ ctx }) => ctx.evenementId,
+    );
+
+    cookieJar.value = (
+      await createSessionCookie(scannerSubject(EVENEMENT))
+    ).value;
+    expect((await action())?.data).toBe(EVENEMENT);
+
+    cookieJar.value = (await createSessionCookie(ADMIN_SUBJECT)).value;
+    expect((await action())?.serverError).toBe(UNAUTHORIZED_ERROR);
   });
 
   it("le client de base n'exige pas de session", async () => {

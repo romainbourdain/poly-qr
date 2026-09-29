@@ -3,14 +3,15 @@ import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
 import { billets, commandes, evenements } from "@/server/db/schema";
 import { hashPassword } from "@/server/services/auth";
+import { resoudreEvenementId } from "@/shared/lib/evenements";
 import { formatDateLongue, formatHeureEvenement } from "@/shared/lib/prix";
-import type { EvenementActif, EvenementResume } from "@/shared/lib/types";
+import type { Evenement, EvenementResume } from "@/shared/lib/types";
 
 type Db = PostgresJsDatabase<typeof schema>;
 
-export class AucunEvenementActifError extends Error {
+export class EvenementIntrouvableError extends Error {
   constructor() {
-    super("Aucun événement actif.");
+    super("Événement introuvable.");
   }
 }
 
@@ -29,7 +30,7 @@ export interface EvenementDonnees {
 
 type LigneEvenement = typeof evenements.$inferSelect;
 
-function versEvenementActif(ligne: LigneEvenement): EvenementActif {
+function versEvenement(ligne: LigneEvenement): Evenement {
   return {
     id: ligne.id,
     nom: ligne.nom,
@@ -43,33 +44,34 @@ function versEvenementActif(ligne: LigneEvenement): EvenementActif {
   };
 }
 
-/** Événement actif pour l'affichage (jamais le hash du mot de passe). */
-export async function obtenirEvenementActif(
+/** Un événement pour l'affichage (jamais le hash du mot de passe), `null` s'il n'existe pas. */
+export async function obtenirEvenement(
   db: Db,
-): Promise<EvenementActif | null> {
+  evenementId: string,
+): Promise<Evenement | null> {
   const [ligne] = await db
     .select()
     .from(evenements)
-    .where(eq(evenements.actif, true))
+    .where(eq(evenements.id, evenementId))
     .limit(1);
-  return ligne ? versEvenementActif(ligne) : null;
+  return ligne ? versEvenement(ligne) : null;
 }
 
-/** Événement auquel appartient une commande, actif ou non (billet d'un ancien événement). */
+/** Événement auquel appartient une commande. */
 export async function obtenirEvenementDeCommande(
   db: Db,
   commandeId: string,
-): Promise<EvenementActif | null> {
+): Promise<Evenement | null> {
   const [ligne] = await db
     .select({ evenement: evenements })
     .from(commandes)
     .innerJoin(evenements, eq(commandes.evenementId, evenements.id))
     .where(eq(commandes.id, commandeId))
     .limit(1);
-  return ligne ? versEvenementActif(ligne.evenement) : null;
+  return ligne ? versEvenement(ligne.evenement) : null;
 }
 
-/** Tous les événements (récents d'abord) avec leurs volumes, actif compris. */
+/** Tous les événements (récents d'abord) avec leurs volumes. */
 export async function listerEvenements(db: Db): Promise<EvenementResume[]> {
   const lignes = await db
     .select({
@@ -84,49 +86,51 @@ export async function listerEvenements(db: Db): Promise<EvenementResume[]> {
     .orderBy(desc(evenements.date), desc(evenements.creeA));
 
   return lignes.map(({ evenement, nbCommandes, nbBillets }) => ({
-    ...versEvenementActif(evenement),
-    actif: evenement.actif,
+    ...versEvenement(evenement),
     nbCommandes,
     nbBillets,
   }));
 }
 
-/** Crée un événement actif et désactive le précédent (sans le supprimer). */
+/** Événement affiché dans l'admin : celui demandé dans l'URL, sinon le plus récent. */
+export async function resoudreEvenementAdmin(
+  db: Db,
+  demande: string | null,
+): Promise<EvenementResume | null> {
+  const tous = await listerEvenements(db);
+  const id = resoudreEvenementId(tous, demande);
+  return tous.find((e) => e.id === id) ?? null;
+}
+
+/** Crée un événement (sans toucher aux autres). */
 export async function creerEvenement(
   db: Db,
   donnees: EvenementDonnees,
-): Promise<EvenementActif> {
+): Promise<Evenement> {
   const motDePasseHash = await hashPassword(donnees.motDePasse);
 
-  return db.transaction(async (tx) => {
-    await tx
-      .update(evenements)
-      .set({ actif: false })
-      .where(eq(evenements.actif, true));
+  const [ligne] = await db
+    .insert(evenements)
+    .values({
+      nom: donnees.nom,
+      date: donnees.date,
+      heure: donnees.heure,
+      lieu: donnees.lieu,
+      prixBilletCentimes: donnees.prixBilletCentimes,
+      prixTicketBoissonCentimes: donnees.prixTicketBoissonCentimes,
+      motDePasseHash,
+    })
+    .returning();
 
-    const [ligne] = await tx
-      .insert(evenements)
-      .values({
-        nom: donnees.nom,
-        date: donnees.date,
-        heure: donnees.heure,
-        lieu: donnees.lieu,
-        prixBilletCentimes: donnees.prixBilletCentimes,
-        prixTicketBoissonCentimes: donnees.prixTicketBoissonCentimes,
-        motDePasseHash,
-        actif: true,
-      })
-      .returning();
-
-    return versEvenementActif(ligne);
-  });
+  return versEvenement(ligne);
 }
 
-/** Modifie l'événement actif ; un mot de passe vide conserve l'actuel. */
-export async function modifierEvenementActif(
+/** Modifie un événement ; un mot de passe vide conserve l'actuel. */
+export async function modifierEvenement(
   db: Db,
+  evenementId: string,
   donnees: EvenementDonnees,
-): Promise<EvenementActif> {
+): Promise<Evenement> {
   const motDePasseHash = donnees.motDePasse
     ? await hashPassword(donnees.motDePasse)
     : undefined;
@@ -142,9 +146,9 @@ export async function modifierEvenementActif(
       prixTicketBoissonCentimes: donnees.prixTicketBoissonCentimes,
       ...(motDePasseHash ? { motDePasseHash } : {}),
     })
-    .where(eq(evenements.actif, true))
+    .where(eq(evenements.id, evenementId))
     .returning();
 
-  if (!ligne) throw new AucunEvenementActifError();
-  return versEvenementActif(ligne);
+  if (!ligne) throw new EvenementIntrouvableError();
+  return versEvenement(ligne);
 }

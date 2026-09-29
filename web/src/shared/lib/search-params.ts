@@ -18,3 +18,10 @@ export const ticketFiltersSearchParams = {
 export const billetSearchParams = {
   commande: parseAsString,
 };
+
+/** Événement affiché dans l'admin (`?evenement=<id>`), absent = le plus récent. */
+export const adminSearchParams = {
+  evenement: parseAsString,
+  /** `?nouveau=1` : l'événement vient d'être créé, on guide vers HelloAsso. */
+  nouveau: parseAsString,
+};

@@ -6,14 +6,16 @@ Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 
 ## Parcours couverts
 
-- `/` — accueil avec les trois entrées (participant, bénévole, admin)
+- `/` — accueil avec les deux entrées (participant, admin)
 - `/billet?commande=<id>` — page participant d'une commande : un QR scannable par billet (`polyqr:<code>`), tickets boisson, téléchargement PDF (`/billet/<id>/pdf`). Affiche l'événement *de la commande*, même après sa fin
-- `/login` puis `/scanner` — accès bénévole protégé par le mot de passe de l'événement actif (cookie de session signé), scan par caméra réelle (`getUserMedia` + décodage `jsQR`), avec repli manuel
-- `/scanner/resultat` — les 4 issues d'un scan : valide, déjà scanné, invalidé, inconnu
-- `/admin` — événement actif (création, édition : nom, date, heure, lieu, mot de passe, prix du billet et du ticket boisson), compteurs, événements passés consultables en lecture (`/admin/evenements/[id]`)
+- `/login` — accès admin, protégé par `ADMIN_PASSWORD` (variable d'environnement, cookie de session signé)
+- `/scanner/<id-événement>` — un scanner par événement, protégé par le mot de passe *de cet événement* (`/scanner/<id>/login`, session valable pour cet événement seulement) ; scan par caméra réelle (`getUserMedia` + décodage `jsQR`), avec repli manuel
+- `/scanner/<id-événement>/resultat` — les 4 issues d'un scan : valide, déjà scanné, invalidé, inconnu (un billet d'un autre événement est « inconnu »)
+- `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : compteurs, URL du webhook HelloAsso à copier, lien du scanner, édition (nom, date, heure, lieu, mot de passe bénévoles, prix). Le même sélecteur pilote `/admin/nouveau` et `/admin/billets`
+- `/admin/evenements/nouveau` — création d'un événement, puis guide pour relier HelloAsso (URL de webhook propre à l'événement)
 - `/admin/nouveau` — vente de permanence, avec total à payer (affichage uniquement, aucun montant stocké)
 - `/admin/billets` — liste (recherche + filtre synchronisés à l'URL) et invalidation ; l'admin est **responsive**
-- `/api/webhooks/helloasso` — création automatique des commandes HelloAsso et envoi de l'email
+- `/api/webhooks/helloasso/<id-événement>?secret=…` — création automatique des commandes HelloAsso pour cet événement et envoi de l'email
 
 ## Stack
 

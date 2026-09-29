@@ -11,17 +11,15 @@ import { enregistrerEvenementAction } from "@/server/actions/evenements";
 import { cn } from "@/shared/lib/cn";
 import { actionErrorsToForm } from "@/shared/lib/form-errors";
 import { centimesVersSaisie } from "@/shared/lib/prix";
-import type { EvenementActif } from "@/shared/lib/types";
+import type { Evenement } from "@/shared/lib/types";
 import { evenementSchema } from "@/shared/validators/evenement";
 
 export function EvenementForm({
   mode,
   initial,
-  onDone,
 }: {
   mode: "creer" | "modifier";
-  initial?: EvenementActif | null;
-  onDone?: () => void;
+  initial?: Evenement | null;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -43,17 +41,24 @@ export function EvenementForm({
     onSubmit: async ({ value }) => {
       setError(null);
       setSaved(false);
-      const result = await enregistrerEvenementAction({ ...value, mode });
+      const result = await enregistrerEvenementAction({
+        ...value,
+        mode,
+        evenementId: initial?.id,
+      });
       if (!result?.data?.success) {
         const errors = actionErrorsToForm(result);
         applyFieldErrors(form, errors.fields);
         setError(errors.form ?? null);
         return;
       }
+      if (mode === "creer") {
+        // Étape suivante : relier HelloAsso au nouvel événement.
+        router.push(`/admin?evenement=${result.data.evenementId}&nouveau=1`);
+        return;
+      }
       setSaved(true);
       router.refresh();
-      if (mode === "creer") form.reset();
-      onDone?.();
     },
   });
 
@@ -149,7 +154,7 @@ export function EvenementForm({
             className="h-12"
           >
             {mode === "creer"
-              ? "Créer et activer l'événement"
+              ? "Créer l'événement"
               : "Enregistrer les modifications"}
           </Button>
         )}

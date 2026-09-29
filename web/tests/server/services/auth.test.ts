@@ -7,9 +7,13 @@ import {
   nettoyerTestDb,
   type TestDb,
 } from "@/server/db/test-utils/test-db";
-import { hashPassword, verifyPassword } from "@/server/services/auth";
+import {
+  hashPassword,
+  verifyAdminPassword,
+  verifyEventPassword,
+} from "@/server/services/auth";
 
-describe("service auth (verifyPassword)", () => {
+describe("service auth", () => {
   let db: TestDb;
   let client: Sql;
 
@@ -25,41 +29,58 @@ describe("service auth (verifyPassword)", () => {
     await fermerTestDb(client);
   });
 
-  async function createActiveEvent(password: string) {
-    const motDePasseHash = await hashPassword(password);
-    await db.insert(evenements).values({
-      nom: "Soirée de rentrée",
-      date: "2026-09-30",
-      heure: "20:00:00",
-      lieu: "Hangar",
-      motDePasseHash,
-      actif: true,
-    });
+  async function creerEvenement(password: string, nom = "Soirée de rentrée") {
+    const [evenement] = await db
+      .insert(evenements)
+      .values({
+        nom,
+        date: "2026-09-30",
+        heure: "20:00:00",
+        lieu: "Hangar",
+        motDePasseHash: await hashPassword(password),
+      })
+      .returning({ id: evenements.id });
+    return evenement.id;
   }
 
-  it("accepte le bon mot de passe de l'événement actif", async () => {
-    await createActiveEvent("hangar2026");
+  it("accepte le bon mot de passe de l'événement", async () => {
+    const id = await creerEvenement("hangar2026");
 
-    await expect(verifyPassword(db, "hangar2026")).resolves.toBe(true);
+    await expect(verifyEventPassword(db, id, "hangar2026")).resolves.toBe(true);
   });
 
   it("refuse un mauvais mot de passe", async () => {
-    await createActiveEvent("hangar2026");
+    const id = await creerEvenement("hangar2026");
 
-    await expect(verifyPassword(db, "mauvais")).resolves.toBe(false);
+    await expect(verifyEventPassword(db, id, "mauvais")).resolves.toBe(false);
   });
 
-  it("refuse tout mot de passe s'il n'y a pas d'événement actif", async () => {
-    await db.insert(evenements).values({
-      nom: "Soirée passée",
-      date: "2026-01-10",
-      heure: "20:00:00",
-      lieu: "Hangar",
-      motDePasseHash: await hashPassword("ancien"),
-      actif: false,
-    });
+  it("refuse le mot de passe d'un autre événement (chaque scanner a le sien)", async () => {
+    const soireeA = await creerEvenement("mot-de-passe-a", "Soirée A");
+    const soireeB = await creerEvenement("mot-de-passe-b", "Soirée B");
 
-    await expect(verifyPassword(db, "ancien")).resolves.toBe(false);
+    await expect(
+      verifyEventPassword(db, soireeA, "mot-de-passe-b"),
+    ).resolves.toBe(false);
+    await expect(
+      verifyEventPassword(db, soireeB, "mot-de-passe-b"),
+    ).resolves.toBe(true);
+  });
+
+  it("refuse tout mot de passe pour un événement inconnu", async () => {
+    await expect(
+      verifyEventPassword(
+        db,
+        "00000000-0000-4000-8000-000000000000",
+        "hangar2026",
+      ),
+    ).resolves.toBe(false);
+  });
+
+  it("vérifie le mot de passe admin global", () => {
+    expect(verifyAdminPassword("test-admin-password")).toBe(true);
+    expect(verifyAdminPassword("mauvais")).toBe(false);
+    expect(verifyAdminPassword("")).toBe(false);
   });
 
   it("produit un hachage différent à chaque appel pour le même mot de passe (sel aléatoire)", async () => {

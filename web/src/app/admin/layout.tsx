@@ -1,25 +1,22 @@
-"use client";
+import type { ReactNode } from "react";
+import { AdminShell } from "@/client/components/admin/admin-shell";
+import { db } from "@/server/db/client";
+import { listerEvenements } from "@/server/services/evenements";
 
-import { useState } from "react";
-import { DesktopSidebar } from "@/client/components/admin/desktop-sidebar";
-import { MobileHeader } from "@/client/components/admin/mobile-header";
+export const dynamic = "force-dynamic";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const evenements = await listerEvenements(db);
 
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row">
-      <MobileHeader
-        open={menuOpen}
-        onToggle={() => setMenuOpen((v) => !v)}
-        onClose={() => setMenuOpen(false)}
-      />
-      <DesktopSidebar />
-      <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
-    </div>
+    <AdminShell
+      evenements={evenements.map(({ id, nom, date }) => ({ id, nom, date }))}
+    >
+      {children}
+    </AdminShell>
   );
 }

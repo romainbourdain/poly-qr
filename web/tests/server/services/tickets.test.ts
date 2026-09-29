@@ -39,16 +39,15 @@ describe("service tickets", () => {
     await fermerTestDb(client);
   });
 
-  async function creerEvenementActif(): Promise<string> {
+  async function creerEvenement(nom = "Soirée de rentrée"): Promise<string> {
     const [evenement] = await db
       .insert(evenements)
       .values({
-        nom: "Soirée de rentrée",
+        nom,
         date: "2026-09-30",
         heure: "20:00:00",
         lieu: "Hangar",
         motDePasseHash: await hashPassword("hangar2026"),
-        actif: true,
       })
       .returning();
     return evenement.id;
@@ -56,10 +55,10 @@ describe("service tickets", () => {
 
   describe("creerCommandePermanence", () => {
     it("crée une commande avec un billet par entrée demandée", async () => {
-      await creerEvenementActif();
+      const evenementId = await creerEvenement();
 
       const { commande, billets: nouveauxBillets } =
-        await creerCommandePermanence(db, {
+        await creerCommandePermanence(db, evenementId, {
           nom: "Sacha Lemoine",
           email: "sacha@etu-poly.fr",
           moyenPaiement: "especes",
@@ -75,28 +74,17 @@ describe("service tickets", () => {
         new Set([2, 0]),
       );
     });
-
-    it("refuse de créer une commande sans événement actif", async () => {
-      await expect(
-        creerCommandePermanence(db, {
-          nom: "Sacha Lemoine",
-          email: "sacha@etu-poly.fr",
-          moyenPaiement: "especes",
-          billets: [{ ticketsBoisson: 0 }],
-        }),
-      ).rejects.toThrow("Aucun événement actif.");
-    });
   });
 
   describe("creerCommandeDepuisHelloAsso", () => {
     it("crée une commande HelloAsso avec un billet par entrée du paiement", async () => {
-      await creerEvenementActif();
+      const evenementId = await creerEvenement();
 
       const {
         commande,
         billets: nouveauxBillets,
         dejaTraitee,
-      } = await creerCommandeDepuisHelloAsso(db, {
+      } = await creerCommandeDepuisHelloAsso(db, evenementId, {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
@@ -112,16 +100,16 @@ describe("service tickets", () => {
     });
 
     it("est idempotente : un même paiement rejoué ne crée pas de nouvelle commande", async () => {
-      await creerEvenementActif();
+      const evenementId = await creerEvenement();
 
-      const premiere = await creerCommandeDepuisHelloAsso(db, {
+      const premiere = await creerCommandeDepuisHelloAsso(db, evenementId, {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
         billets: [{ ticketsBoisson: 2 }],
       });
 
-      const rejeu = await creerCommandeDepuisHelloAsso(db, {
+      const rejeu = await creerCommandeDepuisHelloAsso(db, evenementId, {
         nom: "Jean Dupont",
         email: "jean@etu-poly.fr",
         helloassoPaymentId: "hp-123",
@@ -135,22 +123,11 @@ describe("service tickets", () => {
       const toutesLesCommandes = await db.select().from(commandes);
       expect(toutesLesCommandes).toHaveLength(1);
     });
-
-    it("refuse de créer une commande sans événement actif", async () => {
-      await expect(
-        creerCommandeDepuisHelloAsso(db, {
-          nom: "Jean Dupont",
-          email: "jean@etu-poly.fr",
-          helloassoPaymentId: "hp-123",
-          billets: [{ ticketsBoisson: 0 }],
-        }),
-      ).rejects.toThrow("Aucun événement actif.");
-    });
   });
 
   describe("listerBillets", () => {
     it("groupe les billets par commande et filtre côté serveur par recherche et statut", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
 
       const [commandeA] = await db
         .insert(commandes)
@@ -195,16 +172,22 @@ describe("service tickets", () => {
         },
       ]);
 
-      const tous = await listerBillets(db, { q: "", statut: "tous" });
+      const tous = await listerBillets(db, evenementId, {
+        q: "",
+        statut: "tous",
+      });
       expect(tous).toHaveLength(2);
       const sacha = tous.find((c) => c.commandeId === commandeA.id);
       expect(sacha?.billets).toHaveLength(2);
 
-      const parNom = await listerBillets(db, { q: "léa", statut: "tous" });
+      const parNom = await listerBillets(db, evenementId, {
+        q: "léa",
+        statut: "tous",
+      });
       expect(parNom).toHaveLength(1);
       expect(parNom[0].nom).toBe("Léa Dupont");
 
-      const parStatut = await listerBillets(db, {
+      const parStatut = await listerBillets(db, evenementId, {
         q: "",
         statut: "invalide",
       });
@@ -216,7 +199,7 @@ describe("service tickets", () => {
 
   describe("invaliderBillet / reactiverBillet", () => {
     it("ne change le statut que du billet visé, pas des autres billets de la commande", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -238,14 +221,17 @@ describe("service tickets", () => {
 
       await invaliderBillet(db, billetA.id);
 
-      const [resultats] = await listerBillets(db, { q: "", statut: "tous" });
+      const [resultats] = await listerBillets(db, evenementId, {
+        q: "",
+        statut: "tous",
+      });
       const a = resultats.billets.find((b) => b.id === billetA.id);
       const b = resultats.billets.find((b) => b.id === billetB.id);
       expect(a?.statut).toBe("invalide");
       expect(b?.statut).toBe("non_scanne");
 
       await reactiverBillet(db, billetA.id);
-      const [apresReactivation] = await listerBillets(db, {
+      const [apresReactivation] = await listerBillets(db, evenementId, {
         q: "",
         statut: "tous",
       });
@@ -257,7 +243,7 @@ describe("service tickets", () => {
 
   describe("scannerBillet", () => {
     it("marque un billet non scanné comme scanné et retourne ses infos", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -275,7 +261,7 @@ describe("service tickets", () => {
         ticketsBoisson: 2,
       });
 
-      const resultat = await scannerBillet(db, "AAAA");
+      const resultat = await scannerBillet(db, evenementId, "AAAA");
 
       expect(resultat.type).toBe("valide");
       if (resultat.type !== "valide") throw new Error("type inattendu");
@@ -291,7 +277,7 @@ describe("service tickets", () => {
     });
 
     it("scan concurrent : un seul gagne 'valide', l'autre voit la vraie heure du scan gagnant", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -309,8 +295,8 @@ describe("service tickets", () => {
       });
 
       const [a, b] = await Promise.all([
-        scannerBillet(db, "AAAA"),
-        scannerBillet(db, "AAAA"),
+        scannerBillet(db, evenementId, "AAAA"),
+        scannerBillet(db, evenementId, "AAAA"),
       ]);
       const [gagnant, perdant] = a.type === "valide" ? [a, b] : [b, a];
 
@@ -324,7 +310,7 @@ describe("service tickets", () => {
     });
 
     it("retourne 'déjà scanné' pour un billet déjà scanné, sans changer sa date de scan", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -344,7 +330,7 @@ describe("service tickets", () => {
         scanneA: premierScan,
       });
 
-      const resultat = await scannerBillet(db, "AAAA");
+      const resultat = await scannerBillet(db, evenementId, "AAAA");
 
       expect(resultat.type).toBe("deja_scanne");
       if (resultat.type !== "deja_scanne") throw new Error("type inattendu");
@@ -352,7 +338,7 @@ describe("service tickets", () => {
     });
 
     it("retourne 'invalide' pour un billet invalidé", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -370,21 +356,45 @@ describe("service tickets", () => {
         statut: "invalide",
       });
 
-      const resultat = await scannerBillet(db, "AAAA");
+      const resultat = await scannerBillet(db, evenementId, "AAAA");
 
       expect(resultat.type).toBe("invalide");
     });
 
     it("retourne 'inconnu' pour un code qui ne correspond à aucun billet", async () => {
-      await creerEvenementActif();
+      const evenementId = await creerEvenement();
 
-      const resultat = await scannerBillet(db, "INEXISTANT");
+      const resultat = await scannerBillet(db, evenementId, "INEXISTANT");
 
       expect(resultat).toEqual({ type: "inconnu" });
     });
 
+    it("traite le billet d'un autre événement comme inconnu, sans le marquer scanné", async () => {
+      const evenementId = await creerEvenement("Soirée A");
+      const autreId = await creerEvenement("Soirée B");
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId: autreId,
+          nom: "Sacha Lemoine",
+          email: "sacha@etu-poly.fr",
+          origine: "permanence",
+          moyenPaiement: "especes",
+        })
+        .returning();
+      await db
+        .insert(billets)
+        .values({ commandeId: commande.id, code: "AAAA" });
+
+      const resultat = await scannerBillet(db, evenementId, "AAAA");
+
+      expect(resultat).toEqual({ type: "inconnu" });
+      const [billet] = await db.select().from(billets);
+      expect(billet.statut).toBe("non_scanne");
+    });
+
     it("ne modifie que le billet scanné, pas les autres billets de la commande", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -401,9 +411,12 @@ describe("service tickets", () => {
         { commandeId: commande.id, code: "BBBB" },
       ]);
 
-      await scannerBillet(db, "AAAA");
+      await scannerBillet(db, evenementId, "AAAA");
 
-      const [resultats] = await listerBillets(db, { q: "", statut: "tous" });
+      const [resultats] = await listerBillets(db, evenementId, {
+        q: "",
+        statut: "tous",
+      });
       const a = resultats.billets.find((b) => b.code === "AAAA");
       const b = resultats.billets.find((b) => b.code === "BBBB");
       expect(a?.statut).toBe("scanne");
@@ -414,7 +427,7 @@ describe("service tickets", () => {
 
   describe("obtenirCommandeAvecBillets", () => {
     it("retourne la commande et ses billets triés par création", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -445,7 +458,7 @@ describe("service tickets", () => {
     });
 
     it("retourne null si la commande n'existe pas", async () => {
-      await creerEvenementActif();
+      await creerEvenement();
 
       const resultat = await obtenirCommandeAvecBillets(db, randomUUID());
 
@@ -455,7 +468,7 @@ describe("service tickets", () => {
 
   describe("obtenirStatsEvenement", () => {
     it("compte billets émis, entrées vendues (hors invalidés), scannées et tickets boisson dus", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -488,7 +501,7 @@ describe("service tickets", () => {
         },
       ]);
 
-      await expect(obtenirStatsEvenement(db)).resolves.toEqual({
+      await expect(obtenirStatsEvenement(db, evenementId)).resolves.toEqual({
         billets: 3,
         entreesVendues: 2,
         entreesScannees: 1,
@@ -496,8 +509,9 @@ describe("service tickets", () => {
       });
     });
 
-    it("ignore les billets des événements passés", async () => {
-      const ancienId = await creerEvenementActif();
+    it("ne compte que les billets de l'événement demandé", async () => {
+      const ancienId = await creerEvenement("Ancien");
+      const autreId = await creerEvenement("Autre");
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -511,37 +525,22 @@ describe("service tickets", () => {
       await db
         .insert(billets)
         .values({ commandeId: commande.id, code: "OLD1" });
-      await db.update(evenements).set({ actif: false });
-      await db.insert(evenements).values({
-        nom: "Nouveau",
-        date: "2026-10-01",
-        heure: "20:00:00",
-        lieu: "Ailleurs",
-        motDePasseHash: "x",
-        actif: true,
-      });
 
-      await expect(obtenirStatsEvenement(db)).resolves.toEqual({
+      await expect(obtenirStatsEvenement(db, autreId)).resolves.toEqual({
         billets: 0,
         entreesVendues: 0,
         entreesScannees: 0,
         ticketsBoissonDus: 0,
       });
-    });
-
-    it("retourne des compteurs à zéro sans événement actif", async () => {
-      await expect(obtenirStatsEvenement(db)).resolves.toEqual({
-        billets: 0,
-        entreesVendues: 0,
-        entreesScannees: 0,
-        ticketsBoissonDus: 0,
+      await expect(obtenirStatsEvenement(db, ancienId)).resolves.toMatchObject({
+        billets: 1,
       });
     });
   });
 
   describe("obtenirStatsBillets", () => {
     it("compte le total et les billets scannés, indépendamment des filtres", async () => {
-      const evenementId = await creerEvenementActif();
+      const evenementId = await creerEvenement();
       const [commande] = await db
         .insert(commandes)
         .values({
@@ -559,16 +558,9 @@ describe("service tickets", () => {
         { commandeId: commande.id, code: "CCCC", statut: "invalide" },
       ]);
 
-      await expect(obtenirStatsBillets(db)).resolves.toEqual({
+      await expect(obtenirStatsBillets(db, evenementId)).resolves.toEqual({
         total: 3,
         scannes: 1,
-      });
-    });
-
-    it("retourne des compteurs à zéro s'il n'y a pas d'événement actif", async () => {
-      await expect(obtenirStatsBillets(db)).resolves.toEqual({
-        total: 0,
-        scannes: 0,
       });
     });
   });

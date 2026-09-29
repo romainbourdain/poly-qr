@@ -1,6 +1,5 @@
-import { relations, sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
-  boolean,
   date,
   integer,
   pgEnum,
@@ -8,7 +7,6 @@ import {
   text,
   time,
   timestamp,
-  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { MOYENS_PAIEMENT } from "@/shared/lib/types";
@@ -26,31 +24,21 @@ export const statutBillet = pgEnum("statut_billet", [
   "invalide",
 ]);
 
-export const evenements = pgTable(
-  "evenements",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    nom: text("nom").notNull(),
-    date: date("date").notNull(),
-    heure: time("heure").notNull(),
-    lieu: text("lieu").notNull(),
-    motDePasseHash: text("mot_de_passe_hash").notNull(),
-    // Prix en centimes, utilisés uniquement pour afficher le total du formulaire
-    // de vente permanence — jamais stockés sur une commande ou un billet.
-    prixBilletCentimes: integer("prix_billet_centimes").notNull().default(0),
-    prixTicketBoissonCentimes: integer("prix_ticket_boisson_centimes")
-      .notNull()
-      .default(0),
-    actif: boolean("actif").notNull().default(false),
-    creeA: timestamp("cree_a", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [
-    // Un seul événement actif à la fois : index unique partiel sur les lignes actif = true.
-    uniqueIndex("evenements_un_seul_actif")
-      .on(table.actif)
-      .where(sql`${table.actif} = true`),
-  ],
-);
+export const evenements = pgTable("evenements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nom: text("nom").notNull(),
+  date: date("date").notNull(),
+  heure: time("heure").notNull(),
+  lieu: text("lieu").notNull(),
+  motDePasseHash: text("mot_de_passe_hash").notNull(),
+  // Prix en centimes, utilisés uniquement pour afficher le total du formulaire
+  // de vente permanence — jamais stockés sur une commande ou un billet.
+  prixBilletCentimes: integer("prix_billet_centimes").notNull().default(0),
+  prixTicketBoissonCentimes: integer("prix_ticket_boisson_centimes")
+    .notNull()
+    .default(0),
+  creeA: timestamp("cree_a", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const commandes = pgTable("commandes", {
   id: uuid("id").primaryKey().defaultRandom(),

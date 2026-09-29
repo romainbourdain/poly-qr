@@ -7,7 +7,7 @@ import { ScanSimulator } from "@/client/components/scanner/scan-simulator";
 import { ScannerHeader } from "@/client/components/scanner/scanner-header";
 import { useScanResultStore } from "@/client/store/scan-result-store";
 import {
-  obtenirStatsBilletsAction,
+  obtenirStatsBilletsScannerAction,
   scannerBilletAction,
 } from "@/server/actions/tickets";
 import {
@@ -17,10 +17,12 @@ import {
 import type { BilletSimulable } from "@/shared/lib/types";
 
 export function ScannerClient({
+  evenementId,
   evenementNom,
   entreesInitial,
   billets,
 }: {
+  evenementId: string;
   evenementNom: string;
   entreesInitial: number;
   billets: BilletSimulable[];
@@ -34,7 +36,7 @@ export function ScannerClient({
     async (code: string | null) => {
       if (!code) {
         setResultat({ type: "inconnu" });
-        router.push("/scanner/resultat");
+        router.push(`/scanner/${evenementId}/resultat`);
         return;
       }
       setErreur(null);
@@ -42,7 +44,7 @@ export function ScannerClient({
       if (!scan?.data) {
         // Rien n'a été consommé : on ne le présente pas comme un billet inconnu.
         if (scan?.serverError === UNAUTHORIZED_ERROR) {
-          router.push("/login");
+          router.push(`/scanner/${evenementId}/login`);
         } else {
           setErreur(scan?.serverError ?? GENERIC_SERVER_ERROR);
         }
@@ -50,13 +52,13 @@ export function ScannerClient({
       }
       const resultat = scan.data;
       if (resultat.type === "valide") {
-        const stats = await obtenirStatsBilletsAction();
+        const stats = await obtenirStatsBilletsScannerAction();
         if (stats?.data) setEntrees(stats.data.scannes);
       }
       setResultat(resultat);
-      router.push("/scanner/resultat");
+      router.push(`/scanner/${evenementId}/resultat`);
     },
-    [router, setResultat],
+    [router, setResultat, evenementId],
   );
 
   const handleDecode = useCallback(

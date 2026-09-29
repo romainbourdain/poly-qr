@@ -1,4 +1,8 @@
 import Link from "next/link";
+import {
+  type EvenementOption,
+  EvenementSwitcher,
+} from "@/client/components/admin/evenement-switcher";
 import { NavLinks } from "@/client/components/admin/nav-links";
 import { Button } from "@/client/components/ui/button";
 
@@ -28,10 +32,16 @@ export function MobileHeader({
   open,
   onToggle,
   onClose,
+  evenements,
+  evenementId,
+  avecEvenement,
 }: {
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
+  evenements: EvenementOption[];
+  evenementId: string | null;
+  avecEvenement: (href: string) => string;
 }) {
   return (
     <div className="md:hidden">
@@ -51,17 +61,26 @@ export function MobileHeader({
           </span>
           <span className="text-[12px] text-muted">BDE TPS</span>
         </div>
-        <Link
-          href="/scanner"
-          className="flex h-11 items-center rounded-[9px] border border-line-2 bg-ink-3 px-4 font-semibold text-[13.5px]"
-        >
-          Scanner
-        </Link>
+        {evenementId && (
+          <Link
+            href={`/scanner/${evenementId}`}
+            className="flex h-11 items-center rounded-[9px] border border-line-2 bg-ink-3 px-4 font-semibold text-[13.5px]"
+          >
+            Scanner
+          </Link>
+        )}
       </div>
 
       {open && (
         <div className="flex flex-col gap-3 border-line border-b bg-ink-5 p-4">
-          <NavLinks onNavigate={onClose} />
+          <EvenementSwitcher
+            evenements={evenements}
+            evenementId={evenementId}
+            onNavigate={onClose}
+          />
+          {evenementId && (
+            <NavLinks avecEvenement={avecEvenement} onNavigate={onClose} />
+          )}
         </div>
       )}
     </div>

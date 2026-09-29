@@ -25,7 +25,7 @@ describe("schéma DB (evenements / commandes / billets)", () => {
     await fermerTestDb(client);
   });
 
-  async function creerEvenement(actif = true) {
+  async function creerEvenement() {
     const [evenement] = await db
       .insert(evenements)
       .values({
@@ -34,7 +34,6 @@ describe("schéma DB (evenements / commandes / billets)", () => {
         heure: "20:00:00",
         lieu: "Hangar",
         motDePasseHash: "hash-de-test",
-        actif,
       })
       .returning();
     return evenement;
@@ -118,18 +117,11 @@ describe("schéma DB (evenements / commandes / billets)", () => {
     ).rejects.toThrow();
   });
 
-  it("refuse un deuxième événement actif en même temps", async () => {
-    await creerEvenement(true);
+  it("autorise plusieurs événements en même temps", async () => {
+    await creerEvenement();
+    await creerEvenement();
 
-    await expect(creerEvenement(true)).rejects.toThrow();
-  });
-
-  it("autorise plusieurs événements inactifs, et un seul actif après désactivation de l'ancien", async () => {
-    await creerEvenement(false);
-    await creerEvenement(false);
-    const nouveauActif = await creerEvenement(true);
-
-    expect(nouveauActif.actif).toBe(true);
+    expect(await db.select().from(evenements)).toHaveLength(2);
   });
 
   it("refuse une commande sans événement existant (FK)", async () => {

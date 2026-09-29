@@ -76,7 +76,7 @@ export interface BilletSimulable {
 }
 
 /** Événement tel qu'affiché (date/heure formatées en français) — sans le mot de passe. */
-export interface EvenementActif {
+export interface Evenement {
   id: string;
   nom: string;
   /** `YYYY-MM-DD`, pour préremplir un champ date. */
@@ -90,8 +90,7 @@ export interface EvenementActif {
   prixTicketBoissonCentimes: number;
 }
 
-export interface EvenementResume extends EvenementActif {
-  actif: boolean;
+export interface EvenementResume extends Evenement {
   nbCommandes: number;
   nbBillets: number;
 }

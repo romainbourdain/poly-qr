@@ -1,12 +1,5 @@
 import { FeatureCard } from "@/client/components/home/feature-card";
-import { db } from "@/server/db/client";
-import { obtenirEvenementActif } from "@/server/services/evenements";
-
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
-  const evenement = await obtenirEvenementActif(db);
-
+export default function Home() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-12 px-6 py-16">
       <div className="flex flex-col gap-3">
@@ -17,16 +10,12 @@ export default async function Home() {
           PolyQR
         </h1>
         <p className="max-w-xl text-[15px] text-muted leading-relaxed">
-          Démo cliquable du système de QR code d&apos;entrée
-          {evenement
-            ? ` pour la ${evenement.nom} (${evenement.date}, ${evenement.lieu})`
-            : ""}
-          . Ce prototype sert à valider le parcours, pas à gérer une vraie
-          soirée.
+          Démo cliquable du système de QR code d&apos;entrée. Ce prototype sert
+          à valider le parcours, pas à gérer une vraie soirée.
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2">
         <FeatureCard
           href="/billet"
           eyebrow="Participant"
@@ -36,18 +25,10 @@ export default async function Home() {
           accent="#6C4BF0"
         />
         <FeatureCard
-          href="/login"
-          eyebrow="Bénévole"
-          title="Espace scanner"
-          desc="Accès protégé par mot de passe, puis simulation de scans à l'entrée."
-          cta="Ouvrir l'accès"
-          accent="#45E0A0"
-        />
-        <FeatureCard
           href="/admin"
           eyebrow="Organisateurs"
           title="Espace admin"
-          desc="Événement, création de billets de permanence, liste et invalidation."
+          desc="Événements, billets de permanence, liste des billets et accès au scanner de chaque événement."
           cta="Ouvrir l'admin"
           accent="#FFB020"
         />

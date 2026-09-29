@@ -15,7 +15,7 @@ import {
   getAppUrl,
 } from "@/server/services/email";
 import {
-  AucunEvenementActifError,
+  obtenirEvenement,
   obtenirEvenementDeCommande,
 } from "@/server/services/evenements";
 import {
@@ -32,6 +32,7 @@ import { STATUT_FILTERS } from "@/shared/lib/search-params";
 import {
   billetIdSchema,
   commandeIdSchema,
+  evenementIdSchema,
   scanCodeSchema,
 } from "@/shared/validators/commande";
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
@@ -41,26 +42,25 @@ const filtresSchema = z.object({
   statut: z.enum(STATUT_FILTERS),
 });
 
+const evenementSchema = z.object({ evenementId: evenementIdSchema });
+
 export const creerPermanenceAction = adminActionClient
-  .inputSchema(permanenceCommandeSchema)
-  .action(async ({ parsedInput }) => {
-    const creation = await creerCommandePermanence(db, parsedInput).catch(
-      (error) => {
-        if (error instanceof AucunEvenementActifError) {
-          return returnServerError(
-            "Aucun événement actif : impossible de créer le billet.",
-          );
-        }
-        throw error;
-      },
+  .inputSchema(permanenceCommandeSchema.extend(evenementSchema.shape))
+  .action(async ({ parsedInput: { evenementId, ...input } }) => {
+    if (!(await obtenirEvenement(db, evenementId))) {
+      return returnServerError("Cet événement n'existe plus.");
+    }
+    const { commande, billets } = await creerCommandePermanence(
+      db,
+      evenementId,
+      input,
     );
-    const { commande, billets } = creation;
     revalidatePath("/admin/billets");
 
     let emailError: string | undefined;
     try {
       const evenement = await obtenirEvenementDeCommande(db, commande.id);
-      if (!evenement) throw new Error("Aucun événement actif.");
+      if (!evenement) throw new Error("Événement introuvable.");
       await envoyerEmailCommande(
         creerSmtpSender(),
         {
@@ -95,12 +95,26 @@ export const reactiverBilletAction = adminActionClient
     revalidatePath("/admin/billets");
   });
 
-export const listerBilletsAction = scannerActionClient
-  .inputSchema(filtresSchema)
-  .action(({ parsedInput }) => listerBillets(db, parsedInput));
+/** Admin : billets d'un événement choisi. */
+export const listerBilletsAction = adminActionClient
+  .inputSchema(filtresSchema.extend(evenementSchema.shape))
+  .action(({ parsedInput: { evenementId, ...filtres } }) =>
+    listerBillets(db, evenementId, filtres),
+  );
 
-export const obtenirStatsBilletsAction = scannerActionClient.action(() =>
-  obtenirStatsBillets(db),
+export const obtenirStatsBilletsAction = adminActionClient
+  .inputSchema(evenementSchema)
+  .action(({ parsedInput: { evenementId } }) =>
+    obtenirStatsBillets(db, evenementId),
+  );
+
+/** Scanner : liste des billets de l'événement de la session (pour le simulateur). */
+export const listerBilletsScannerAction = scannerActionClient.action(
+  ({ ctx }) => listerBillets(db, ctx.evenementId, { q: "", statut: "tous" }),
+);
+
+export const obtenirStatsBilletsScannerAction = scannerActionClient.action(
+  ({ ctx }) => obtenirStatsBillets(db, ctx.evenementId),
 );
 
 /** Public : la page billet est accessible à l'acheteur via l'UUID de sa commande. */
@@ -112,8 +126,8 @@ export const obtenirCommandeAction = actionClient
 
 export const scannerBilletAction = scannerActionClient
   .inputSchema(scanCodeSchema)
-  .action(async ({ parsedInput: code }) => {
-    const resultat = await scannerBillet(db, code);
+  .action(async ({ parsedInput: code, ctx }) => {
+    const resultat = await scannerBillet(db, ctx.evenementId, code);
     if (resultat.type === "valide") {
       revalidatePath("/admin/billets");
     }

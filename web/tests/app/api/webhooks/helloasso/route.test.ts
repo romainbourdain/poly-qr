@@ -10,7 +10,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { POST } from "@/app/api/webhooks/helloasso/route";
+import { POST } from "@/app/api/webhooks/helloasso/[evenementId]/route";
 import { billets, commandes, evenements } from "@/server/db/schema";
 import {
   creerTestDb,
@@ -21,6 +21,7 @@ import {
 import { hashPassword } from "@/server/services/auth";
 
 const ENDPOINT = "http://localhost:3000/api/webhooks/helloasso";
+const EVENEMENT_INCONNU = "00000000-0000-4000-8000-000000000000";
 const SECRET = process.env.HELLOASSO_WEBHOOK_SECRET as string;
 
 /** Items 1 et 3 ont l'option boisson, l'item 2 non. */
@@ -60,12 +61,17 @@ function payloadValide(
   };
 }
 
-function requete(body: unknown, secret = SECRET) {
-  return new Request(`${ENDPOINT}?secret=${secret}`, {
+function requete(body: unknown, evenementId: string, secret = SECRET) {
+  return new Request(`${ENDPOINT}/${evenementId}?secret=${secret}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+}
+
+/** Appelle la route comme le ferait Next.js pour `/api/webhooks/helloasso/<evenementId>`. */
+function appeler(request: Request, evenementId: string) {
+  return POST(request, { params: Promise.resolve({ evenementId }) });
 }
 
 describe("POST /api/webhooks/helloasso", () => {
@@ -89,22 +95,26 @@ describe("POST /api/webhooks/helloasso", () => {
     await fermerTestDb(client);
   });
 
-  async function creerEvenementActif(): Promise<void> {
-    await db.insert(evenements).values({
-      nom: "Soirée de rentrée",
-      date: "2026-09-30",
-      heure: "20:00:00",
-      lieu: "Hangar",
-      motDePasseHash: await hashPassword("hangar2026"),
-      actif: true,
-    });
+  async function creerEvenement(nom = "Soirée de rentrée"): Promise<string> {
+    const [evenement] = await db
+      .insert(evenements)
+      .values({
+        nom,
+        date: "2026-09-30",
+        heure: "20:00:00",
+        lieu: "Hangar",
+        motDePasseHash: await hashPassword("hangar2026"),
+      })
+      .returning({ id: evenements.id });
+    return evenement.id;
   }
 
   it("crée une commande et ses billets pour un paiement valide, avec 1 ticket boisson si l'option a été prise", async () => {
-    await creerEvenementActif();
+    const evenementId = await creerEvenement();
 
-    const reponse = await POST(
-      requete(payloadValide({ id: 1, itemIds: [1, 2] })),
+    const reponse = await appeler(
+      requete(payloadValide({ id: 1, itemIds: [1, 2] }), evenementId),
+      evenementId,
     );
 
     expect(reponse.status).toBe(200);
@@ -125,10 +135,11 @@ describe("POST /api/webhooks/helloasso", () => {
   });
 
   it("rejette un secret invalide sans créer de commande", async () => {
-    await creerEvenementActif();
+    const evenementId = await creerEvenement();
 
-    const reponse = await POST(
-      requete(payloadValide({ id: 2 }), "mauvais-secret"),
+    const reponse = await appeler(
+      requete(payloadValide({ id: 2 }), evenementId, "mauvais-secret"),
+      evenementId,
     );
 
     expect(reponse.status).toBe(401);
@@ -137,12 +148,18 @@ describe("POST /api/webhooks/helloasso", () => {
   });
 
   it("ne crée pas deux commandes pour le même paiement rejoué, sans rappeler l'API HelloAsso", async () => {
-    await creerEvenementActif();
+    const evenementId = await creerEvenement();
 
-    const premiere = await POST(requete(payloadValide({ id: 3 })));
+    const premiere = await appeler(
+      requete(payloadValide({ id: 3 }), evenementId),
+      evenementId,
+    );
     const appelsApresPremiere = vi.mocked(fetch).mock.calls.length;
 
-    const rejeu = await POST(requete(payloadValide({ id: 3 })));
+    const rejeu = await appeler(
+      requete(payloadValide({ id: 3 }), evenementId),
+      evenementId,
+    );
 
     expect(premiere.status).toBe(200);
     expect(rejeu.status).toBe(200);
@@ -153,9 +170,12 @@ describe("POST /api/webhooks/helloasso", () => {
   });
 
   it("rejette un payload malformé", async () => {
-    await creerEvenementActif();
+    const evenementId = await creerEvenement();
 
-    const reponse = await POST(requete({ foo: "bar" }));
+    const reponse = await appeler(
+      requete({ foo: "bar" }, evenementId),
+      evenementId,
+    );
 
     expect(reponse.status).toBe(400);
     const lignes = await db.select().from(commandes);
@@ -163,14 +183,39 @@ describe("POST /api/webhooks/helloasso", () => {
   });
 
   it("acquitte sans traitement un eventType Payment (même achat, webhook séparé)", async () => {
-    await creerEvenementActif();
+    const evenementId = await creerEvenement();
 
-    const reponse = await POST(
-      requete({ eventType: "Payment", data: { id: 99 } }),
+    const reponse = await appeler(
+      requete({ eventType: "Payment", data: { id: 99 } }, evenementId),
+      evenementId,
     );
 
     expect(reponse.status).toBe(200);
     const lignes = await db.select().from(commandes);
     expect(lignes).toHaveLength(0);
+  });
+
+  it("rattache la commande à l'événement de l'URL du webhook", async () => {
+    const soireeA = await creerEvenement("Soirée A");
+    const soireeB = await creerEvenement("Soirée B");
+
+    await appeler(requete(payloadValide({ id: 10 }), soireeB), soireeB);
+
+    const lignes = await db.select().from(commandes);
+    expect(lignes).toHaveLength(1);
+    expect(lignes[0].evenementId).toBe(soireeB);
+    expect(lignes[0].evenementId).not.toBe(soireeA);
+  });
+
+  it("répond 404 pour un événement inconnu, sans créer de commande", async () => {
+    await creerEvenement();
+
+    const reponse = await appeler(
+      requete(payloadValide({ id: 11 }), EVENEMENT_INCONNU),
+      EVENEMENT_INCONNU,
+    );
+
+    expect(reponse.status).toBe(404);
+    expect(await db.select().from(commandes)).toHaveLength(0);
   });
 });

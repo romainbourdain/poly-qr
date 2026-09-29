@@ -2,32 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import { returnServerError } from "next-safe-action";
-import {
-  adminActionClient,
-  scannerActionClient,
-} from "@/server/actions/safe-action";
+import { adminActionClient } from "@/server/actions/safe-action";
 import { db } from "@/server/db/client";
 import {
-  AucunEvenementActifError,
   creerEvenement,
+  EvenementIntrouvableError,
   listerEvenements,
-  modifierEvenementActif,
-  obtenirEvenementActif,
+  modifierEvenement,
 } from "@/server/services/evenements";
 import { parseEuros } from "@/shared/lib/prix";
 import { enregistrerEvenementSchema } from "@/shared/validators/evenement";
-
-export const obtenirEvenementActifAction = scannerActionClient.action(() =>
-  obtenirEvenementActif(db),
-);
 
 export const listerEvenementsAction = adminActionClient.action(() =>
   listerEvenements(db),
 );
 
 /**
- * `creer` : nouvel événement actif (désactive le précédent, mot de passe requis).
- * `modifier` : édite l'événement actif (mot de passe vide = inchangé).
+ * `creer` : nouvel événement (mot de passe requis), renvoie son id.
+ * `modifier` : édite l'événement `evenementId` (mot de passe vide = inchangé).
  */
 export const enregistrerEvenementAction = adminActionClient
   .inputSchema(enregistrerEvenementSchema)
@@ -43,17 +35,20 @@ export const enregistrerEvenementAction = adminActionClient
       motDePasse: parsedInput.motDePasse,
     };
 
+    let evenementId: string;
     if (parsedInput.mode === "creer") {
-      await creerEvenement(db, donnees);
+      evenementId = (await creerEvenement(db, donnees)).id;
     } else {
-      await modifierEvenementActif(db, donnees).catch((error) => {
-        if (error instanceof AucunEvenementActifError) {
-          return returnServerError("Aucun événement actif à modifier.");
+      const id = parsedInput.evenementId as string;
+      await modifierEvenement(db, id, donnees).catch((error) => {
+        if (error instanceof EvenementIntrouvableError) {
+          return returnServerError("Cet événement n'existe plus.");
         }
         throw error;
       });
+      evenementId = id;
     }
 
     revalidatePath("/", "layout");
-    return { success: true as const };
+    return { success: true as const, evenementId };
   });

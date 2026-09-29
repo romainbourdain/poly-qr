@@ -1,10 +1,21 @@
 import { cookies } from "next/headers";
 import { createSafeActionClient } from "next-safe-action";
-import { SESSION_COOKIE, verifySessionCookie } from "@/server/services/session";
+import {
+  ADMIN_SESSION_COOKIE,
+  ADMIN_SUBJECT,
+  readSessionCookie,
+  SCANNER_SESSION_COOKIE,
+  verifySessionCookie,
+} from "@/server/services/session";
 import {
   GENERIC_SERVER_ERROR,
   UNAUTHORIZED_ERROR,
 } from "@/shared/lib/form-errors";
+
+function extraireEvenementId(subject: string): string | null {
+  const prefix = "scanner:";
+  return subject.startsWith(prefix) ? subject.slice(prefix.length) : null;
+}
 
 /** Thrown by middlewares; surfaced to the client as-is (no internal detail). */
 class UnauthorizedError extends Error {}
@@ -22,26 +33,28 @@ export const actionClient = createSafeActionClient({
   },
 });
 
-async function requireSession() {
+/** Admin session: the shared admin password, valid for every event. */
+export const adminActionClient = actionClient.use(async ({ next }) => {
   const cookieStore = await cookies();
-  if (!(await verifySessionCookie(cookieStore.get(SESSION_COOKIE)?.value))) {
+  const cookie = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
+  if (!(await verifySessionCookie(cookie, ADMIN_SUBJECT))) {
     throw new UnauthorizedError();
   }
-}
-
-/**
- * Admin and scanner volunteers currently share one password and one session
- * cookie (see DECISIONS.md), so both clients enforce the same check. They stay
- * separate so a per-role session can be introduced without touching actions.
- */
-export const adminActionClient = actionClient.use(async ({ next }) => {
-  await requireSession();
   return next();
 });
 
+/**
+ * Scanner session: issued for one event only. The event id comes from the
+ * signed cookie, never from the client, so a scanner cannot act on another event.
+ */
 export const scannerActionClient = actionClient.use(async ({ next }) => {
-  await requireSession();
-  return next();
+  const cookieStore = await cookies();
+  const subject = await readSessionCookie(
+    cookieStore.get(SCANNER_SESSION_COOKIE)?.value,
+  );
+  const evenementId = subject ? extraireEvenementId(subject) : null;
+  if (!evenementId) throw new UnauthorizedError();
+  return next({ ctx: { evenementId } });
 });
 
 type ActionResult<T> =

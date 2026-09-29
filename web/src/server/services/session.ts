@@ -3,7 +3,12 @@
 
 import { env } from "@/server/env";
 
-export const SESSION_COOKIE = "polyqr_session";
+export const ADMIN_SESSION_COOKIE = "polyqr_admin";
+export const SCANNER_SESSION_COOKIE = "polyqr_scanner";
+
+/** Sujet de session : l'admin, ou le scanner d'un événement précis (jamais valable pour un autre). */
+export const ADMIN_SUBJECT = "admin";
+export const scannerSubject = (evenementId: string) => `scanner:${evenementId}`;
 const SESSION_DURATION_MS = 12 * 60 * 60 * 1000; // 12h, well beyond a single event
 
 function hexToBytes(hex: string): Uint8Array | null {
@@ -42,12 +47,13 @@ async function sign(payload: string): Promise<string> {
   return bytesToHex(signature);
 }
 
-/** Builds the session cookie value: `<expiration>.<signature>`. */
+/** Builds the session cookie value: `<subject>.<expiration>.<signature>` (subject has no dot). */
 export async function createSessionCookie(
+  subject: string,
   now: number = Date.now(),
 ): Promise<{ value: string; expiresAt: Date }> {
   const expiresAt = now + SESSION_DURATION_MS;
-  const payload = String(expiresAt);
+  const payload = `${subject}.${expiresAt}`;
   const value = `${payload}.${await sign(payload)}`;
   return { value, expiresAt: new Date(expiresAt) };
 }
@@ -61,24 +67,38 @@ function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
   return diff === 0;
 }
 
-/** Verifies the signature and expiration of a session cookie value. */
-export async function verifySessionCookie(
+/**
+ * Returns the session's subject when the signature and expiration are valid,
+ * `null` otherwise. Callers compare it with the subject they expect.
+ */
+export async function readSessionCookie(
   value: string | undefined,
   now: number = Date.now(),
-): Promise<boolean> {
-  if (!value) return false;
+): Promise<string | null> {
+  if (!value) return null;
 
-  const [payload, signature] = value.split(".");
-  if (!payload || !signature) return false;
+  const [subject, expiration, signature] = value.split(".");
+  if (!subject || !expiration || !signature) return null;
 
   const signatureBytes = hexToBytes(signature);
-  if (!signatureBytes) return false;
+  if (!signatureBytes) return null;
 
-  const expectedSignatureBytes = hexToBytes(await sign(payload));
-  if (!expectedSignatureBytes) return false;
+  const expectedSignatureBytes = hexToBytes(
+    await sign(`${subject}.${expiration}`),
+  );
+  if (!expectedSignatureBytes) return null;
 
-  if (!constantTimeEqual(signatureBytes, expectedSignatureBytes)) return false;
+  if (!constantTimeEqual(signatureBytes, expectedSignatureBytes)) return null;
 
-  const expiresAt = Number(payload);
-  return Number.isFinite(expiresAt) && expiresAt > now;
+  const expiresAt = Number(expiration);
+  return Number.isFinite(expiresAt) && expiresAt > now ? subject : null;
+}
+
+/** Verifies the cookie is valid AND was issued for `subject`. */
+export async function verifySessionCookie(
+  value: string | undefined,
+  subject: string,
+  now: number = Date.now(),
+): Promise<boolean> {
+  return (await readSessionCookie(value, now)) === subject;
 }

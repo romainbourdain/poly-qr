@@ -5,6 +5,7 @@ import { serverSchema } from "@/server/env-schema";
 const VALID = {
   DATABASE_URL: "postgres://user:password@localhost:5432/polyqr",
   SESSION_SECRET: "a-session-secret-long-enough",
+  ADMIN_PASSWORD: "an-admin-password",
   APP_URL: "http://localhost:3000",
   SMTP_HOST: "smtp.example.org",
   SMTP_PORT: "465",

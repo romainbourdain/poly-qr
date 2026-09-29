@@ -1,9 +1,10 @@
-import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
 import { evenements } from "@/server/db/schema";
+import { env } from "@/server/env";
 
 const scryptAsync = promisify(scrypt);
 const KEY_LENGTH = 64;
@@ -39,20 +40,28 @@ async function passwordMatches(
 }
 
 /**
- * Verifies the submitted password against the active event's password.
- * Returns `false` when no event is active, without revealing that fact.
+ * Verifies the submitted password against one event's volunteer password
+ * (scanner access). Returns `false` for an unknown event, without revealing it.
  */
-export async function verifyPassword(
+export async function verifyEventPassword(
   db: PostgresJsDatabase<typeof schema>,
+  evenementId: string,
   password: string,
 ): Promise<boolean> {
-  const [activeEvent] = await db
+  const [event] = await db
     .select({ passwordHash: evenements.motDePasseHash })
     .from(evenements)
-    .where(eq(evenements.actif, true))
+    .where(eq(evenements.id, evenementId))
     .limit(1);
 
-  if (!activeEvent) return false;
+  if (!event) return false;
 
-  return passwordMatches(password, activeEvent.passwordHash);
+  return passwordMatches(password, event.passwordHash);
+}
+
+/** Verifies the submitted password against the global admin password (`ADMIN_PASSWORD`). */
+export function verifyAdminPassword(password: string): boolean {
+  // Hash both sides so the comparison is constant-time whatever the lengths.
+  const digest = (value: string) => createHash("sha256").update(value).digest();
+  return timingSafeEqual(digest(password), digest(env.ADMIN_PASSWORD));
 }

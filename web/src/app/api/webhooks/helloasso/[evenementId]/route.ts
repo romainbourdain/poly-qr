@@ -5,7 +5,10 @@ import {
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
-import { obtenirEvenementDeCommande } from "@/server/services/evenements";
+import {
+  obtenirEvenement,
+  obtenirEvenementDeCommande,
+} from "@/server/services/evenements";
 import {
   itemAOptionBoisson,
   obtenirTokenHelloAsso,
@@ -16,12 +19,13 @@ import {
   creerCommandeDepuisHelloAsso,
   versBilletListe,
 } from "@/server/services/tickets";
+import { evenementIdSchema } from "@/shared/validators/commande";
 import { helloassoCommandeSchema } from "@/shared/validators/helloasso";
 
 /**
  * HelloAsso ne signe pas ses webhooks : la vérification se fait via un
  * secret partagé, configuré comme paramètre de l'URL de callback déclarée
- * dans le back-office HelloAsso (`.../webhooks/helloasso?secret=...`).
+ * dans le back-office HelloAsso (`.../webhooks/helloasso/<id-evenement>?secret=...`).
  */
 function secretValide(request: Request): boolean {
   const url = new URL(request.url);
@@ -47,9 +51,19 @@ function eventTypeIgnore(payload: unknown): boolean {
   );
 }
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ evenementId: string }> },
+) {
   if (!secretValide(request)) {
     return Response.json({ error: "Signature invalide." }, { status: 401 });
+  }
+
+  // Chaque événement a sa propre URL de webhook : c'est elle qui désigne
+  // l'événement auquel rattacher la commande HelloAsso.
+  const evenementId = evenementIdSchema.safeParse((await params).evenementId);
+  if (!evenementId.success || !(await obtenirEvenement(db, evenementId.data))) {
+    return Response.json({ error: "Événement introuvable." }, { status: 404 });
   }
 
   let payload: unknown;
@@ -104,9 +118,17 @@ export async function POST(request: Request) {
 
   let resultat: Awaited<ReturnType<typeof creerCommandeDepuisHelloAsso>>;
   try {
-    resultat = await creerCommandeDepuisHelloAsso(db, parsed.data);
-  } catch {
-    return Response.json({ error: "Aucun événement actif." }, { status: 500 });
+    resultat = await creerCommandeDepuisHelloAsso(
+      db,
+      evenementId.data,
+      parsed.data,
+    );
+  } catch (error) {
+    console.error("Échec de la création de la commande HelloAsso", error);
+    return Response.json(
+      { error: "Échec de la création de la commande." },
+      { status: 500 },
+    );
   }
 
   if (!resultat.dejaTraitee) {
@@ -115,7 +137,7 @@ export async function POST(request: Request) {
         db,
         resultat.commande.id,
       );
-      if (!evenement) throw new Error("Aucun événement actif.");
+      if (!evenement) throw new Error("Événement introuvable.");
       await envoyerEmailCommande(
         creerSmtpSender(),
         {

@@ -21,7 +21,13 @@ function CheckIcon() {
   );
 }
 
-export function ValidResult({ billet }: { billet: BilletScanne }) {
+export function ValidResult({
+  billet,
+  retourHref,
+}: {
+  billet: BilletScanne;
+  retourHref: string;
+}) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col bg-[#071410] px-6 text-[#EAF7F1]">
       <div className="flex flex-1 flex-col items-center gap-5 pt-11">
@@ -73,7 +79,7 @@ export function ValidResult({ billet }: { billet: BilletScanne }) {
       </div>
       <div className="pb-8">
         <Link
-          href="/scanner"
+          href={retourHref}
           className="flex h-14.5 items-center justify-center rounded-2xl bg-good font-bold text-[#04150E] text-[17px]"
         >
           Scanner le suivant

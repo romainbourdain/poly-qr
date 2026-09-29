@@ -1,20 +1,21 @@
-import { eq } from "drizzle-orm";
 import type { Sql } from "postgres";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import { commandes, evenements } from "@/server/db/schema";
+import { commandes } from "@/server/db/schema";
 import {
   creerTestDb,
   fermerTestDb,
   nettoyerTestDb,
   type TestDb,
 } from "@/server/db/test-utils/test-db";
-import { verifyPassword } from "@/server/services/auth";
+import { verifyEventPassword } from "@/server/services/auth";
 import {
   creerEvenement,
+  EvenementIntrouvableError,
   listerEvenements,
-  modifierEvenementActif,
-  obtenirEvenementActif,
+  modifierEvenement,
+  obtenirEvenement,
   obtenirEvenementDeCommande,
+  resoudreEvenementAdmin,
 } from "@/server/services/evenements";
 
 const base = {
@@ -40,15 +41,20 @@ describe("service evenements", () => {
     await fermerTestDb(client);
   });
 
-  it("retourne null quand aucun événement n'est actif", async () => {
-    expect(await obtenirEvenementActif(db)).toBeNull();
+  it("retourne null pour un événement inconnu", async () => {
+    expect(
+      await obtenirEvenement(db, "00000000-0000-4000-8000-000000000000"),
+    ).toBeNull();
   });
 
-  it("crée un événement actif lisible, sans exposer le hash", async () => {
-    await creerEvenement(db, { ...base, motDePasse: "hangar2026" });
+  it("crée un événement lisible, sans exposer le hash", async () => {
+    const cree = await creerEvenement(db, {
+      ...base,
+      motDePasse: "hangar2026",
+    });
 
-    const actif = await obtenirEvenementActif(db);
-    expect(actif).toMatchObject({
+    const evenement = await obtenirEvenement(db, cree.id);
+    expect(evenement).toMatchObject({
       nom: "Soirée d'hiver",
       date: "Samedi 14 mars",
       heure: "22h00",
@@ -56,11 +62,11 @@ describe("service evenements", () => {
       prixBilletCentimes: 500,
       prixTicketBoissonCentimes: 150,
     });
-    expect(actif).not.toHaveProperty("motDePasseHash");
-    expect(await verifyPassword(db, "hangar2026")).toBe(true);
+    expect(evenement).not.toHaveProperty("motDePasseHash");
+    expect(await verifyEventPassword(db, cree.id, "hangar2026")).toBe(true);
   });
 
-  it("désactive le précédent sans le supprimer", async () => {
+  it("garde plusieurs événements côte à côte, chacun avec son mot de passe", async () => {
     const premier = await creerEvenement(db, { ...base, motDePasse: "un" });
     await db.insert(commandes).values({
       evenementId: premier.id,
@@ -72,21 +78,21 @@ describe("service evenements", () => {
     const second = await creerEvenement(db, {
       ...base,
       nom: "Soirée de printemps",
+      date: "2026-04-18",
       motDePasse: "deux",
     });
 
-    const actif = await obtenirEvenementActif(db);
-    expect(actif?.id).toBe(second.id);
-
     const tous = await listerEvenements(db);
-    expect(tous).toHaveLength(2);
-    const ancien = tous.find((e) => e.id === premier.id);
-    expect(ancien).toMatchObject({ actif: false, nbCommandes: 1 });
-    expect(await verifyPassword(db, "deux")).toBe(true);
-    expect(await verifyPassword(db, "un")).toBe(false);
+    expect(tous.map((e) => e.id)).toEqual([second.id, premier.id]);
+    expect(tous.find((e) => e.id === premier.id)).toMatchObject({
+      nbCommandes: 1,
+    });
+    expect(await verifyEventPassword(db, second.id, "deux")).toBe(true);
+    expect(await verifyEventPassword(db, second.id, "un")).toBe(false);
+    expect(await verifyEventPassword(db, premier.id, "un")).toBe(true);
   });
 
-  it("retrouve l'événement d'une commande même s'il n'est plus actif", async () => {
+  it("retrouve l'événement d'une commande", async () => {
     const ancien = await creerEvenement(db, { ...base, motDePasse: "un" });
     const [commande] = await db
       .insert(commandes)
@@ -105,33 +111,63 @@ describe("service evenements", () => {
     );
   });
 
-  it("modifie l'événement actif et garde le mot de passe si vide", async () => {
-    await creerEvenement(db, { ...base, motDePasse: "hangar2026" });
-    await modifierEvenementActif(db, {
+  it("modifie l'événement ciblé seulement, et garde le mot de passe si vide", async () => {
+    const cible = await creerEvenement(db, {
+      ...base,
+      motDePasse: "hangar2026",
+    });
+    const autre = await creerEvenement(db, {
+      ...base,
+      nom: "Autre",
+      motDePasse: "x",
+    });
+    await modifierEvenement(db, cible.id, {
       ...base,
       lieu: "Ailleurs",
       prixBilletCentimes: 700,
       motDePasse: "",
     });
 
-    const actif = await obtenirEvenementActif(db);
-    expect(actif).toMatchObject({ lieu: "Ailleurs", prixBilletCentimes: 700 });
-    expect(await verifyPassword(db, "hangar2026")).toBe(true);
+    expect(await obtenirEvenement(db, cible.id)).toMatchObject({
+      lieu: "Ailleurs",
+      prixBilletCentimes: 700,
+    });
+    expect((await obtenirEvenement(db, autre.id))?.lieu).toBe("Le Hangar");
+    expect(await verifyEventPassword(db, cible.id, "hangar2026")).toBe(true);
   });
 
   it("change le mot de passe quand il est fourni", async () => {
-    await creerEvenement(db, { ...base, motDePasse: "ancien" });
-    await modifierEvenementActif(db, { ...base, motDePasse: "nouveau" });
-    expect(await verifyPassword(db, "nouveau")).toBe(true);
-    expect(await verifyPassword(db, "ancien")).toBe(false);
+    const { id } = await creerEvenement(db, { ...base, motDePasse: "ancien" });
+    await modifierEvenement(db, id, { ...base, motDePasse: "nouveau" });
+    expect(await verifyEventPassword(db, id, "nouveau")).toBe(true);
+    expect(await verifyEventPassword(db, id, "ancien")).toBe(false);
   });
 
-  it("refuse de modifier quand aucun événement n'est actif", async () => {
+  it("refuse de modifier un événement inconnu", async () => {
     await expect(
-      modifierEvenementActif(db, { ...base, motDePasse: "" }),
-    ).rejects.toThrow();
+      modifierEvenement(db, "00000000-0000-4000-8000-000000000000", {
+        ...base,
+        motDePasse: "",
+      }),
+    ).rejects.toBeInstanceOf(EvenementIntrouvableError);
+  });
+
+  it("l'admin affiche l'événement demandé, sinon le plus récent, sinon rien", async () => {
+    expect(await resoudreEvenementAdmin(db, null)).toBeNull();
+
+    const ancien = await creerEvenement(db, { ...base, motDePasse: "a" });
+    const recent = await creerEvenement(db, {
+      ...base,
+      nom: "Récent",
+      date: "2026-06-01",
+      motDePasse: "b",
+    });
+
+    expect((await resoudreEvenementAdmin(db, null))?.id).toBe(recent.id);
+    expect((await resoudreEvenementAdmin(db, ancien.id))?.id).toBe(ancien.id);
     expect(
-      await db.select().from(evenements).where(eq(evenements.actif, true)),
-    ).toHaveLength(0);
+      (await resoudreEvenementAdmin(db, "00000000-0000-4000-8000-000000000000"))
+        ?.id,
+    ).toBe(recent.id);
   });
 });

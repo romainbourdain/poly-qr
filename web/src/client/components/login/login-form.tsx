@@ -4,11 +4,20 @@ import { useForm } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
 import { Button } from "@/client/components/ui/button";
 import { TextField } from "@/client/components/ui/text-field";
-import { login } from "@/server/actions/auth";
+import { loginAdmin, loginScanner } from "@/server/actions/auth";
 import { actionErrorsToForm } from "@/shared/lib/form-errors";
 import { loginSchema } from "@/shared/validators/login";
 
-export function LoginForm() {
+/** Sans `evenementId` : connexion admin. Avec : connexion au scanner de cet événement. */
+export function LoginForm({
+  evenementId,
+  label,
+  submitLabel,
+}: {
+  evenementId?: string;
+  label: string;
+  submitLabel: string;
+}) {
   const router = useRouter();
 
   const form = useForm({
@@ -16,7 +25,9 @@ export function LoginForm() {
     validators: {
       onChange: loginSchema,
       onSubmitAsync: async ({ value }) => {
-        const result = await login(value);
+        const result = evenementId
+          ? await loginScanner({ ...value, evenementId })
+          : await loginAdmin(value);
         if (result?.data?.success) return undefined;
         const { form, fields } = actionErrorsToForm(result);
         // Le formulaire n'affiche que l'erreur du champ : y rattacher l'erreur serveur.
@@ -24,7 +35,7 @@ export function LoginForm() {
       },
     },
     onSubmit: () => {
-      router.push("/scanner");
+      router.push(evenementId ? `/scanner/${evenementId}` : "/admin");
     },
   });
 
@@ -40,7 +51,7 @@ export function LoginForm() {
         {(field) => (
           <TextField
             field={field}
-            label="Mot de passe de la soirée"
+            label={label}
             type="password"
             autoComplete="current-password"
             className="h-13.5 font-mono text-[17px] tracking-wider"
@@ -48,7 +59,7 @@ export function LoginForm() {
         )}
       </form.Field>
       <Button type="submit" className="h-13.5 text-[16px]">
-        Ouvrir le scanner
+        {submitLabel}
       </Button>
     </form>
   );

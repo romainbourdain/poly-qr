@@ -25,7 +25,7 @@ const STEPS = [
   "Rien trouvé ? Renvoie-la vers la file « paiement sur place ».",
 ];
 
-export function UnknownResult() {
+export function UnknownResult({ retourHref }: { retourHref: string }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col bg-[#1A0C10] px-6 text-[#FBE9EC]">
       <div className="flex flex-1 flex-col items-center gap-5 pt-11">
@@ -57,7 +57,7 @@ export function UnknownResult() {
       </div>
       <div className="flex flex-col gap-2.5 pb-8">
         <Link
-          href="/scanner"
+          href={retourHref}
           className="flex h-14.5 items-center justify-center rounded-2xl bg-bad font-bold text-[#1E0709] text-[17px]"
         >
           Scanner le suivant

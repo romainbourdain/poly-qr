@@ -25,9 +25,11 @@ function ClockIcon() {
 export function WarnResult({
   billet,
   outcome,
+  retourHref,
 }: {
   billet: BilletScanne;
   outcome: "deja_scanne" | "invalide";
+  retourHref: string;
 }) {
   const titre = outcome === "invalide" ? "INVALIDÉ" : "DÉJÀ SCANNÉ";
 
@@ -89,7 +91,7 @@ export function WarnResult({
       </div>
       <div className="pb-8">
         <Link
-          href="/scanner"
+          href={retourHref}
           className="flex h-14.5 items-center justify-center rounded-2xl bg-warn font-bold text-[#1A1103] text-[17px]"
         >
           Scanner le suivant

@@ -23,8 +23,20 @@ describe("enregistrerEvenementSchema", () => {
 
   it("accepte un mot de passe vide à la modification", () => {
     expect(
-      enregistrerEvenementSchema.safeParse({ ...base, mode: "modifier" })
-        .success,
+      enregistrerEvenementSchema.safeParse({
+        ...base,
+        mode: "modifier",
+        evenementId: "5b1c8f0e-1c1e-4f1a-9a55-2f4b8d3c9e10",
+      }).success,
     ).toBe(true);
+  });
+
+  it("exige l'événement à modifier", () => {
+    const result = enregistrerEvenementSchema.safeParse({
+      ...base,
+      mode: "modifier",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].path).toEqual(["evenementId"]);
   });
 });

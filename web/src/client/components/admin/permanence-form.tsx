@@ -26,9 +26,11 @@ import {
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
 
 export function PermanenceForm({
+  evenementId,
   prix,
   onCreated,
 }: {
+  evenementId: string;
   prix: PrixEvenement;
   onCreated: (commande: CommandeCreee) => void;
 }) {
@@ -50,7 +52,7 @@ export function PermanenceForm({
       setError(null);
       // Déjà validé par le schéma ; le parse affine seulement le type de `moyenPaiement`.
       const input = permanenceCommandeSchema.parse(value);
-      const result = await creerPermanenceAction(input);
+      const result = await creerPermanenceAction({ ...input, evenementId });
       const data = result?.data;
       if (!data) {
         const errors = actionErrorsToForm(result);

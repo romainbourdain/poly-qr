@@ -2,8 +2,7 @@ import { randomBytes } from "node:crypto";
 import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
-import { billets, commandes, evenements } from "@/server/db/schema";
-import { AucunEvenementActifError } from "@/server/services/evenements";
+import { billets, commandes } from "@/server/db/schema";
 import type { StatutFilter } from "@/shared/lib/search-params";
 import { formatHeure } from "@/shared/lib/tickets";
 import type {
@@ -38,29 +37,15 @@ export function versBilletListe(billet: {
   };
 }
 
-async function obtenirEvenementActifId(db: Db): Promise<string | null> {
-  const [evenement] = await db
-    .select({ id: evenements.id })
-    .from(evenements)
-    .where(eq(evenements.actif, true))
-    .limit(1);
-
-  return evenement?.id ?? null;
-}
-
 /**
  * Crée une commande de permanence (bénévole → billets vendus en main propre)
  * et ses billets en une seule transaction.
  */
 export async function creerCommandePermanence(
   db: Db,
+  evenementId: string,
   input: PermanenceCommandeInput,
 ) {
-  const evenementId = await obtenirEvenementActifId(db);
-  if (!evenementId) {
-    throw new AucunEvenementActifError();
-  }
-
   return db.transaction(async (tx) => {
     const [commande] = await tx
       .insert(commandes)
@@ -112,6 +97,7 @@ export async function commandeHelloassoExiste(
  */
 export async function creerCommandeDepuisHelloAsso(
   db: Db,
+  evenementId: string,
   input: HelloassoCommandeInput,
 ) {
   const [existante] = await db
@@ -130,11 +116,6 @@ export async function creerCommandeDepuisHelloAsso(
       billets: billetsExistants,
       dejaTraitee: true as const,
     };
-  }
-
-  const evenementId = await obtenirEvenementActifId(db);
-  if (!evenementId) {
-    throw new AucunEvenementActifError();
   }
 
   const { commande, billets: nouveauxBillets } = await db.transaction(
@@ -170,18 +151,14 @@ export async function creerCommandeDepuisHelloAsso(
 }
 
 /**
- * Liste les billets de l'événement actif, filtrés côté serveur par
+ * Liste les billets d'un événement, filtrés côté serveur par
  * recherche nom/email et par statut, groupés par commande.
  */
 export async function listerBillets(
   db: Db,
+  evenementId: string,
   filtres: { q: string; statut: StatutFilter },
-  /** Par défaut l'événement actif ; passer un id pour consulter un événement passé. */
-  evenementIdCible?: string,
 ): Promise<CommandeAvecBillets[]> {
-  const evenementId = evenementIdCible ?? (await obtenirEvenementActifId(db));
-  if (!evenementId) return [];
-
   const conditions = [eq(commandes.evenementId, evenementId)];
 
   if (filtres.statut !== "tous") {
@@ -279,20 +256,20 @@ export async function obtenirCommandeAvecBillets(
 }
 
 /**
- * Compteurs du résumé admin pour l'événement actif. Un billet = une personne,
+ * Compteurs du résumé admin pour un événement. Un billet = une personne,
  * donc une entrée ; les billets invalidés ne comptent ni comme vendus ni comme
  * tickets boisson dus.
  */
-export async function obtenirStatsEvenement(db: Db): Promise<StatsEvenement> {
-  const evenementId = await obtenirEvenementActifId(db);
+export async function obtenirStatsEvenement(
+  db: Db,
+  evenementId: string,
+): Promise<StatsEvenement> {
   const stats: StatsEvenement = {
     billets: 0,
     entreesVendues: 0,
     entreesScannees: 0,
     ticketsBoissonDus: 0,
   };
-  if (!evenementId) return stats;
-
   const lignes = await db
     .select({ statut: billets.statut, ticketsBoisson: billets.ticketsBoisson })
     .from(billets)
@@ -310,15 +287,13 @@ export async function obtenirStatsEvenement(db: Db): Promise<StatsEvenement> {
 }
 
 /**
- * Statistiques globales de l'événement actif, indépendantes des filtres
+ * Statistiques globales d'un événement, indépendantes des filtres
  * de recherche appliqués à la liste.
  */
 export async function obtenirStatsBillets(
   db: Db,
+  evenementId: string,
 ): Promise<{ total: number; scannes: number }> {
-  const evenementId = await obtenirEvenementActifId(db);
-  if (!evenementId) return { total: 0, scannes: 0 };
-
   const lignes = await db
     .select({ statut: billets.statut })
     .from(billets)
@@ -347,10 +322,12 @@ export async function reactiverBillet(db: Db, billetId: string): Promise<void> {
 
 /**
  * Scanne un billet à l'entrée : le marque scanné s'il est encore valide,
- * sans jamais toucher aux autres billets de sa commande.
+ * sans jamais toucher aux autres billets de sa commande. Un billet d'un autre
+ * événement est traité comme inconnu.
  */
 export async function scannerBillet(
   db: Db,
+  evenementId: string,
   code: string,
 ): Promise<ResultatScan> {
   const [ligne] = await db
@@ -366,7 +343,7 @@ export async function scannerBillet(
     })
     .from(billets)
     .innerJoin(commandes, eq(billets.commandeId, commandes.id))
-    .where(eq(billets.code, code))
+    .where(and(eq(billets.code, code), eq(commandes.evenementId, evenementId)))
     .limit(1);
 
   if (!ligne) return { type: "inconnu" };
