@@ -54,7 +54,11 @@ export function SelectField({
           <Select.Icon className="text-faint">▾</Select.Icon>
         </Select.Trigger>
         <Select.Portal>
-          <Select.Positioner sideOffset={6} className="z-50">
+          <Select.Positioner
+            sideOffset={6}
+            alignItemWithTrigger={false}
+            className="z-50"
+          >
             <Select.Popup className="min-w-(--anchor-width) rounded-xl border border-line-2 bg-ink-3 p-1 shadow-lg outline-none">
               <Select.List>
                 {options.map((option) => (
