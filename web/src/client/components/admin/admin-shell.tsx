@@ -2,13 +2,9 @@
 
 import type { ReactNode } from "react";
 import { AdminSidebar } from "@/client/components/admin/admin-sidebar";
+import { AdminTopbar } from "@/client/components/admin/admin-topbar";
 import type { EvenementOption } from "@/client/components/admin/evenement-switcher";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTopBar,
-  SidebarTrigger,
-} from "@/client/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/client/components/ui/sidebar";
 import { useEvenementSelectionne } from "@/client/hooks/use-evenement-selectionne";
 
 export function AdminShell({
@@ -22,23 +18,18 @@ export function AdminShell({
 
   return (
     <SidebarProvider>
-      <SidebarTopBar>
-        <SidebarTrigger />
-        <div className="flex flex-col leading-tight">
-          <span className="font-display font-extrabold text-[16px] tracking-tight">
-            PolyQR
-          </span>
-          <span className="text-[12px] text-muted">
-            {evenements.find((e) => e.id === evenementId)?.nom ?? "BDE TPS"}
-          </span>
-        </div>
-      </SidebarTopBar>
       <AdminSidebar
         evenements={evenements}
         evenementId={evenementId}
         avecEvenement={avecEvenement}
       />
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+        <AdminTopbar
+          evenement={evenements.find((e) => e.id === evenementId) ?? null}
+          avecEvenement={avecEvenement}
+        />
+        <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

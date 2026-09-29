@@ -81,7 +81,7 @@ export function Sidebar({
   );
 }
 
-/** Barre du haut mobile : affiche le bouton du tiroir, disparaît dès `md`. */
+/** Barre du haut de la zone de contenu, collée en haut au défilement. */
 export function SidebarTopBar({
   className,
   ...props
@@ -89,7 +89,7 @@ export function SidebarTopBar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex items-center gap-3 border-line border-b bg-ink-5 px-4 py-3 md:hidden",
+        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-line border-b bg-ink/90 px-4 backdrop-blur md:px-6",
         className,
       )}
       {...props}
@@ -109,7 +109,7 @@ export function SidebarTrigger({
       aria-label="Ouvrir le menu"
       aria-expanded={openMobile}
       onClick={() => setOpenMobile(!openMobile)}
-      className={className}
+      className={cn("md:hidden", className)}
       {...props}
     >
       <svg
@@ -128,12 +128,9 @@ export function SidebarTrigger({
   );
 }
 
-export function SidebarInset({ className, ...props }: ComponentProps<"main">) {
+export function SidebarInset({ className, ...props }: ComponentProps<"div">) {
   return (
-    <main
-      className={cn("min-w-0 flex-1 overflow-x-hidden", className)}
-      {...props}
-    />
+    <div className={cn("flex min-w-0 flex-1 flex-col", className)} {...props} />
   );
 }
 

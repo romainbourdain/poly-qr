@@ -12,7 +12,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -107,7 +106,6 @@ export function AdminSidebar({
       {evenementId && (
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Administration</SidebarGroupLabel>
             <nav aria-label="Administration">
               <SidebarMenu>
                 {NAV.map((item) => (
