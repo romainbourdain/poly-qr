@@ -1,8 +1,28 @@
 "use client";
 
-import { useRef, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import { useCallback, useEffect, useState } from "react";
 import { BilletQrCard } from "@/client/components/billet/billet-qr-card";
+import { Button } from "@/client/components/ui/button";
 import type { BilletListe } from "@/shared/lib/types";
+
+function ChevronIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={direction === "left" ? "m15 6-6 6 6 6" : "m9 6 6 6-6 6"} />
+    </svg>
+  );
+}
 
 export function BilletSwiper({
   nom,
@@ -11,50 +31,82 @@ export function BilletSwiper({
   nom: string;
   billets: BilletListe[];
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [viewportRef, emblaApi] = useEmblaCarousel({ align: "center" });
   const [activeIndex, setActiveIndex] = useState(0);
 
-  function handleScroll() {
-    const container = containerRef.current;
-    if (!container || container.clientWidth === 0) return;
-    const index = Math.round(container.scrollLeft / container.clientWidth);
-    setActiveIndex(index);
-  }
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setActiveIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSelect).on("reInit", onSelect);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      emblaApi.reInit({ duration: 0 });
+    }
+    return () => {
+      emblaApi.off("select", onSelect).off("reInit", onSelect);
+    };
+  }, [emblaApi]);
 
   return (
     <div className="flex flex-col gap-3">
       <section
-        ref={containerRef}
-        onScroll={handleScroll}
-        // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable region must be focusable so keyboard users can scroll between tickets
-        tabIndex={0}
+        ref={viewportRef}
+        aria-roledescription="carousel"
         aria-label="Billets de la commande"
-        className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
+        className="overflow-hidden"
       >
-        {billets.map((billet) => (
-          <div key={billet.id} className="w-full shrink-0 snap-center">
-            <BilletQrCard nom={nom} billet={billet} />
-          </div>
-        ))}
+        <div className="flex">
+          {billets.map((billet, index) => (
+            // biome-ignore lint/a11y/useSemanticElements: WAI-ARIA carousel pattern (slide = group), a fieldset would be wrong here
+            <div
+              key={billet.id}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Billet ${index + 1} sur ${billets.length}`}
+              className="min-w-0 flex-[0_0_100%]"
+            >
+              <BilletQrCard nom={nom} billet={billet} />
+            </div>
+          ))}
+        </div>
       </section>
 
-      <div
-        className="flex items-center justify-center gap-1.5"
-        aria-hidden="true"
-      >
-        {billets.map((billet, index) => (
-          <span
-            key={billet.id}
-            className={`size-1.5 rounded-full ${
-              index === activeIndex ? "bg-fg" : "bg-line-2"
-            }`}
-          />
-        ))}
-      </div>
-
-      <div role="status" className="text-center text-[13px] text-muted">
-        Billet {activeIndex + 1} sur {billets.length} · glisse pour voir les
-        autres
+      <div className="flex items-center justify-between gap-3">
+        <Button
+          variant="secondary"
+          size="icon"
+          aria-label="Billet précédent"
+          disabled={activeIndex === 0}
+          onClick={scrollPrev}
+        >
+          <ChevronIcon direction="left" />
+        </Button>
+        <div role="status" className="flex flex-col items-center gap-2">
+          <div aria-hidden="true" className="flex items-center gap-1.5">
+            {billets.map((billet, index) => (
+              <span
+                key={billet.id}
+                className={`size-1.5 rounded-full ${
+                  index === activeIndex ? "bg-fg" : "bg-line-2"
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-[13px] text-muted">
+            Billet {activeIndex + 1} sur {billets.length}
+          </span>
+        </div>
+        <Button
+          variant="secondary"
+          size="icon"
+          aria-label="Billet suivant"
+          disabled={activeIndex === billets.length - 1}
+          onClick={scrollNext}
+        >
+          <ChevronIcon direction="right" />
+        </Button>
       </div>
     </div>
   );
