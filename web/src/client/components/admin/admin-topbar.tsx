@@ -87,7 +87,7 @@ export function AdminTopbar({
           href={`/scanner/${evenement.id}`}
           aria-label="Ouvrir le scanner"
           className={cn(
-            buttonVariants({ variant: "secondary", size: "sm" }),
+            buttonVariants({ variant: "primary", size: "sm" }),
             "shrink-0 max-md:size-11 max-md:px-0",
           )}
         >
