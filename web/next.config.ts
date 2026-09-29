@@ -3,7 +3,8 @@ import type { NextConfig } from "next";
 import "./src/server/env";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Self-contained server bundle for the Docker image.
+  output: "standalone",
 };
 
 export default nextConfig;

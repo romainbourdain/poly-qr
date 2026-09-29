@@ -122,7 +122,105 @@ Un hook `pre-commit` (Biome sur les fichiers stagés) et un hook `pre-push` (`ty
 
 ## Déploiement
 
-Déployé sur Vercel. `npx vercel --prod` depuis ce dossier (le dossier racine du projet Vercel doit pointer sur `web/`).
+Deux cibles : Vercel (`npx vercel --prod` depuis ce dossier, dont le dossier racine doit pointer sur `web/`) et un VPS via Docker.
+
+### VPS (Docker)
+
+Le VPS n'a besoin ni du code ni de Node : seulement Docker, un `docker-compose.yml` et un `.env`, dans un même dossier (ex. `/opt/poly-qr/`). Les images sont publiées sur GHCR par la release (voir plus bas). Le `docker-compose.yml` du repo (`web/docker-compose.yml`) fait la même chose mais peut en plus construire les images localement (`docker compose up -d --build`).
+
+**1. Créer `docker-compose.yml`**
+
+```yaml
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: polyqr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}
+      POSTGRES_DB: polyqr
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U polyqr -d polyqr"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot : applique les migrations Drizzle puis s'arrête.
+  migrate:
+    image: ghcr.io/romainbourdain/poly-qr-migrate:${APP_TAG:-latest}
+    environment:
+      DATABASE_URL: postgres://polyqr:${POSTGRES_PASSWORD}@db:5432/polyqr
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    image: ghcr.io/romainbourdain/poly-qr:${APP_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://polyqr:${POSTGRES_PASSWORD}@db:5432/polyqr
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
+```
+
+**2. Créer `.env`** (à côté du compose, jamais commité) :
+
+```bash
+# Compose
+POSTGRES_PASSWORD=...          # évite les caractères spéciaux d'URL (@ : / ? #) : inséré tel quel dans DATABASE_URL
+# APP_PORT=3000                # port exposé sur l'hôte
+# APP_TAG=0.1.0-r3             # fige une release (défaut : latest)
+
+# App (toutes obligatoires, validées au démarrage : l'app refuse de démarrer s'il en manque)
+SESSION_SECRET=...             # openssl rand -hex 32
+ADMIN_PASSWORD=...
+APP_URL=https://billets.exemple.fr
+SMTP_HOST=...
+SMTP_PORT=587
+SMTP_USER=...
+SMTP_PASSWORD=...
+SMTP_FROM=...
+HELLOASSO_WEBHOOK_SECRET=...   # openssl rand -hex 32
+HELLOASSO_API_BASE_URL=https://api.helloasso.com
+HELLOASSO_CLIENT_ID=...
+HELLOASSO_CLIENT_SECRET=...
+```
+
+`DATABASE_URL` n'y figure pas : le compose la construit depuis `POSTGRES_PASSWORD`. Ne jamais mettre `SKIP_ENV_VALIDATION` ici. Le détail de chaque variable est dans [`.env.example`](.env.example).
+
+**3. Démarrer**
+
+```bash
+docker compose pull
+docker compose up -d      # db -> migrate -> app
+docker compose logs -f app
+```
+
+L'app écoute sur le port 3000 (à placer derrière un reverse proxy HTTPS). Les données Postgres vivent dans le volume `pgdata` : `docker compose down` les conserve, `down -v` les supprime.
+
+### Release
+
+Un push sur la branche `build` (`.github/workflows/release.yml`) crée le tag git `<version>-r<N>` (version de `package.json`, `N` incrémenté, remis à 1 quand la version change) et publie deux images sur GHCR, chacune avec les tags `<version>-r<N>`, `latest` et le SHA court : `ghcr.io/romainbourdain/poly-qr` (l'app) et `ghcr.io/romainbourdain/poly-qr-migrate` (les migrations). Pas de GitHub Release ni de déploiement automatique.
+
+```bash
+git push origin main:build   # déclenche la release
+# puis, sur le VPS (dans le dossier du compose) :
+docker compose pull && docker compose up -d
+```
+
+Le package GHCR est privé par défaut : soit le passer en public, soit faire `docker login ghcr.io` sur le VPS avec un token `read:packages`.
+
+La CI (`.github/workflows/ci.yml`) lance lint, typecheck, tests (Postgres de service) et build sur les PR et sur `main`.
 
 ### Variables d'environnement
 

@@ -1,0 +1,75 @@
+name: Release
+
+# Push sur `build` : tag <version>-r<N> + image GHCR.
+on:
+  push:
+    branches: [build]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push du tag git
+      packages: write # push de l'image GHCR
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Compute tag
+        id: tag
+        run: |
+          version=$(node -p "require('./web/package.json').version")
+          last=$(git tag --list "${version}-r*" | sed "s/^${version}-r//" | sort -n | tail -1)
+          n=$(( ${last:-0} + 1 ))
+          echo "tag=${version}-r${n}" >> "$GITHUB_OUTPUT"
+
+      - name: Create git tag
+        run: |
+          git tag "${{ steps.tag.outputs.tag }}"
+          git push origin "${{ steps.tag.outputs.tag }}"
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image tags
+        id: meta
+        run: |
+          image=ghcr.io/${GITHUB_REPOSITORY,,}
+          for name in app migrate; do
+            suffix=""; [ "$name" = migrate ] && suffix="-migrate"
+            {
+              echo "${name}<<EOF"
+              echo "${image}${suffix}:${{ steps.tag.outputs.tag }}"
+              echo "${image}${suffix}:latest"
+              echo "${image}${suffix}:${GITHUB_SHA::7}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          done
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: web
+          target: runner
+          push: true
+          tags: ${{ steps.meta.outputs.app }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Image one-shot des migrations (utilisée par le service `migrate`).
+      - uses: docker/build-push-action@v6
+        with:
+          context: web
+          target: migrator
+          push: true
+          tags: ${{ steps.meta.outputs.migrate }}
+          cache-from: type=gha
