@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ commandeId: string }> },
 ) {
   const { commandeId } = await params;
-  const commande = await obtenirCommandeAction(commandeId);
+  const commande = (await obtenirCommandeAction(commandeId))?.data;
   if (!commande || commande.billets.length === 0) {
     return new Response("Commande introuvable.", { status: 404 });
   }

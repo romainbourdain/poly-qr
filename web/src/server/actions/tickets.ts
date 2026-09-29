@@ -1,6 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { returnServerError } from "next-safe-action";
+import { z } from "zod";
+import {
+  actionClient,
+  adminActionClient,
+  scannerActionClient,
+} from "@/server/actions/safe-action";
 import { db } from "@/server/db/client";
 import {
   creerSmtpSender,
@@ -18,24 +25,35 @@ import {
   scannerBillet,
   versBilletListe,
 } from "@/server/services/tickets";
-import type { StatutFilter } from "@/shared/lib/search-params";
-import { commandeIdSchema } from "@/shared/validators/commande";
+import { STATUT_FILTERS } from "@/shared/lib/search-params";
 import {
-  type PermanenceCommandeInput,
-  permanenceCommandeSchema,
-} from "@/shared/validators/permanence";
+  billetIdSchema,
+  commandeIdSchema,
+  scanCodeSchema,
+} from "@/shared/validators/commande";
+import { permanenceCommandeSchema } from "@/shared/validators/permanence";
 
-export async function creerPermanenceAction(input: PermanenceCommandeInput) {
-  const parsed = permanenceCommandeSchema.safeParse(input);
-  if (!parsed.success) {
-    return { success: false as const, error: "Formulaire invalide." };
-  }
+const AUCUN_EVENEMENT_ACTIF = "Aucun événement actif.";
 
-  try {
-    const { commande, billets } = await creerCommandePermanence(
-      db,
-      parsed.data,
+const filtresSchema = z.object({
+  q: z.string(),
+  statut: z.enum(STATUT_FILTERS),
+});
+
+export const creerPermanenceAction = adminActionClient
+  .inputSchema(permanenceCommandeSchema)
+  .action(async ({ parsedInput }) => {
+    const creation = await creerCommandePermanence(db, parsedInput).catch(
+      (error) => {
+        if (error instanceof Error && error.message === AUCUN_EVENEMENT_ACTIF) {
+          return returnServerError(
+            "Aucun événement actif : impossible de créer le billet.",
+          );
+        }
+        throw error;
+      },
     );
+    const { commande, billets } = creation;
     revalidatePath("/admin/billets");
 
     let emailError: string | undefined;
@@ -59,46 +77,44 @@ export async function creerPermanenceAction(input: PermanenceCommandeInput) {
         "Billet créé, mais l'email n'a pas pu être envoyé. Réessaie ou transmets-le manuellement.";
     }
 
-    return { success: true as const, commande, billets, emailError };
-  } catch {
-    return {
-      success: false as const,
-      error: "Aucun événement actif : impossible de créer le billet.",
-    };
-  }
-}
+    return { commande, billets, emailError };
+  });
 
-export async function invaliderBilletAction(billetId: string): Promise<void> {
-  await invaliderBillet(db, billetId);
-  revalidatePath("/admin/billets");
-}
-
-export async function reactiverBilletAction(billetId: string): Promise<void> {
-  await reactiverBillet(db, billetId);
-  revalidatePath("/admin/billets");
-}
-
-export async function listerBilletsAction(filtres: {
-  q: string;
-  statut: StatutFilter;
-}) {
-  return listerBillets(db, filtres);
-}
-
-export async function obtenirStatsBilletsAction() {
-  return obtenirStatsBillets(db);
-}
-
-export async function obtenirCommandeAction(commandeId: string) {
-  const parsed = commandeIdSchema.safeParse(commandeId);
-  if (!parsed.success) return null;
-  return obtenirCommandeAvecBillets(db, parsed.data);
-}
-
-export async function scannerBilletAction(code: string) {
-  const resultat = await scannerBillet(db, code);
-  if (resultat.type === "valide") {
+export const invaliderBilletAction = adminActionClient
+  .inputSchema(billetIdSchema)
+  .action(async ({ parsedInput: billetId }) => {
+    await invaliderBillet(db, billetId);
     revalidatePath("/admin/billets");
-  }
-  return resultat;
-}
+  });
+
+export const reactiverBilletAction = adminActionClient
+  .inputSchema(billetIdSchema)
+  .action(async ({ parsedInput: billetId }) => {
+    await reactiverBillet(db, billetId);
+    revalidatePath("/admin/billets");
+  });
+
+export const listerBilletsAction = scannerActionClient
+  .inputSchema(filtresSchema)
+  .action(({ parsedInput }) => listerBillets(db, parsedInput));
+
+export const obtenirStatsBilletsAction = scannerActionClient.action(() =>
+  obtenirStatsBillets(db),
+);
+
+/** Public : la page billet est accessible à l'acheteur via l'UUID de sa commande. */
+export const obtenirCommandeAction = actionClient
+  .inputSchema(commandeIdSchema)
+  .action(({ parsedInput: commandeId }) =>
+    obtenirCommandeAvecBillets(db, commandeId),
+  );
+
+export const scannerBilletAction = scannerActionClient
+  .inputSchema(scanCodeSchema)
+  .action(async ({ parsedInput: code }) => {
+    const resultat = await scannerBillet(db, code);
+    if (resultat.type === "valide") {
+      revalidatePath("/admin/billets");
+    }
+    return resultat;
+  });

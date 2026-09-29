@@ -1,7 +1,12 @@
 import { parseAsString, parseAsStringLiteral } from "nuqs/server";
 import type { Statut } from "./types";
 
-const STATUT_FILTERS = ["tous", "scanne", "non_scanne", "invalide"] as const;
+export const STATUT_FILTERS = [
+  "tous",
+  "scanne",
+  "non_scanne",
+  "invalide",
+] as const;
 
 export type StatutFilter = "tous" | Statut;
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/client/components/ui/button";
 import { TextField } from "@/client/components/ui/text-field";
 import { login } from "@/server/actions/auth";
+import { actionErrorsToForm } from "@/shared/lib/form-errors";
 import { loginSchema } from "@/shared/validators/login";
 
 export function LoginForm() {
@@ -15,10 +16,11 @@ export function LoginForm() {
     validators: {
       onChange: loginSchema,
       onSubmitAsync: async ({ value }) => {
-        const result = await login(value.password);
-        return result.success
-          ? undefined
-          : { fields: { password: result.error } };
+        const result = await login(value);
+        if (result?.data?.success) return undefined;
+        const { form, fields } = actionErrorsToForm(result);
+        // Le formulaire n'affiche que l'erreur du champ : y rattacher l'erreur serveur.
+        return { fields: { password: fields.password ?? form } };
       },
     },
     onSubmit: () => {

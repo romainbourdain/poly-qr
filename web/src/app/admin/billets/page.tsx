@@ -20,5 +20,10 @@ export default async function AdminBilletsPage({
     obtenirStatsBilletsAction(),
   ]);
 
-  return <AdminBilletsContent commandes={commandes} stats={stats} />;
+  return (
+    <AdminBilletsContent
+      commandes={commandes?.data ?? []}
+      stats={stats?.data ?? { total: 0, scannes: 0 }}
+    />
+  );
 }

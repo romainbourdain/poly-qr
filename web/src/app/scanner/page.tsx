@@ -14,7 +14,7 @@ export default async function ScannerPage() {
     obtenirStatsBilletsAction(),
   ]);
 
-  const billets = commandes.flatMap((commande) =>
+  const billets = (commandes?.data ?? []).flatMap((commande) =>
     commande.billets.map((billet) => ({
       code: billet.code,
       nom: commande.nom,
@@ -24,8 +24,8 @@ export default async function ScannerPage() {
 
   return (
     <ScannerClient
-      evenementNom={evenement?.nom ?? "Aucun événement actif"}
-      entreesInitial={stats.scannes}
+      evenementNom={evenement?.data?.nom ?? "Aucun événement actif"}
+      entreesInitial={stats?.data?.scannes ?? 0}
       billets={billets}
     />
   );

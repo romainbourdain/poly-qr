@@ -32,10 +32,17 @@ export function ScannerClient({
         router.push("/scanner/resultat");
         return;
       }
-      const resultat = await scannerBilletAction(code);
+      const scan = await scannerBilletAction(code);
+      if (!scan?.data) {
+        // Session expirée ou erreur serveur : rien n'a été consommé.
+        setResultat({ type: "inconnu" });
+        router.push("/scanner/resultat");
+        return;
+      }
+      const resultat = scan.data;
       if (resultat.type === "valide") {
         const stats = await obtenirStatsBilletsAction();
-        setEntrees(stats.scannes);
+        if (stats?.data) setEntrees(stats.data.scannes);
       }
       setResultat(resultat);
       router.push("/scanner/resultat");

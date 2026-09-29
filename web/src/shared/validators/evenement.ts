@@ -17,3 +17,11 @@ export const evenementSchema = z.object({
 });
 
 export type EvenementInput = z.infer<typeof evenementSchema>;
+
+/** Action input: `creer` requires a password, `modifier` keeps it when empty. */
+export const enregistrerEvenementSchema = evenementSchema
+  .extend({ mode: z.enum(["creer", "modifier"]) })
+  .refine((v) => v.mode !== "creer" || v.motDePasse.length > 0, {
+    path: ["motDePasse"],
+    message: "Le mot de passe est requis.",
+  });

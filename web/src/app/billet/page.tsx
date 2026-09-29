@@ -17,7 +17,9 @@ export default async function BilletPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { commande: commandeId } = await searchParamsCache.parse(searchParams);
-  const commande = commandeId ? await obtenirCommandeAction(commandeId) : null;
+  const commande = commandeId
+    ? ((await obtenirCommandeAction(commandeId))?.data ?? null)
+    : null;
 
   const evenement = commande
     ? await obtenirEvenementDeCommande(db, commande.commandeId)

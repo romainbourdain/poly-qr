@@ -10,6 +10,7 @@ import { Separator } from "@/client/components/ui/separator";
 import { TextField } from "@/client/components/ui/text-field";
 import { creerPermanenceAction } from "@/server/actions/tickets";
 import { cn } from "@/shared/lib/cn";
+import { actionErrorsToForm } from "@/shared/lib/form-errors";
 import {
   calculerTotalCentimes,
   formatEuros,
@@ -32,6 +33,11 @@ export function PermanenceForm({
 }) {
   const [error, setError] = useState<string | null>(null);
   const nextRowId = useRef(1);
+  const created = useRef<{
+    commande: { id: string };
+    billets: { id: string; code: string; ticketsBoisson: number }[];
+    emailError?: string;
+  } | null>(null);
   const [rowIds, setRowIds] = useState<number[]>([0]);
 
   const form = useForm({
@@ -43,31 +49,32 @@ export function PermanenceForm({
     },
     validators: {
       onChange: permanenceCommandeSchema,
+      onSubmitAsync: async ({ value }) => {
+        setError(null);
+        // Déjà validé par le schéma ; le parse affine seulement le type de `moyenPaiement`.
+        const result = await creerPermanenceAction(
+          permanenceCommandeSchema.parse(value),
+        );
+        if (result?.data) {
+          created.current = result.data;
+          return undefined;
+        }
+        const errors = actionErrorsToForm(result);
+        setError(errors.form ?? null);
+        return errors;
+      },
     },
-    onSubmit: async ({ value }) => {
-      setError(null);
-      // Déjà validé par le schéma ; le parse affine seulement le type de `moyenPaiement`.
-      const { nom, email, moyenPaiement, billets } =
-        permanenceCommandeSchema.parse(value);
+    onSubmit: ({ value }) => {
+      const data = created.current;
+      if (!data) return;
+      const { nom, email } = value;
 
-      const result = await creerPermanenceAction({
-        nom,
-        email,
-        moyenPaiement,
-        billets,
-      });
-
-      if (!result.success) {
-        setError(result.error);
-        return;
-      }
-
-      setError(result.emailError ?? null);
+      setError(data.emailError ?? null);
       onCreated({
-        commandeId: result.commande.id,
+        commandeId: data.commande.id,
         nom,
         email,
-        billets: result.billets.map((billet) => ({
+        billets: data.billets.map((billet) => ({
           id: billet.id,
           code: billet.code,
           ticketsBoisson: billet.ticketsBoisson,
