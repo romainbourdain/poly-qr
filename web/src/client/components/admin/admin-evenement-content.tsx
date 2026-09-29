@@ -18,8 +18,8 @@ export function AdminEvenementContent({
 }) {
   return (
     <div className="flex flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 md:px-9">
-      <HelloassoCard lien={helloassoUrl} misEnAvant={apresCreation} />
       <EventHeaderCard evenement={evenement} />
+      <HelloassoCard lien={helloassoUrl} misEnAvant={apresCreation} />
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,22rem)_1fr]">
         <ScannerCard
           scannerUrl={scannerUrl}
