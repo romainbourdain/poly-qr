@@ -28,6 +28,7 @@ export function RealQr({
       width={size}
       height={size}
       className="shrink-0 rounded-lg"
+      role="img"
       aria-label="QR code du billet"
     />
   );

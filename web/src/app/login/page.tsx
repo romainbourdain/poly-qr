@@ -8,7 +8,7 @@ export default async function LoginPage() {
   const evenement = await obtenirEvenementActif(db);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-8 px-7">
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 px-7">
       <div className="flex flex-col gap-2.5">
         <div className="flex size-13 items-center justify-center rounded-2xl bg-accent">
           <svg
@@ -38,28 +38,6 @@ export default async function LoginPage() {
       </div>
 
       <LoginForm />
-
-      <div className="flex items-start gap-2.5 rounded-2xl border border-[#262636] bg-[#171722] p-4 text-[12.5px] text-muted leading-relaxed">
-        <svg
-          width="17"
-          height="17"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#A5A2BC"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="mt-0.5 shrink-0"
-          aria-hidden="true"
-        >
-          <rect x="4" y="10" width="16" height="11" rx="2" />
-          <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-        </svg>
-        <span>
-          Un seul mot de passe partagé entre tous les bénévoles, donné par
-          l&apos;organisateur pour la soirée.
-        </span>
-      </div>
     </main>
   );
 }

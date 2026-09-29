@@ -17,10 +17,7 @@ export function TabsList({
 }: ComponentProps<typeof BaseTabs.List>) {
   return (
     <BaseTabs.List
-      className={cn(
-        "-mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0",
-        className,
-      )}
+      className={cn("flex flex-wrap gap-1.5", className)}
       {...props}
     />
   );
@@ -33,7 +30,7 @@ export function TabsTab({
   return (
     <BaseTabs.Tab
       className={cn(
-        "h-11.5 shrink-0 rounded-xl border border-line-2 bg-ink-3 px-4 font-semibold text-[13.5px] text-muted outline-none",
+        "h-11.5 shrink-0 rounded-xl border border-line-2 bg-ink-3 px-4 font-semibold text-[13.5px] text-muted",
         "data-active:border-[#3B3B55] data-active:bg-[#252538] data-active:font-bold data-active:text-fg",
         className,
       )}

@@ -10,7 +10,7 @@
   --color-line-2: #343448;
   --color-fg: #edebf5;
   --color-muted: #a5a2bc;
-  --color-faint: #6f6c87;
+  --color-faint: #8b88a3;
   --color-accent: #6c4bf0;
   --color-accent-2: #a78bfa;
   --color-accent-3: #c4b5fd;
@@ -29,6 +29,13 @@
 
 :root {
   color-scheme: dark;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent-2);
+    outline-offset: 2px;
+  }
 }
 
 body {

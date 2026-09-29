@@ -17,7 +17,7 @@ export function Stat({
       )}
     >
       <span className="font-semibold text-[12px] text-muted">{label}</span>
-      <span className="font-display font-extrabold text-[24px] tracking-tight sm:text-[28px]">
+      <span className="font-display font-extrabold text-[24px] tabular-nums tracking-tight sm:text-[28px]">
         {value}
       </span>
     </div>

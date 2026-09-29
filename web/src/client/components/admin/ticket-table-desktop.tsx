@@ -26,11 +26,11 @@ export function TicketTableDesktop({
               <span className="truncate font-bold text-[14.5px]">
                 {commande.nom}
               </span>
-              <span className="truncate text-[#8B88A3] text-[12.5px]">
+              <span className="truncate text-[12.5px] text-faint">
                 {commande.email}
               </span>
             </div>
-            <span className="shrink-0 font-bold text-[#8B88A3] text-[11.5px] uppercase tracking-[0.1em]">
+            <span className="shrink-0 font-bold text-[12px] text-faint uppercase tracking-[0.1em]">
               {ORIGINE_LABEL[commande.origine]} ·{" "}
               {MOYEN_PAIEMENT_LABEL[commande.moyenPaiement]}
             </span>
@@ -45,7 +45,8 @@ export function TicketTableDesktop({
                 {billet.code}
               </span>
               <span className="font-bold text-[14.5px]">
-                {billet.ticketsBoisson}
+                {billet.ticketsBoisson} ticket
+                {billet.ticketsBoisson > 1 ? "s" : ""}
               </span>
               <span
                 className={`font-bold text-[13px] ${STATUT_TEXT_CLASS[billet.statut]}`}
@@ -59,7 +60,7 @@ export function TicketTableDesktop({
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="h-8.5 px-3.5 text-[12.5px]"
+                  className="h-10 px-3.5 text-[13px]"
                   onClick={() => onToggleStatut(billet.id, billet.statut)}
                 >
                   {billet.statut === "invalide" ? "Réactiver" : "Invalider"}

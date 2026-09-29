@@ -39,7 +39,7 @@ export function MobileHeader({
         <Button
           variant="secondary"
           size="icon"
-          aria-label="Ouvrir le menu"
+          aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
           aria-expanded={open}
           onClick={onToggle}
         >
@@ -49,11 +49,11 @@ export function MobileHeader({
           <span className="font-display font-extrabold text-[16px] tracking-tight">
             PolyQR
           </span>
-          <span className="text-[11px] text-muted">Association Poly</span>
+          <span className="text-[12px] text-muted">Association Poly</span>
         </div>
         <Link
           href="/scanner"
-          className="flex h-9 items-center rounded-[9px] border border-line-2 bg-ink-3 px-3 font-semibold text-[12.5px]"
+          className="flex h-11 items-center rounded-[9px] border border-line-2 bg-ink-3 px-4 font-semibold text-[13.5px]"
         >
           Scanner
         </Link>

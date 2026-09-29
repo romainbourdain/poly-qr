@@ -148,7 +148,7 @@ export function PermanenceForm({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-8 self-start px-0 text-bad"
+                    className="h-11 self-start px-0 text-bad"
                     onClick={() => {
                       billetsField.removeValue(index);
                       setRowIds((prev) => prev.filter((_, i) => i !== index));
@@ -164,7 +164,7 @@ export function PermanenceForm({
               type="button"
               variant="secondary"
               size="sm"
-              className="h-9.5 self-start px-4"
+              className="h-11 self-start px-4"
               onClick={() => {
                 billetsField.pushValue({ ticketsBoisson: 0 });
                 setRowIds((prev) => [...prev, nextRowId.current++]);
@@ -177,7 +177,9 @@ export function PermanenceForm({
       </form.Field>
 
       {error && (
-        <div className="font-semibold text-[13px] text-bad">{error}</div>
+        <div role="alert" className="font-semibold text-[13px] text-bad">
+          {error}
+        </div>
       )}
 
       <Separator />
@@ -209,7 +211,7 @@ export function PermanenceForm({
                 disabled={!canSubmit}
                 className="h-13 text-[15.5px]"
               >
-                Créer et envoyer le(s) QR
+                Créer et envoyer par email
               </Button>
             </>
           );

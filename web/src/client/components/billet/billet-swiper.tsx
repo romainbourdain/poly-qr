@@ -24,10 +24,13 @@ export function BilletSwiper({
 
   return (
     <div className="flex flex-col gap-3">
-      <div
+      <section
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable region must be focusable so keyboard users can scroll between tickets
+        tabIndex={0}
+        aria-label="Billets de la commande"
+        className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
       >
         {billets.map((billet) => (
           <div
@@ -38,9 +41,12 @@ export function BilletSwiper({
             <BilletStatusCard billet={billet} />
           </div>
         ))}
-      </div>
+      </section>
 
-      <div className="flex items-center justify-center gap-1.5">
+      <div
+        className="flex items-center justify-center gap-1.5"
+        aria-hidden="true"
+      >
         {billets.map((billet, index) => (
           <span
             key={billet.id}
@@ -51,7 +57,7 @@ export function BilletSwiper({
         ))}
       </div>
 
-      <div className="text-center text-[12.5px] text-muted">
+      <div role="status" className="text-center text-[13px] text-muted">
         Billet {activeIndex + 1} sur {billets.length} · glisse pour voir les
         autres
       </div>

@@ -4,7 +4,7 @@ import type { StatutFilter } from "@/shared/lib/search-params";
 const FILTERS: { key: StatutFilter; label: string }[] = [
   { key: "tous", label: "Tous" },
   { key: "scanne", label: "Scannés" },
-  { key: "non_scanne", label: "Pas encore" },
+  { key: "non_scanne", label: "Non scannés" },
   { key: "invalide", label: "Invalidés" },
 ];
 

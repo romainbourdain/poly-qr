@@ -12,14 +12,14 @@ export default function AdminLayout({
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-dvh flex-col md:flex-row">
       <MobileHeader
         open={menuOpen}
         onToggle={() => setMenuOpen((v) => !v)}
         onClose={() => setMenuOpen(false)}
       />
       <DesktopSidebar />
-      <div className="min-w-0 flex-1 overflow-x-hidden">{children}</div>
+      <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
     </div>
   );
 }

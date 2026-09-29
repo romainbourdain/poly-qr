@@ -39,13 +39,16 @@ export default async function AdminEvenementPage({
   return (
     <div className="flex flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 md:px-9">
       <div className="flex flex-col gap-1">
-        <Link href="/admin" className="text-[13px] text-muted">
+        <Link
+          href="/admin"
+          className="inline-flex h-11 items-center self-start text-[13.5px] text-muted"
+        >
           ← Événements
         </Link>
         <h1 className="flex flex-wrap items-center gap-3 font-display font-extrabold text-[24px] tracking-tight sm:text-[30px]">
           {evenement.nom}
           <Badge variant={evenement.actif ? "good" : "neutral"}>
-            {evenement.actif ? "ACTIF" : "TERMINÉ"}
+            {evenement.actif ? "En cours" : "Terminé"}
           </Badge>
         </h1>
         <div className="text-[14px] text-muted">
@@ -69,7 +72,7 @@ export default async function AdminEvenementPage({
               <div className="flex flex-wrap items-baseline gap-x-3">
                 <span className="font-bold">{commande.nom}</span>
                 <span className="text-[13px] text-muted">{commande.email}</span>
-                <span className="text-[12.5px] text-faint">
+                <span className="text-[13px] text-faint">
                   {ORIGINE_LABEL[commande.origine]} ·{" "}
                   {MOYEN_PAIEMENT_LABEL[commande.moyenPaiement]}
                 </span>

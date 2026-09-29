@@ -90,7 +90,7 @@ export function CameraScanner({
 
   return (
     <div className="flex flex-col items-center gap-5">
-      <div className="relative flex size-64 items-center justify-center overflow-hidden rounded-[30px] bg-ink-4">
+      <div className="relative flex aspect-square w-full max-w-72 items-center justify-center overflow-hidden rounded-[30px] bg-ink-4">
         <video
           ref={videoRef}
           muted
@@ -100,15 +100,15 @@ export function CameraScanner({
         <canvas ref={canvasRef} className="hidden" />
         {state === "requesting" && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[13px] text-muted">
+            <span role="status" className="text-[14px] text-muted">
               Demande d&apos;accès à la caméra…
             </span>
           </div>
         )}
-        <span className="pointer-events-none absolute top-0 left-0 size-14 rounded-tl-[30px] border-accent border-t-4 border-l-4" />
-        <span className="pointer-events-none absolute top-0 right-0 size-14 rounded-tr-[30px] border-accent border-t-4 border-r-4" />
-        <span className="pointer-events-none absolute bottom-0 left-0 size-14 rounded-bl-[30px] border-accent border-b-4 border-l-4" />
-        <span className="pointer-events-none absolute right-0 bottom-0 size-14 rounded-br-[30px] border-accent border-r-4 border-b-4" />
+        <span className="pointer-events-none absolute top-0 left-0 size-14 rounded-tl-[30px] border-accent-2 border-t-4 border-l-4" />
+        <span className="pointer-events-none absolute top-0 right-0 size-14 rounded-tr-[30px] border-accent-2 border-t-4 border-r-4" />
+        <span className="pointer-events-none absolute bottom-0 left-0 size-14 rounded-bl-[30px] border-accent-2 border-b-4 border-l-4" />
+        <span className="pointer-events-none absolute right-0 bottom-0 size-14 rounded-br-[30px] border-accent-2 border-r-4 border-b-4" />
       </div>
 
       {state === "idle" && (
@@ -136,11 +136,14 @@ export function CameraScanner({
       )}
 
       {state === "scanning" && (
-        <div className="flex flex-col items-center gap-1 text-center">
+        <div
+          role="status"
+          className="flex flex-col items-center gap-1 text-center"
+        >
           <div className="font-bold font-display text-xl tracking-tight">
             Vise le QR code
           </div>
-          <div className="max-w-65 text-[13.5px] text-muted leading-relaxed">
+          <div className="max-w-65 text-[14px] text-muted leading-relaxed">
             Le scan est automatique.
           </div>
         </div>
@@ -148,7 +151,10 @@ export function CameraScanner({
 
       {state === "denied" && (
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="max-w-65 text-[13.5px] text-bad leading-relaxed">
+          <div
+            role="alert"
+            className="max-w-65 text-[14px] text-bad leading-relaxed"
+          >
             Accès à la caméra refusé. Autorise la caméra dans les réglages de
             ton navigateur pour ce site, puis réessaie.
           </div>
@@ -163,7 +169,7 @@ export function CameraScanner({
       )}
 
       {state === "error" && (
-        <div className="max-w-65 text-center text-[13.5px] text-muted leading-relaxed">
+        <div className="max-w-65 text-center text-[14px] text-muted leading-relaxed">
           Caméra indisponible sur cet appareil ou ce navigateur. Utilise la
           simulation ci-dessous.
         </div>

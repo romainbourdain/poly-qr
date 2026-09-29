@@ -129,10 +129,12 @@ export function EvenementForm({
       </form.Field>
 
       {error && (
-        <div className="font-semibold text-[13px] text-bad">{error}</div>
+        <div role="alert" className="font-semibold text-[13px] text-bad">
+          {error}
+        </div>
       )}
       {saved && !error && (
-        <div className="font-semibold text-[13px] text-good">
+        <div role="status" className="font-semibold text-[13px] text-good">
           Événement enregistré.
         </div>
       )}

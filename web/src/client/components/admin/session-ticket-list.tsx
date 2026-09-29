@@ -9,7 +9,7 @@ export function SessionTicketList({
 }) {
   return (
     <Card className="flex flex-col gap-3 py-5 sm:px-6 sm:py-5.5">
-      <div className="font-bold text-[12px] text-faint uppercase tracking-[0.14em]">
+      <div className="font-bold text-[12px] text-muted uppercase tracking-[0.14em]">
         Créés pendant cette permanence
       </div>
       {commandes.length === 0 ? (
@@ -24,7 +24,7 @@ export function SessionTicketList({
           );
           return (
             <div key={commande.commandeId} className="flex flex-col gap-3">
-              {i > 0 && <Separator className="bg-[#262636]" />}
+              {i > 0 && <Separator className="bg-line" />}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="flex-1 truncate font-semibold text-[14.5px]">
                   {commande.nom}

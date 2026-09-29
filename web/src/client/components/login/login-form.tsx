@@ -42,7 +42,7 @@ export function LoginForm() {
             field={field}
             label="Mot de passe de la soirée"
             type="password"
-            placeholder="hangar2026"
+            autoComplete="current-password"
             className="h-13.5 font-mono text-[17px] tracking-wider"
           />
         )}

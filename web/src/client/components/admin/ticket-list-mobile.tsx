@@ -26,7 +26,7 @@ export function TicketListMobile({
               <span className="truncate font-bold text-[15px]">
                 {commande.nom}
               </span>
-              <span className="truncate text-[#8B88A3] text-[12.5px]">
+              <span className="truncate text-[12.5px] text-faint">
                 {commande.email}
               </span>
             </div>
@@ -63,7 +63,7 @@ export function TicketListMobile({
                   </span>
                   <Button
                     variant="secondary"
-                    className="h-9 text-[12.5px]"
+                    className="h-11 text-[13.5px]"
                     onClick={() => onToggleStatut(billet.id, billet.statut)}
                   >
                     {billet.statut === "invalide" ? "Réactiver" : "Invalider"}

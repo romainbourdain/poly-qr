@@ -18,7 +18,7 @@ export function DesktopSidebar() {
         >
           Ouvrir le scanner
         </Link>
-        <div className="px-1 text-[11.5px] text-faint leading-relaxed">
+        <div className="px-1 text-[12px] text-faint leading-relaxed">
           Connecté avec le mot de passe admin (démo).
         </div>
       </div>

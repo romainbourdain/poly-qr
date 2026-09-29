@@ -16,7 +16,7 @@ export default async function AdminNouveauBilletPage() {
         </h1>
         <div className="text-[14px] text-muted">
           Aucun événement actif.{" "}
-          <Link href="/admin" className="font-bold text-accent">
+          <Link href="/admin" className="font-bold text-accent-3 underline">
             Crée-en un
           </Link>{" "}
           avant de vendre des billets.

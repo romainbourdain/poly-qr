@@ -67,13 +67,13 @@ export function ScannerClient({
   );
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col bg-[#08080C] px-5">
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col bg-[#08080C] px-5">
       <ScannerHeader evenementNom={evenementNom} entrees={entrees} />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
         <CameraScanner onDecode={handleDecode} />
         {erreur && (
-          <div role="alert" className="font-semibold text-[13px] text-bad">
+          <div role="alert" className="font-semibold text-[14px] text-bad">
             {erreur}
           </div>
         )}

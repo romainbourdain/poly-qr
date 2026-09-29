@@ -47,7 +47,8 @@ export function ScanSimulator({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 items-center justify-center gap-1.5 font-semibold text-[13px] text-muted"
+        aria-expanded={open}
+        className="flex h-11 items-center justify-center gap-1.5 font-semibold text-[14px] text-muted"
       >
         {open ? "Masquer" : "Pas de caméra sous la main ?"}
         <ChevronIcon open={open} />
@@ -55,7 +56,7 @@ export function ScanSimulator({
 
       {open && (
         <>
-          <div className="font-bold text-[11px] text-faint uppercase tracking-[0.12em]">
+          <div className="font-bold text-[12px] text-faint uppercase tracking-[0.12em]">
             Simuler un scan
           </div>
           <div className="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
@@ -64,14 +65,14 @@ export function ScanSimulator({
                 key={b.code}
                 type="button"
                 onClick={() => onSimulate(b.code)}
-                className="flex items-center gap-3 rounded-xl border border-line-2 bg-ink-3 px-3.5 py-2.5 text-left"
+                className="flex min-h-11 items-center gap-3 rounded-xl border border-line-2 bg-ink-3 px-3.5 py-2.5 text-left"
               >
                 <span className="flex-1 truncate font-semibold text-[13.5px]">
                   {b.nom}
                 </span>
                 <Badge
                   variant={STATUT_BADGE_VARIANT[b.statut]}
-                  className="px-2 py-0.5 text-[10.5px]"
+                  className="px-2 py-0.5 text-[12px]"
                 >
                   {STATUT_SIMULATOR_LABEL[b.statut]}
                 </Badge>

@@ -32,15 +32,15 @@ export function WarnResult({
   const titre = outcome === "invalide" ? "INVALIDÉ" : "DÉJÀ SCANNÉ";
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col bg-[#191206] px-6 text-[#F8EFDD]">
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col bg-[#191206] px-6 text-[#F8EFDD]">
       <div className="flex flex-1 flex-col items-center gap-5 pt-11">
         <ResultIconCircle className="bg-warn">
           <ClockIcon />
         </ResultIconCircle>
         <div className="flex flex-col items-center gap-2 text-center">
-          <div className="font-display font-extrabold text-[34px] text-warn tracking-tight">
+          <h1 className="font-display font-extrabold text-[34px] text-warn tracking-tight">
             {titre}
-          </div>
+          </h1>
           <div className="font-bold font-display text-[25px] tracking-tight">
             {billet.nom}
           </div>
@@ -53,29 +53,33 @@ export function WarnResult({
 
         <div className="flex w-full flex-col gap-3.5 rounded-[20px] border border-warn-line bg-warn-bg px-5.5 py-5">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[#C6B189] text-[13.5px]">
+            <span className="text-[#C6B189] text-[14px]">
               {outcome === "invalide" ? "Statut" : "Première entrée"}
             </span>
             <span className="font-bold text-[15px]">
               {outcome === "invalide" ? "Invalidé" : billet.scanneA}
             </span>
           </div>
-          <Separator className="bg-warn-line" />
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-[#C6B189] text-[13.5px]">
-              Entrées sur ce billet
-            </span>
-            <span className="font-bold text-[15px]">1</span>
-          </div>
-          <Separator className="bg-warn-line" />
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-[#C6B189] text-[13.5px]">
-              Tickets boisson
-            </span>
-            <span className="font-bold text-[15px]">
-              {billet.ticketsBoisson}
-            </span>
-          </div>
+          {outcome === "deja_scanne" && (
+            <>
+              <Separator className="bg-warn-line" />
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[#C6B189] text-[14px]">
+                  Entrées sur ce billet
+                </span>
+                <span className="font-bold text-[15px]">1</span>
+              </div>
+              <Separator className="bg-warn-line" />
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[#C6B189] text-[14px]">
+                  Tickets boisson
+                </span>
+                <span className="font-bold text-[15px]">
+                  {billet.ticketsBoisson}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="max-w-72.5 text-center text-[#C6B189] text-[13px] leading-relaxed">

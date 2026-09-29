@@ -12,15 +12,19 @@ const NAV = [
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <nav className="flex flex-col gap-1">
+    <nav aria-label="Administration" className="flex flex-col gap-1">
       {NAV.map((item) => {
-        const active = pathname === item.href;
+        const active =
+          item.href === "/admin"
+            ? pathname === "/admin" || pathname.startsWith("/admin/evenements")
+            : pathname === item.href;
         return (
           <Link
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            className={`rounded-[10px] px-3 py-2.5 text-[14px] ${
+            aria-current={active ? "page" : undefined}
+            className={`rounded-[10px] p-3 text-[14px] ${
               active
                 ? "bg-[#252538] font-bold text-fg"
                 : "font-semibold text-muted"

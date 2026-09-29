@@ -27,9 +27,7 @@ export function EventSummaryCard({
             <span className="font-bold font-display text-[20px] tracking-tight sm:text-[23px]">
               {evenement.nom}
             </span>
-            <Badge variant="good" className="tracking-wide">
-              EN COURS
-            </Badge>
+            <Badge variant="good">En cours</Badge>
           </div>
           <div className="text-[13.5px] text-muted">
             {evenement.date} · {evenement.heure} · {evenement.lieu}
@@ -58,10 +56,13 @@ export function EventSummaryCard({
             id="helloasso-url"
             readOnly
             defaultValue="helloasso.com/associations/poly/evenements/soiree-hiver"
-            className="h-11.5 text-[13.5px]"
+            className="h-11.5"
           />
           <div className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-good" />
+            <span
+              aria-hidden="true"
+              className="size-1.5 rounded-full bg-good"
+            />
             <span className="text-[12.5px] text-muted">
               Démo : pas de vrai webhook branché
             </span>

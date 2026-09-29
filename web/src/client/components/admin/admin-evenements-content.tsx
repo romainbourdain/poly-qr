@@ -91,7 +91,7 @@ export function AdminEvenementsContent({
                   {evenement.nbBillets} billet
                   {evenement.nbBillets > 1 ? "s" : ""}
                 </Badge>
-                <span className="text-[12.5px] text-faint">
+                <span className="text-[13px] text-faint">
                   {formatEuros(evenement.prixBilletCentimes)} /{" "}
                   {formatEuros(evenement.prixTicketBoissonCentimes)}
                 </span>

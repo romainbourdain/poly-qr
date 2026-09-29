@@ -30,9 +30,9 @@ export default async function BilletPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-7">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-6 py-7">
       <div className="flex flex-col gap-1.5">
-        <div className="font-bold text-[11px] text-muted uppercase tracking-[0.18em]">
+        <div className="font-bold text-[12px] text-muted uppercase tracking-[0.18em]">
           Association Poly
         </div>
         <h1 className="font-display font-extrabold text-3xl tracking-tight">
@@ -53,7 +53,7 @@ export default async function BilletPage({
           </>
         )}
 
-        <div className="flex items-start gap-2.5 px-1 text-[12.5px] text-muted leading-relaxed">
+        <div className="flex items-start gap-2.5 px-1 text-[13px] text-muted leading-relaxed">
           <span>
             Valable{" "}
             <strong className="font-bold text-fg">une seule fois</strong>. Monte
@@ -64,8 +64,8 @@ export default async function BilletPage({
         <BilletPdfLink commandeId={commande.commandeId} />
       </div>
 
-      <div className="border-[#22222F] border-t pt-3.5 text-[12px] text-faint">
-        Reçu par email après ton paiement HelloAsso.
+      <div className="border-[#22222F] border-t pt-3.5 text-[13px] text-faint">
+        Ce billet t&apos;a été envoyé par email.
       </div>
     </main>
   );

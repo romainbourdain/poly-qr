@@ -46,11 +46,17 @@ export function NumberField({
       {...props}
     >
       <BaseNumberField.Group className="flex items-center gap-3">
-        <BaseNumberField.Decrement className="flex size-12.5 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-4 disabled:opacity-40">
+        <BaseNumberField.Decrement
+          className="flex size-12.5 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-4 disabled:opacity-40"
+          aria-label="Retirer un ticket"
+        >
           <MinusIcon />
         </BaseNumberField.Decrement>
-        <BaseNumberField.Input className="h-12.5 w-21 shrink-0 rounded-xl border border-line-2 bg-ink-3 text-center font-bold font-display text-[22px] text-fg outline-none focus:border-accent" />
-        <BaseNumberField.Increment className="flex size-12.5 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-4 disabled:opacity-40">
+        <BaseNumberField.Input className="h-12.5 w-21 shrink-0 rounded-xl border border-line-2 bg-ink-3 text-center font-bold font-display text-[22px] text-fg focus:border-accent" />
+        <BaseNumberField.Increment
+          className="flex size-12.5 shrink-0 items-center justify-center rounded-xl border border-line-2 bg-ink-4 disabled:opacity-40"
+          aria-label="Ajouter un ticket"
+        >
           <PlusIcon />
         </BaseNumberField.Increment>
       </BaseNumberField.Group>

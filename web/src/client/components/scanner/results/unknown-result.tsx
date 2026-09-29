@@ -27,15 +27,15 @@ const STEPS = [
 
 export function UnknownResult() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col bg-[#1A0C10] px-6 text-[#FBE9EC]">
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col bg-[#1A0C10] px-6 text-[#FBE9EC]">
       <div className="flex flex-1 flex-col items-center gap-5 pt-11">
         <ResultIconCircle className="bg-bad">
           <CrossIcon />
         </ResultIconCircle>
         <div className="flex flex-col items-center gap-2 text-center">
-          <div className="font-display font-extrabold text-[#FF8A8A] text-[34px] tracking-tight">
+          <h1 className="font-display font-extrabold text-[#FF8A8A] text-[34px] tracking-tight">
             BILLET INCONNU
-          </div>
+          </h1>
           <div className="max-w-72.5 text-[#DBB4B8] text-[15px] leading-relaxed">
             Ce QR code ne correspond à aucun billet de cette soirée.
           </div>

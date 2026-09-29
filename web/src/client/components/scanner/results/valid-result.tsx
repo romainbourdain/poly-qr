@@ -23,19 +23,19 @@ function CheckIcon() {
 
 export function ValidResult({ billet }: { billet: BilletScanne }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col bg-[#071410] px-6 text-[#EAF7F1]">
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col bg-[#071410] px-6 text-[#EAF7F1]">
       <div className="flex flex-1 flex-col items-center gap-5 pt-11">
         <ResultIconCircle className="bg-good">
           <CheckIcon />
         </ResultIconCircle>
         <div className="flex flex-col items-center gap-2 text-center">
-          <div className="font-display font-extrabold text-[40px] text-good tracking-tight">
+          <h1 className="font-display font-extrabold text-[40px] text-good tracking-tight">
             VALIDE
-          </div>
+          </h1>
           <div className="font-bold font-display text-[25px] tracking-tight">
             {billet.nom}
           </div>
-          <div className="text-[#93B7A8] text-[13.5px]">
+          <div className="text-[#93B7A8] text-[14px]">
             {billet.origine === "helloasso"
               ? "Acheté sur HelloAsso"
               : "Billet de permanence"}
@@ -46,7 +46,7 @@ export function ValidResult({ billet }: { billet: BilletScanne }) {
 
         <div className="grid w-full grid-cols-2 gap-3">
           <div className="flex flex-col items-center gap-1.5 rounded-[20px] border border-good-line bg-good-bg px-4 py-5">
-            <div className="text-center font-bold text-[#93B7A8] text-[11px] uppercase tracking-[0.14em]">
+            <div className="text-center font-bold text-[#93B7A8] text-[13px] uppercase tracking-[0.14em]">
               Font entrer
             </div>
             <span className="font-display font-extrabold text-[64px] leading-none tracking-tight">
@@ -55,7 +55,7 @@ export function ValidResult({ billet }: { billet: BilletScanne }) {
             <span className="font-bold text-[14px]">personne</span>
           </div>
           <div className="flex flex-col items-center gap-1.5 rounded-[20px] border border-good-line bg-good-bg px-4 py-5">
-            <div className="text-center font-bold text-[#93B7A8] text-[11px] uppercase tracking-[0.14em]">
+            <div className="text-center font-bold text-[#93B7A8] text-[13px] uppercase tracking-[0.14em]">
               À remettre
             </div>
             <span className="font-display font-extrabold text-[64px] leading-none tracking-tight">
@@ -67,7 +67,7 @@ export function ValidResult({ billet }: { billet: BilletScanne }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-[#93B7A8] text-[13px]">
+        <div className="flex items-center gap-2 text-[#93B7A8] text-[14px]">
           Entrée enregistrée à {billet.scanneA}
         </div>
       </div>

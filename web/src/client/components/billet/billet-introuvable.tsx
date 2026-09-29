@@ -1,11 +1,12 @@
 export function BilletIntrouvable() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-      <div className="font-display font-extrabold text-2xl">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
+      <h1 className="font-display font-extrabold text-2xl">
         Billet introuvable
-      </div>
+      </h1>
       <p className="text-[14px] text-muted">
-        Cet identifiant de billet n&apos;existe pas dans la démo.
+        Ce lien ne mène à aucun billet. Rouvre l&apos;email reçu à l&apos;achat
+        et utilise le lien qu&apos;il contient.
       </p>
     </main>
   );
