@@ -36,7 +36,7 @@ Add-on **par billet** (donc par personne) plutôt que globalisé sur la commande
 
 - **Pas de montant stocké.** L'événement porte un prix de billet en pré-vente (HelloAsso et permanence), un prix de billet sur place et un prix de ticket boisson ; ils servent uniquement à calculer le total à payer des formulaires de vente et à estimer les ventes affichées dans les statistiques (les tarifs réellement appliqués par HelloAsso ne sont pas lus). Le système ne gère ni encaissement ni facturation. Il stocke par ailleurs, par commande, le moyen de paiement utilisé (ex. CB, espèces, virement, HelloAsso), et par billet : nom (de la commande), email (de la commande), nombre de tickets boisson, statut (utilisé/non utilisé/invalidé).
 - **Pas de remboursement automatique.** Cas rare, géré manuellement via un bouton d'invalidation dans l'admin.
-- **Statistiques** : la page admin « Statistiques » (chiffres clés, affluence par tranche de 15 min, billets par canal, entrées) se rafraîchit toute seule toutes les 30 secondes ; pas de temps réel au sens push.
+- **Statistiques** : la page admin « Statistiques » (chiffres clés, affluence par tranche de 15 min, billets par canal, entrées) se met à jour au rechargement de la page ; pas de temps réel.
 
 ## Multi-admin
 

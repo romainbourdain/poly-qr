@@ -7,7 +7,6 @@ import {
 } from "@/client/components/admin/canal-donut-card";
 import { EntreesRadialCard } from "@/client/components/admin/entrees-radial-card";
 import { Stat } from "@/client/components/ui/stat";
-import { useAutoRefresh } from "@/client/hooks/use-auto-refresh";
 import type { TrancheAffluence } from "@/shared/lib/affluence";
 import { formatEuros } from "@/shared/lib/prix";
 import type { Evenement, StatsEvenement } from "@/shared/lib/types";
@@ -29,8 +28,6 @@ const formatteurHeure = new Intl.DateTimeFormat("fr-FR", {
   second: "2-digit",
 });
 
-const RAFRAICHISSEMENT_MS = 30_000;
-
 export function StatsContent({
   evenement,
   stats,
@@ -43,8 +40,6 @@ export function StatsContent({
   /** Instant ISO du calcul des chiffres, pour afficher leur fraîcheur. */
   miseAJour: string;
 }) {
-  useAutoRefresh(RAFRAICHISSEMENT_MS);
-
   const ventes = calculerVentesParCanal(evenement, stats);
   const canaux: CanalVentes[] = ventes.map((v) => ({
     ...v,
@@ -58,8 +53,8 @@ export function StatsContent({
           Statistiques
         </h1>
         <p className="text-[13px] text-muted">
-          Mis à jour à {formatteurHeure.format(new Date(miseAJour))}, puis
-          toutes les 30 secondes.
+          Chiffres à {formatteurHeure.format(new Date(miseAJour))} : recharge la
+          page pour les actualiser.
         </p>
       </div>
 
