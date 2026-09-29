@@ -16,7 +16,7 @@ Layered: `client/` (browser), `server/` (nothing may import this from `client/`)
 - New UI: compose from `client/components/ui/` (Base UI-based design system) rather than raw HTML or a different component library.
 - New forms: TanStack Form + a Zod schema in `shared/validators/`.
 - New URL-synced state (filters, search, pagination): nuqs, parser in `shared/lib/search-params.ts`.
-- New shared client state: a Zustand store in `client/store/`, one file per domain. Expose a selector hook (like `useTicket` in `ticket-store.ts`) for any lookup by id — a plain full-store read defeats the reason Zustand was chosen over Context (see [web/README.md](web/README.md#pourquoi-zustand-plutôt-quun-context-react)).
+- New shared client state: a Zustand store in `client/store/`, one file per domain. Expose a selector hook for any lookup by id — a plain full-store read defeats the reason Zustand was chosen over Context (see [web/README.md](web/README.md#pourquoi-zustand-plutôt-quun-context-react)). Current example: `scan-result-store.ts`.
 - Anything touching a database or external API: `server/actions` (the `"use server"` entry point) → `server/services` (business logic) → `server/db` (Drizzle, not yet installed). Don't put this logic in `client/` or `app/`.
 - Filenames: kebab-case.
 

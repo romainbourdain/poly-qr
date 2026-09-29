@@ -43,7 +43,7 @@ web/src/
 │   │   ├── ui/                 #   design system (Button, Input, Field, Tabs, NumberField...)
 │   │   ├── admin/ · billet/ · login/ · scanner/ · home/   # composants par domaine métier
 │   ├── hooks/                  #   hooks de présentation (ex. use-ticket-filters, nuqs)
-│   └── store/                  #   état partagé client (ticket-store.ts, Zustand)
+│   └── store/                  #   état partagé client (scan-result-store.ts, Zustand)
 │
 ├── server/                     # Futur : tout ce qui ne doit jamais atteindre le bundle client
 │   ├── actions/                #   "use server", un fichier par domaine (ex. tickets.ts, auth.ts)
@@ -53,7 +53,6 @@ web/src/
 └── shared/                     # Importable des deux côtés (client ET server)
     ├── lib/                    #   fonctions utilitaires + types (cn, search-params, tickets, types)
     ├── validators/             #   schémas Zod (contrat de validation partagé formulaire ↔ futures actions)
-    └── mock/                   #   données factices (event.ts, tickets.ts) — à remplacer par la DB
 ```
 
 Règles qui se dégagent de ce découpage :
@@ -61,22 +60,17 @@ Règles qui se dégagent de ce découpage :
 - **`app/`** reste le plus fin possible : une page assemble des composants de `client/components/`, elle ne contient pas de logique métier.
 - **`client/`** ne contient que du code `"use client"` ou consommé uniquement par du code client. Rien ici ne doit importer depuis `server/`.
 - **`server/`** est la seule couche autorisée à parler à la base de données ; `server/db/` contient le schéma et le client Drizzle, `server/actions/` et `server/services/` (encore vides, `.gitkeep`) accueilleront les server actions et la logique métier.
-- **`shared/`** est neutre : `lib/` et `validators/` ne dépendent ni de React ni de Next.js server-only, donc importables aussi bien par un composant client que par une future server action qui voudrait revalider les mêmes schémas Zod côté serveur. `mock/` est la donnée de démo actuelle, vouée à disparaître quand les pages liront `server/db/` via des server actions.
+- **`shared/`** est neutre : `lib/` et `validators/` ne dépendent ni de React ni de Next.js server-only, donc importables aussi bien par un composant client que par une future server action qui voudrait revalider les mêmes schémas Zod côté serveur.
 
 ### Alias d'import
 
 Les tests (`web/tests/`) sont hors de `src/` et reproduisent son arborescence.
 
-`@/*` pointe vers `src/*` (`tsconfig.json`). Exemples : `@/client/components/ui/button`, `@/shared/validators/new-ticket`, `@/client/store/ticket-store`.
+`@/*` pointe vers `src/*` (`tsconfig.json`). Exemples : `@/client/components/ui/button`, `@/shared/validators/new-ticket`, `@/client/store/scan-result-store`.
 
 ### Pourquoi Zustand plutôt qu'un Context React
 
-L'état des billets était porté par un `React.Context` : toute mutation (scan, invalidation...) faisait re-render **tous** les composants qui consomment le store, même ceux qui ne lisent qu'un seul billet. `client/store/ticket-store.ts` expose maintenant :
-
-- `useTicketStore()` — accès à la liste complète + actions (`addTicket`, `scanTicket`, `invalidateTicket`, `reactivateTicket`), utilisé là où la liste entière est de toute façon nécessaire (page billets, dashboard admin).
-- `useTicket(id)` — sélecteur qui ne re-render que si **ce** billet précis change (page billet participant, écran de résultat de scan).
-
-Plus besoin de `StoreProvider` dans `app/layout.tsx`.
+Un `React.Context` fait re-render **tous** ses consommateurs à chaque mutation, même ceux qui ne lisent qu'une partie de l'état. Un store Zustand permet des sélecteurs qui ne re-rendent que si la valeur lue change. Le seul store actuel est `client/store/scan-result-store.ts` (résultat du dernier scan, transmis de l'écran scanner à `/scanner/resultat`) ; les données billets viennent de la DB via les server actions.
 
 ### Couches backend
 
