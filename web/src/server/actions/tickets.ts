@@ -14,6 +14,7 @@ import {
   listerBillets,
   obtenirCommandeAvecBillets,
   obtenirStatsBillets,
+  obtenirStatsEvenement,
   reactiverBillet,
   scannerBillet,
   versBilletListe,

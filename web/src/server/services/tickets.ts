@@ -9,6 +9,7 @@ import type {
   BilletListe,
   CommandeAvecBillets,
   ResultatScan,
+  StatsEvenement,
 } from "@/shared/lib/types";
 import type { HelloassoCommandeInput } from "@/shared/validators/helloasso";
 import type { PermanenceCommandeInput } from "@/shared/validators/permanence";
@@ -268,6 +269,37 @@ export async function obtenirCommandeAvecBillets(
     origine: lignes[0].origine,
     billets: lignes.map(versBilletListe),
   };
+}
+
+/**
+ * Compteurs du résumé admin pour l'événement actif. Un billet = une personne,
+ * donc une entrée ; les billets invalidés ne comptent ni comme vendus ni comme
+ * tickets boisson dus.
+ */
+export async function obtenirStatsEvenement(db: Db): Promise<StatsEvenement> {
+  const evenementId = await obtenirEvenementActifId(db);
+  const stats: StatsEvenement = {
+    billets: 0,
+    entreesVendues: 0,
+    entreesScannees: 0,
+    ticketsBoissonDus: 0,
+  };
+  if (!evenementId) return stats;
+
+  const lignes = await db
+    .select({ statut: billets.statut, ticketsBoisson: billets.ticketsBoisson })
+    .from(billets)
+    .innerJoin(commandes, eq(billets.commandeId, commandes.id))
+    .where(eq(commandes.evenementId, evenementId));
+
+  for (const ligne of lignes) {
+    stats.billets += 1;
+    if (ligne.statut === "invalide") continue;
+    stats.entreesVendues += 1;
+    stats.ticketsBoissonDus += ligne.ticketsBoisson;
+    if (ligne.statut === "scanne") stats.entreesScannees += 1;
+  }
+  return stats;
 }
 
 /**

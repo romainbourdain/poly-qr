@@ -17,6 +17,7 @@ import {
   listerBillets,
   obtenirCommandeAvecBillets,
   obtenirStatsBillets,
+  obtenirStatsEvenement,
   reactiverBillet,
   scannerBillet,
 } from "@/server/services/tickets";
@@ -436,6 +437,90 @@ describe("service tickets", () => {
       const resultat = await obtenirCommandeAvecBillets(db, randomUUID());
 
       expect(resultat).toBeNull();
+    });
+  });
+
+  describe("obtenirStatsEvenement", () => {
+    it("compte billets émis, entrées vendues (hors invalidés), scannées et tickets boisson dus", async () => {
+      const evenementId = await creerEvenementActif();
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId,
+          nom: "Sacha Lemoine",
+          email: "sacha@etu-poly.fr",
+          origine: "permanence",
+        })
+        .returning();
+
+      await db.insert(billets).values([
+        {
+          commandeId: commande.id,
+          code: "AAAA",
+          statut: "scanne",
+          ticketsBoisson: 2,
+        },
+        {
+          commandeId: commande.id,
+          code: "BBBB",
+          statut: "non_scanne",
+          ticketsBoisson: 1,
+        },
+        {
+          commandeId: commande.id,
+          code: "CCCC",
+          statut: "invalide",
+          ticketsBoisson: 5,
+        },
+      ]);
+
+      await expect(obtenirStatsEvenement(db)).resolves.toEqual({
+        billets: 3,
+        entreesVendues: 2,
+        entreesScannees: 1,
+        ticketsBoissonDus: 3,
+      });
+    });
+
+    it("ignore les billets des événements passés", async () => {
+      const ancienId = await creerEvenementActif();
+      const [commande] = await db
+        .insert(commandes)
+        .values({
+          evenementId: ancienId,
+          nom: "A",
+          email: "a@b.fr",
+          origine: "permanence",
+        })
+        .returning();
+      await db
+        .insert(billets)
+        .values({ commandeId: commande.id, code: "OLD1" });
+      await db.update(evenements).set({ actif: false });
+      await db.insert(evenements).values({
+        nom: "Nouveau",
+        date: "2026-10-01",
+        heure: "20:00:00",
+        lieu: "Ailleurs",
+        motDePasseHash: "x",
+        actif: true,
+      });
+
+      await expect(obtenirStatsEvenement(db)).resolves.toEqual({
+        billets: 0,
+        entreesVendues: 0,
+        entreesScannees: 0,
+        ticketsBoissonDus: 0,
+      });
+    });
+
+    it("retourne des compteurs à zéro sans événement actif", async () => {
+      await expect(obtenirStatsEvenement(db)).resolves.toEqual({
+        billets: 0,
+        entreesVendues: 0,
+        entreesScannees: 0,
+        ticketsBoissonDus: 0,
+      });
     });
   });
 

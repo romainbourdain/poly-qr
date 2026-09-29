@@ -84,3 +84,10 @@ export interface EvenementResume extends EvenementActif {
   nbCommandes: number;
   nbBillets: number;
 }
+
+export interface StatsEvenement {
+  billets: number;
+  entreesVendues: number;
+  entreesScannees: number;
+  ticketsBoissonDus: number;
+}
