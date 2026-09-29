@@ -122,7 +122,34 @@ Un hook `pre-commit` (Biome sur les fichiers stagés) et un hook `pre-push` (`ty
 
 ## Déploiement
 
-Déployé sur Vercel. `npx vercel --prod` depuis ce dossier (le dossier racine du projet Vercel doit pointer sur `web/`).
+Deux cibles : Vercel (`npx vercel --prod` depuis ce dossier, dont le dossier racine doit pointer sur `web/`) et un VPS via Docker.
+
+### VPS (Docker)
+
+`Dockerfile` (multi-stage, output Next.js `standalone`, image finale non-root, aucun secret embarqué : la validation d'env est désactivée au build seulement) et `docker-compose.yml` : `db` (Postgres + volume `pgdata`), `migrate` (one-shot, applique les migrations Drizzle) puis `app`.
+
+Sur le VPS, dans un dossier contenant `docker-compose.yml` et un `.env` (toutes les variables de `.env.example` sauf `DATABASE_URL`, plus `POSTGRES_PASSWORD`) :
+
+```bash
+docker compose pull app   # image publiée sur GHCR (voir Release)
+docker compose up -d      # db -> migrate -> app, port 3000 (APP_PORT pour changer)
+```
+
+`POSTGRES_PASSWORD` est inséré tel quel dans `DATABASE_URL` : éviter les caractères spéciaux d'URL (`@ : / ? #`).
+
+`APP_IMAGE` permet de fixer un tag précis (ex. `APP_IMAGE=ghcr.io/romainbourdain/poly-qr:0.1.0-r3`). En local, `docker compose up -d --build` construit l'image.
+
+### Release
+
+Un push sur la branche `build` (`.github/workflows/release.yml`) crée le tag git `<version>-r<N>` (version de `package.json`, `N` incrémenté, remis à 1 quand la version change) et publie l'image `ghcr.io/romainbourdain/poly-qr` avec les tags `<version>-r<N>`, `latest` et le SHA court. Pas de GitHub Release ni de déploiement automatique.
+
+```bash
+git push origin main:build   # déclenche la release
+# puis, sur le VPS :
+docker compose pull app && docker compose up -d
+```
+
+La CI (`.github/workflows/ci.yml`) lance lint, typecheck, tests (Postgres de service) et build sur les PR et sur `main`.
 
 ### Variables d'environnement
 
