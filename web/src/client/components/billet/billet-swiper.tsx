@@ -75,7 +75,7 @@ export function BilletSwiper({
 
       <div className="flex items-center justify-between gap-3">
         <Button
-          variant="secondary"
+          variant="ghost"
           size="icon"
           aria-label="Billet précédent"
           disabled={activeIndex === 0}
@@ -99,7 +99,7 @@ export function BilletSwiper({
           </span>
         </div>
         <Button
-          variant="secondary"
+          variant="ghost"
           size="icon"
           aria-label="Billet suivant"
           disabled={activeIndex === billets.length - 1}
