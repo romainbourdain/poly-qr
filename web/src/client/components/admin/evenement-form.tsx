@@ -21,7 +21,7 @@ import { centimesVersSaisie } from "@/shared/lib/prix";
 import type { Evenement } from "@/shared/lib/types";
 import { evenementSchema } from "@/shared/validators/evenement";
 
-function LockIcon() {
+function LockIcon({ ouvert = false }: { ouvert?: boolean }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -33,7 +33,9 @@ function LockIcon() {
       aria-hidden="true"
     >
       <rect x="5" y="11" width="14" height="9" rx="2" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+      <path
+        d={ouvert ? "M8 11V8a4 4 0 0 1 7.5-2" : "M8 11V8a4 4 0 0 1 8 0v3"}
+      />
     </svg>
   );
 }
@@ -172,35 +174,49 @@ export function EvenementForm({
           </Field.Description>
         </Field.Root>
       ) : (
-        <div className="flex flex-col gap-2">
-          <form.Field name="motDePasse">
-            {(field) => (
+        <form.Field name="motDePasse">
+          {(field) =>
+            mode === "modifier" ? (
+              <Field.Root>
+                <Field.Label htmlFor={field.name}>
+                  Nouveau mot de passe scanner
+                </Field.Label>
+                <InputGroup>
+                  <InputGroupAddon>
+                    <LockIcon ouvert />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onValueChange={field.handleChange}
+                    autoComplete="off"
+                    autoFocus
+                  />
+                  <InputGroupButton
+                    onClick={() => {
+                      field.handleChange("");
+                      setChangerMotDePasse(false);
+                    }}
+                  >
+                    Garder l&apos;actuel
+                  </InputGroupButton>
+                </InputGroup>
+                <Field.Description>
+                  Demandé pour scanner les QR codes de cet événement
+                </Field.Description>
+              </Field.Root>
+            ) : (
               <TextField
                 field={field}
-                label={
-                  mode === "modifier"
-                    ? "Nouveau mot de passe scanner"
-                    : "Mot de passe scanner"
-                }
+                label="Mot de passe scanner"
                 description="Demandé pour scanner les QR codes de cet événement"
                 autoComplete="off"
               />
-            )}
-          </form.Field>
-          {mode === "modifier" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="self-start"
-              onClick={() => {
-                form.setFieldValue("motDePasse", "");
-                setChangerMotDePasse(false);
-              }}
-            >
-              Garder l&apos;actuel
-            </Button>
-          )}
-        </div>
+            )
+          }
+        </form.Field>
       )}
 
       {error && (
