@@ -12,6 +12,7 @@ export const evenementSchema = z.object({
   heure: z.string().regex(/^\d{2}:\d{2}$/, "L'heure est requise."),
   lieu: z.string().trim().min(1, "Le lieu est requis."),
   prixBillet: prixSchema,
+  prixBilletSurPlace: prixSchema,
   prixTicketBoisson: prixSchema,
   motDePasse: z.string(),
 });

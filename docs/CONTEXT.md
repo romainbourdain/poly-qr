@@ -12,13 +12,13 @@ Un **billet** = une personne. Chaque billet a son propre QR, son propre nombre d
 
 Une personne qui achète pour plusieurs (elle-même incluse ou non) reçoit une commande contenant N billets, un par personne. Le regroupement par commande n'a qu'un rôle d'affichage et de commodité à l'entrée : la page billet d'une commande à plusieurs personnes permet de swiper d'un QR à l'autre sur le même téléphone, pour que le groupe présente ses billets un par un sans changer d'écran ni d'email. Ça n'implique ni arrivée simultanée, ni consommation groupée — voir la décision correspondante dans [DECISIONS.md](DECISIONS.md).
 
-## Les trois origines d'une commande
+## Les trois origines d'une commande (canaux de vente)
 
 | Origine | Création | QR généré ? |
 |---|---|---|
 | **HelloAsso** | Automatique, déclenché par webhook à la validation du paiement en ligne | Oui (un par billet de la commande), envoyé par email |
 | **Permanence** | Un bénévole saisit nom/email de l'acheteur·se et, pour chaque billet de la commande, son nombre de tickets boisson, dans une interface admin, lors d'une vente à l'avance en main propre (hors HelloAsso) | Oui (un par billet), généré et envoyé par email immédiatement |
-| **Sur place le soir** | Aucune création dans le système. File séparée, prix plus élevé, le bénévole encaisse et laisse entrer directement. Tickets boisson remis en papier, calculés à la main | Non |
+| **Sur place le soir** | Un bénévole saisit le nom et prénom (pas d'email) et les tickets boisson de chaque billet dans l'admin, à l'encaissement. Prix du billet plus élevé qu'en pré-vente. Les billets naissent déjà « scannés » : la personne entre tout de suite, l'heure de vente est son heure d'entrée. Tickets boisson remis en papier à l'encaissement | Non (aucun QR ni email) |
 
 ## Tickets boisson
 
@@ -34,9 +34,9 @@ Add-on **par billet** (donc par personne) plutôt que globalisé sur la commande
 
 ## Ce que le système ne fait pas
 
-- **Pas de gestion de prix pour HelloAsso ni sur place.** Les tarifs y restent gérés par HelloAsso ou décidés au cas par cas — le système n'y stocke aucun montant. Pour la permanence, l'événement porte un prix par billet et un prix par ticket boisson, utilisés uniquement pour calculer et afficher le total à payer dans le formulaire de vente ; le système affiche ce total mais ne gère ni encaissement ni facturation. Il stocke par ailleurs, par commande, le moyen de paiement utilisé (ex. CB, espèces, virement, HelloAsso), et par billet : nom (de la commande), email (de la commande), nombre de tickets boisson, statut (utilisé/non utilisé/invalidé).
+- **Pas de montant stocké.** L'événement porte un prix de billet en pré-vente (HelloAsso et permanence), un prix de billet sur place et un prix de ticket boisson ; ils servent uniquement à calculer le total à payer des formulaires de vente et à estimer les ventes affichées dans les statistiques (les tarifs réellement appliqués par HelloAsso ne sont pas lus). Le système ne gère ni encaissement ni facturation. Il stocke par ailleurs, par commande, le moyen de paiement utilisé (ex. CB, espèces, virement, HelloAsso), et par billet : nom (de la commande), email (de la commande), nombre de tickets boisson, statut (utilisé/non utilisé/invalidé).
 - **Pas de remboursement automatique.** Cas rare, géré manuellement via un bouton d'invalidation dans l'admin.
-- **Pas de dashboard temps réel** pendant l'événement (jugé non nécessaire pour ce POC).
+- **Statistiques** : la page admin « Statistiques » (chiffres clés, affluence par tranche de 15 min, billets par canal, entrées) se rafraîchit toute seule toutes les 30 secondes ; pas de temps réel au sens push.
 
 ## Multi-admin
 

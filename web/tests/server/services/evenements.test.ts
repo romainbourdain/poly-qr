@@ -24,6 +24,7 @@ const base = {
   heure: "22:00",
   lieu: "Le Hangar",
   prixBilletCentimes: 500,
+  prixBilletSurPlaceCentimes: 700,
   prixTicketBoissonCentimes: 150,
 };
 

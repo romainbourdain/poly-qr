@@ -13,6 +13,7 @@ import type {
 } from "@/shared/lib/types";
 import type { HelloassoCommandeInput } from "@/shared/validators/helloasso";
 import type { PermanenceCommandeInput } from "@/shared/validators/permanence";
+import type { SurPlaceCommandeInput } from "@/shared/validators/sur-place";
 
 type Db = PostgresJsDatabase<typeof schema>;
 
@@ -65,6 +66,46 @@ export async function creerCommandePermanence(
           commandeId: commande.id,
           code: genererCodeBillet(),
           ticketsBoisson: billet.ticketsBoisson,
+        })),
+      )
+      .returning();
+
+    return { commande, billets: nouveauxBillets };
+  });
+}
+
+/**
+ * Crée une vente sur place : la personne paye et entre tout de suite, donc ses
+ * billets naissent « scannés » (l'heure de vente est son heure d'entrée). Ni
+ * email ni QR envoyés.
+ */
+export async function creerCommandeSurPlace(
+  db: Db,
+  evenementId: string,
+  input: SurPlaceCommandeInput,
+) {
+  return db.transaction(async (tx) => {
+    const [commande] = await tx
+      .insert(commandes)
+      .values({
+        evenementId,
+        nom: input.nom,
+        email: null,
+        origine: "sur_place",
+        moyenPaiement: input.moyenPaiement,
+      })
+      .returning();
+
+    const maintenant = new Date();
+    const nouveauxBillets = await tx
+      .insert(billets)
+      .values(
+        input.billets.map((billet) => ({
+          commandeId: commande.id,
+          code: genererCodeBillet(),
+          ticketsBoisson: billet.ticketsBoisson,
+          statut: "scanne" as const,
+          scanneA: maintenant,
         })),
       )
       .returning();
@@ -267,10 +308,12 @@ export async function obtenirStatsEvenement(
     billetsVendus: 0,
     billetsInvalides: 0,
     billetsPermanence: 0,
+    billetsSurPlace: 0,
     billetsHelloasso: 0,
     entreesScannees: 0,
     ticketsBoisson: 0,
     ticketsBoissonPermanence: 0,
+    ticketsBoissonSurPlace: 0,
   };
   const lignes = await db
     .select({
@@ -292,6 +335,9 @@ export async function obtenirStatsEvenement(
     if (ligne.origine === "permanence") {
       stats.billetsPermanence += 1;
       stats.ticketsBoissonPermanence += ligne.ticketsBoisson;
+    } else if (ligne.origine === "sur_place") {
+      stats.billetsSurPlace += 1;
+      stats.ticketsBoissonSurPlace += ligne.ticketsBoisson;
     } else {
       stats.billetsHelloasso += 1;
     }

@@ -19,6 +19,7 @@ import {
 const COULEURS: Record<string, string> = {
   helloasso: "var(--color-accent)",
   permanence: "var(--color-accent-3)",
+  sur_place: "var(--color-warn)",
 };
 
 const formatteurHeure = new Intl.DateTimeFormat("fr-FR", {

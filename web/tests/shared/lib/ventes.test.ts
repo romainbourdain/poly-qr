@@ -6,19 +6,25 @@ import {
 } from "@/shared/lib/ventes";
 
 const stats: StatsEvenement = {
-  billetsVendus: 5,
+  billetsVendus: 7,
   billetsInvalides: 0,
   billetsHelloasso: 3,
   billetsPermanence: 2,
+  billetsSurPlace: 2,
   entreesScannees: 0,
-  ticketsBoisson: 4,
+  ticketsBoisson: 6,
   ticketsBoissonPermanence: 1,
+  ticketsBoissonSurPlace: 2,
 };
 
 describe("calculerVentesParCanal", () => {
-  it("valorise chaque canal aux prix de l'événement", () => {
+  it("valorise HelloAsso et permanence au prix de pré-vente, la vente sur place à son prix", () => {
     const canaux = calculerVentesParCanal(
-      { prixBilletCentimes: 500, prixTicketBoissonCentimes: 100 },
+      {
+        prixBilletCentimes: 500,
+        prixBilletSurPlaceCentimes: 800,
+        prixTicketBoissonCentimes: 100,
+      },
       stats,
     );
     expect(canaux).toEqual([
@@ -36,7 +42,14 @@ describe("calculerVentesParCanal", () => {
         ticketsBoisson: 1,
         montantCentimes: 1100,
       },
+      {
+        id: "sur_place",
+        label: "Sur place",
+        billets: 2,
+        ticketsBoisson: 2,
+        montantCentimes: 1800,
+      },
     ]);
-    expect(totalVentesCentimes(canaux)).toBe(2900);
+    expect(totalVentesCentimes(canaux)).toBe(4700);
   });
 });

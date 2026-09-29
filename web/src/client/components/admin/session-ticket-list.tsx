@@ -10,7 +10,7 @@ export function SessionTicketList({
   return (
     <Card className="flex flex-col gap-3 py-5 sm:px-6 sm:py-5.5">
       <div className="font-bold text-[12px] text-muted uppercase tracking-[0.14em]">
-        Créés pendant cette permanence
+        Créés pendant cette session
       </div>
       {commandes.length === 0 ? (
         <div className="text-[13.5px] text-muted">
@@ -35,7 +35,7 @@ export function SessionTicketList({
                   ticket{totalBoisson > 1 ? "s" : ""}
                 </span>
                 <span className="font-semibold text-[12.5px] text-good">
-                  envoyé
+                  {commande.origine === "sur_place" ? "entré" : "envoyé"}
                 </span>
               </div>
             </div>

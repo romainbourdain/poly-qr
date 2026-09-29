@@ -138,6 +138,7 @@ export async function POST(
         resultat.commande.id,
       );
       if (!evenement) throw new Error("Événement introuvable.");
+      if (!resultat.commande.email) throw new Error("Commande sans email.");
       await envoyerEmailCommande(
         creerSmtpSender(),
         {

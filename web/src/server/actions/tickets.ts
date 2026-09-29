@@ -20,6 +20,7 @@ import {
 } from "@/server/services/evenements";
 import {
   creerCommandePermanence,
+  creerCommandeSurPlace,
   invaliderBillet,
   listerBillets,
   obtenirCommandeAvecBillets,
@@ -36,6 +37,7 @@ import {
   scanCodeSchema,
 } from "@/shared/validators/commande";
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
+import { surPlaceCommandeSchema } from "@/shared/validators/sur-place";
 
 const filtresSchema = z.object({
   q: z.string(),
@@ -61,6 +63,7 @@ export const creerPermanenceAction = adminActionClient
     try {
       const evenement = await obtenirEvenementDeCommande(db, commande.id);
       if (!evenement) throw new Error("Événement introuvable.");
+      if (!commande.email) throw new Error("Commande sans email.");
       await envoyerEmailCommande(
         creerSmtpSender(),
         {
@@ -79,6 +82,22 @@ export const creerPermanenceAction = adminActionClient
     }
 
     return { commande, billets, emailError };
+  });
+
+export const creerSurPlaceAction = adminActionClient
+  .inputSchema(surPlaceCommandeSchema.extend(evenementSchema.shape))
+  .action(async ({ parsedInput: { evenementId, ...input } }) => {
+    if (!(await obtenirEvenement(db, evenementId))) {
+      return returnServerError("Cet événement n'existe plus.");
+    }
+    const { commande, billets } = await creerCommandeSurPlace(
+      db,
+      evenementId,
+      input,
+    );
+    revalidatePath("/admin/billets");
+    revalidatePath("/admin/statistiques");
+    return { commande, billets };
   });
 
 export const invaliderBilletAction = adminActionClient

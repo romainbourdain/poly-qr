@@ -26,9 +26,11 @@ export function TicketTableDesktop({
               <span className="truncate font-bold text-[14.5px]">
                 {commande.nom}
               </span>
-              <span className="truncate text-[12.5px] text-faint">
-                {commande.email}
-              </span>
+              {commande.email && (
+                <span className="truncate text-[12.5px] text-faint">
+                  {commande.email}
+                </span>
+              )}
             </div>
             <span className="shrink-0 font-bold text-[12px] text-faint uppercase tracking-[0.1em]">
               {ORIGINE_LABEL[commande.origine]} ·{" "}

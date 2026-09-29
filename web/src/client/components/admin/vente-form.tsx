@@ -9,7 +9,10 @@ import { SelectField } from "@/client/components/ui/select-field";
 import { Separator } from "@/client/components/ui/separator";
 import { TextField } from "@/client/components/ui/text-field";
 import { applyFieldErrors } from "@/client/lib/apply-action-errors";
-import { creerPermanenceAction } from "@/server/actions/tickets";
+import {
+  creerPermanenceAction,
+  creerSurPlaceAction,
+} from "@/server/actions/tickets";
 import { cn } from "@/shared/lib/cn";
 import { actionErrorsToForm } from "@/shared/lib/form-errors";
 import {
@@ -24,16 +27,32 @@ import {
   type MoyenPaiement,
 } from "@/shared/lib/types";
 import { permanenceCommandeSchema } from "@/shared/validators/permanence";
+import { surPlaceCommandeSchema } from "@/shared/validators/sur-place";
 
-export function PermanenceForm({
+export type ModeVente = "permanence" | "sur_place";
+
+/**
+ * Vente de billets en main propre. En permanence, le QR part par email ; sur
+ * place, la personne entre tout de suite : ni email ni QR, billets déjà scannés.
+ * Le parent remonte le formulaire (`key`) quand le mode change.
+ */
+export function VenteForm({
+  mode,
   evenementId,
   prix,
   onCreated,
 }: {
+  mode: ModeVente;
   evenementId: string;
   prix: PrixEvenement;
   onCreated: (commande: CommandeCreee) => void;
 }) {
+  const surPlace = mode === "sur_place";
+  // Sur place, le champ email n'existe pas : le formulaire garde `email` vide et
+  // le schéma sans email valide le reste (cast : TanStack veut un seul type de schéma).
+  const schema = (
+    surPlace ? surPlaceCommandeSchema : permanenceCommandeSchema
+  ) as typeof permanenceCommandeSchema;
   const [error, setError] = useState<string | null>(null);
   const nextRowId = useRef(1);
   const [rowIds, setRowIds] = useState<number[]>([0]);
@@ -46,13 +65,21 @@ export function PermanenceForm({
       billets: [{ ticketsBoisson: 0 }],
     },
     validators: {
-      onChange: permanenceCommandeSchema,
+      onChange: schema,
     },
     onSubmit: async ({ value }) => {
       setError(null);
       // Déjà validé par le schéma ; le parse affine seulement le type de `moyenPaiement`.
-      const input = permanenceCommandeSchema.parse(value);
-      const result = await creerPermanenceAction({ ...input, evenementId });
+      const input = schema.parse(value);
+      const result = surPlace
+        ? await creerSurPlaceAction({
+            ...surPlaceCommandeSchema.parse(value),
+            evenementId,
+          })
+        : await creerPermanenceAction({
+            ...permanenceCommandeSchema.parse(value),
+            evenementId,
+          });
       const data = result?.data;
       if (!data) {
         const errors = actionErrorsToForm(result);
@@ -60,13 +87,14 @@ export function PermanenceForm({
         setError(errors.form ?? null);
         return;
       }
-      const { nom, email } = input;
 
-      setError(data.emailError ?? null);
+      const emailError = "emailError" in data ? data.emailError : undefined;
+      setError(typeof emailError === "string" ? emailError : null);
       onCreated({
         commandeId: data.commande.id,
-        nom,
-        email,
+        origine: mode,
+        nom: input.nom,
+        email: "email" in input ? input.email : null,
         billets: data.billets.map((billet) => ({
           id: billet.id,
           code: billet.code,
@@ -97,17 +125,19 @@ export function PermanenceForm({
         )}
       </form.Field>
 
-      <form.Field name="email">
-        {(field) => (
-          <TextField
-            field={field}
-            label="Email"
-            type="email"
-            placeholder="sacha.lemoine@etu-poly.fr"
-            description="C'est l'adresse qui recevra le(s) QR code(s)."
-          />
-        )}
-      </form.Field>
+      {!surPlace && (
+        <form.Field name="email">
+          {(field) => (
+            <TextField
+              field={field}
+              label="Email"
+              type="email"
+              placeholder="sacha.lemoine@etu-poly.fr"
+              description="C'est l'adresse qui recevra le(s) QR code(s)."
+            />
+          )}
+        </form.Field>
+      )}
 
       <form.Field name="moyenPaiement">
         {(field) => (
@@ -140,7 +170,9 @@ export function PermanenceForm({
                           : "Tickets boisson achetés (total)"
                       }
                       hint={
-                        "Remis en papier à l'entrée,\nen une fois, au scan du billet."
+                        surPlace
+                          ? "Remis en papier tout de suite,\nà l'encaissement."
+                          : "Remis en papier à l'entrée,\nen une fois, au scan du billet."
                       }
                     />
                   )}
@@ -191,8 +223,7 @@ export function PermanenceForm({
       >
         {([canSubmit, values]) => {
           // Le total n'apparaît que lorsque le formulaire est complet et valide.
-          const pret =
-            canSubmit && permanenceCommandeSchema.safeParse(values).success;
+          const pret = canSubmit && schema.safeParse(values).success;
           return (
             <>
               {pret && (
@@ -213,7 +244,9 @@ export function PermanenceForm({
                 disabled={!canSubmit}
                 className="h-13 text-[15.5px]"
               >
-                Créer et envoyer par email
+                {surPlace
+                  ? "Encaisser et faire entrer"
+                  : "Créer et envoyer par email"}
               </Button>
             </>
           );

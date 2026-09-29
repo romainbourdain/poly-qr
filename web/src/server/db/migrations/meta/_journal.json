@@ -29,6 +29,13 @@
       "when": 1790695320087,
       "tag": "0003_supprime_evenement_actif",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790699267607,
+      "tag": "0004_vente_sur_place",
+      "breakpoints": true
     }
   ]
 }

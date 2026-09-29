@@ -62,6 +62,9 @@ export function EvenementForm({
       heure: initial?.heureIso ?? "",
       lieu: initial?.lieu ?? "",
       prixBillet: centimesVersSaisie(initial?.prixBilletCentimes ?? 0),
+      prixBilletSurPlace: centimesVersSaisie(
+        initial?.prixBilletSurPlaceCentimes ?? 0,
+      ),
       prixTicketBoisson: centimesVersSaisie(
         initial?.prixTicketBoissonCentimes ?? 0,
       ),
@@ -128,12 +131,21 @@ export function EvenementForm({
         )}
       </form.Field>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <form.Field name="prixBillet">
           {(field) => (
             <TextField
               field={field}
-              label="Prix du billet (€)"
+              label="Billet en pré-vente (€)"
+              inputMode="decimal"
+            />
+          )}
+        </form.Field>
+        <form.Field name="prixBilletSurPlace">
+          {(field) => (
+            <TextField
+              field={field}
+              label="Billet sur place (€)"
               inputMode="decimal"
             />
           )}
@@ -142,7 +154,7 @@ export function EvenementForm({
           {(field) => (
             <TextField
               field={field}
-              label="Prix du ticket boisson (€)"
+              label="Ticket boisson (€)"
               inputMode="decimal"
             />
           )}

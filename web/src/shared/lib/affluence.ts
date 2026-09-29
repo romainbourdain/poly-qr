@@ -1,3 +1,8 @@
+import {
+  minutesMuralesEvenement,
+  minutesMuralesParis,
+} from "@/shared/lib/horaires";
+
 export const TRANCHE_MINUTES = 15;
 const DUREE_MINIMALE_MINUTES = 3 * 60;
 /** Les scans plus d'1 h avant le début ou 12 h après (essais du scanner, oublis) sont ignorés. */
@@ -10,36 +15,6 @@ export interface TrancheAffluence {
   /** Fin de la tranche, `HH:MM` (heure de Paris). */
   fin: string;
   entrees: number;
-}
-
-const formatteurParis = new Intl.DateTimeFormat("fr-FR", {
-  timeZone: "Europe/Paris",
-  year: "numeric",
-  month: "numeric",
-  day: "numeric",
-  hour: "numeric",
-  minute: "numeric",
-  hourCycle: "h23",
-});
-
-/** Minutes écoulées depuis l'epoch, en lisant l'heure murale de Paris comme si c'était de l'UTC. */
-function minutesMuralesParis(instant: Date): number {
-  const parts = Object.fromEntries(
-    formatteurParis
-      .formatToParts(instant)
-      .map((p) => [p.type, Number(p.value)]),
-  );
-  return Math.floor(
-    Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute) /
-      60_000,
-  );
-}
-
-/** `2026-11-20` + `21:00` (heure de Paris) → minutes murales. */
-function minutesMuralesEvenement(dateIso: string, heureIso: string): number {
-  const [annee, mois, jour] = dateIso.split("-").map(Number);
-  const [heure, minute] = heureIso.split(":").map(Number);
-  return Math.floor(Date.UTC(annee, mois - 1, jour, heure, minute) / 60_000);
 }
 
 function formatHeureMurale(minutes: number): string {

@@ -3,6 +3,7 @@ import type { MoyenPaiement, Origine, Statut } from "./types";
 export const ORIGINE_LABEL: Record<Origine, string> = {
   helloasso: "HelloAsso",
   permanence: "Permanence",
+  sur_place: "Sur place",
 };
 
 export const MOYEN_PAIEMENT_LABEL: Record<MoyenPaiement, string> = {

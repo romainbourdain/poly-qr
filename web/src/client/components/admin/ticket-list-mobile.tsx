@@ -26,9 +26,11 @@ export function TicketListMobile({
               <span className="truncate font-bold text-[15px]">
                 {commande.nom}
               </span>
-              <span className="truncate text-[12.5px] text-faint">
-                {commande.email}
-              </span>
+              {commande.email && (
+                <span className="truncate text-[12.5px] text-faint">
+                  {commande.email}
+                </span>
+              )}
             </div>
             <span className="shrink-0 rounded-full border border-line-2 bg-ink-4 px-2.5 py-1 font-semibold text-[#C7C4DA] text-[12px]">
               {ORIGINE_LABEL[commande.origine]} ·{" "}

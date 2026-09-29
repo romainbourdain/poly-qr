@@ -14,6 +14,7 @@ import { MOYENS_PAIEMENT } from "@/shared/lib/types";
 export const origineCommande = pgEnum("origine_commande", [
   "helloasso",
   "permanence",
+  "sur_place",
 ]);
 
 export const moyenPaiement = pgEnum("moyen_paiement", MOYENS_PAIEMENT);
@@ -31,9 +32,13 @@ export const evenements = pgTable("evenements", {
   heure: time("heure").notNull(),
   lieu: text("lieu").notNull(),
   motDePasseHash: text("mot_de_passe_hash").notNull(),
-  // Prix en centimes, utilisés uniquement pour afficher le total du formulaire
-  // de vente permanence — jamais stockés sur une commande ou un billet.
+  // Prix en centimes, jamais stockés sur une commande ou un billet : ils servent
+  // au total des formulaires de vente et à l'estimation des ventes. Le prix du
+  // billet en pré-vente vaut pour HelloAsso et la permanence.
   prixBilletCentimes: integer("prix_billet_centimes").notNull().default(0),
+  prixBilletSurPlaceCentimes: integer("prix_billet_sur_place_centimes")
+    .notNull()
+    .default(0),
   prixTicketBoissonCentimes: integer("prix_ticket_boisson_centimes")
     .notNull()
     .default(0),
@@ -46,7 +51,8 @@ export const commandes = pgTable("commandes", {
     .notNull()
     .references(() => evenements.id),
   nom: text("nom").notNull(),
-  email: text("email").notNull(),
+  // Absent pour une vente sur place : aucun QR n'est envoyé.
+  email: text("email"),
   origine: origineCommande("origine").notNull(),
   // Simple marqueur pour la trésorerie : jamais de montant, jamais modifiable.
   moyenPaiement: moyenPaiement("moyen_paiement").notNull(),

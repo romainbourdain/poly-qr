@@ -3,6 +3,7 @@ import { AucunEvenement } from "@/client/components/admin/aucun-evenement";
 import { NouveauBilletContent } from "@/client/components/admin/nouveau-billet-content";
 import { db } from "@/server/db/client";
 import { resoudreEvenementAdmin } from "@/server/services/evenements";
+import { evenementADebute } from "@/shared/lib/horaires";
 import { adminSearchParams } from "@/shared/lib/search-params";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +23,14 @@ export default async function AdminNouveauBilletPage({
     <NouveauBilletContent
       evenementId={evenement.id}
       evenementNom={evenement.nom}
-      prix={{
-        billet: evenement.prixBilletCentimes,
-        ticketBoisson: evenement.prixTicketBoissonCentimes,
-      }}
+      modeParDefaut={
+        evenementADebute({ date: evenement.dateIso, heure: evenement.heureIso })
+          ? "sur_place"
+          : "permanence"
+      }
+      prixPrevente={evenement.prixBilletCentimes}
+      prixSurPlace={evenement.prixBilletSurPlaceCentimes}
+      prixTicketBoisson={evenement.prixTicketBoissonCentimes}
     />
   );
 }

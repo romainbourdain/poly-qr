@@ -1,4 +1,4 @@
-export type Origine = "helloasso" | "permanence";
+export type Origine = "helloasso" | "permanence" | "sur_place";
 export const MOYENS_PAIEMENT = [
   "virement",
   "hello_asso",
@@ -41,7 +41,8 @@ export interface BilletListe {
 export interface CommandeAvecBillets {
   commandeId: string;
   nom: string;
-  email: string;
+  /** Absent pour une vente sur place. */
+  email: string | null;
   origine: Origine;
   moyenPaiement: MoyenPaiement;
   billets: BilletListe[];
@@ -49,14 +50,15 @@ export interface CommandeAvecBillets {
 
 export interface CommandeCreee {
   commandeId: string;
+  origine: Origine;
   nom: string;
-  email: string;
+  email: string | null;
   billets: { id: string; code: string; ticketsBoisson: number }[];
 }
 
 export interface BilletScanne {
   nom: string;
-  email: string;
+  email: string | null;
   origine: Origine;
   moyenPaiement: MoyenPaiement;
   ticketsBoisson: number;
@@ -86,7 +88,9 @@ export interface Evenement {
   date: string;
   heure: string;
   lieu: string;
+  /** Prix du billet en pré-vente (HelloAsso et permanence). */
   prixBilletCentimes: number;
+  prixBilletSurPlaceCentimes: number;
   prixTicketBoissonCentimes: number;
 }
 
@@ -100,8 +104,10 @@ export interface StatsEvenement {
   billetsVendus: number;
   billetsInvalides: number;
   billetsPermanence: number;
+  billetsSurPlace: number;
   billetsHelloasso: number;
   entreesScannees: number;
   ticketsBoisson: number;
   ticketsBoissonPermanence: number;
+  ticketsBoissonSurPlace: number;
 }

@@ -31,6 +31,8 @@ export const enregistrerEvenementAction = adminActionClient
       heure: parsedInput.heure,
       lieu: parsedInput.lieu,
       prixBilletCentimes: parseEuros(parsedInput.prixBillet) ?? 0,
+      prixBilletSurPlaceCentimes:
+        parseEuros(parsedInput.prixBilletSurPlace) ?? 0,
       prixTicketBoissonCentimes: parseEuros(parsedInput.prixTicketBoisson) ?? 0,
       motDePasse: parsedInput.motDePasse,
     };

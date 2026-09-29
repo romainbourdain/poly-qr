@@ -23,6 +23,7 @@ export interface EvenementDonnees {
   heure: string;
   lieu: string;
   prixBilletCentimes: number;
+  prixBilletSurPlaceCentimes: number;
   prixTicketBoissonCentimes: number;
   /** Vide à la modification = mot de passe inchangé. */
   motDePasse: string;
@@ -40,6 +41,7 @@ function versEvenement(ligne: LigneEvenement): Evenement {
     heure: formatHeureEvenement(ligne.heure),
     lieu: ligne.lieu,
     prixBilletCentimes: ligne.prixBilletCentimes,
+    prixBilletSurPlaceCentimes: ligne.prixBilletSurPlaceCentimes,
     prixTicketBoissonCentimes: ligne.prixTicketBoissonCentimes,
   };
 }
@@ -117,6 +119,7 @@ export async function creerEvenement(
       heure: donnees.heure,
       lieu: donnees.lieu,
       prixBilletCentimes: donnees.prixBilletCentimes,
+      prixBilletSurPlaceCentimes: donnees.prixBilletSurPlaceCentimes,
       prixTicketBoissonCentimes: donnees.prixTicketBoissonCentimes,
       motDePasseHash,
     })
@@ -143,6 +146,7 @@ export async function modifierEvenement(
       heure: donnees.heure,
       lieu: donnees.lieu,
       prixBilletCentimes: donnees.prixBilletCentimes,
+      prixBilletSurPlaceCentimes: donnees.prixBilletSurPlaceCentimes,
       prixTicketBoissonCentimes: donnees.prixTicketBoissonCentimes,
       ...(motDePasseHash ? { motDePasseHash } : {}),
     })

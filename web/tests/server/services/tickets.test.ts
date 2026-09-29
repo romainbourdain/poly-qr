@@ -13,8 +13,10 @@ import { hashPassword } from "@/server/services/auth";
 import {
   creerCommandeDepuisHelloAsso,
   creerCommandePermanence,
+  creerCommandeSurPlace,
   invaliderBillet,
   listerBillets,
+  listerScansEvenement,
   obtenirCommandeAvecBillets,
   obtenirStatsBillets,
   obtenirStatsEvenement,
@@ -73,6 +75,38 @@ describe("service tickets", () => {
       expect(new Set(nouveauxBillets.map((b) => b.ticketsBoisson))).toEqual(
         new Set([2, 0]),
       );
+    });
+  });
+
+  describe("creerCommandeSurPlace", () => {
+    it("crée des billets déjà scannés, sans email ni QR à envoyer", async () => {
+      const evenementId = await creerEvenement();
+
+      const { commande, billets: nouveauxBillets } =
+        await creerCommandeSurPlace(db, evenementId, {
+          nom: "Robin Petit",
+          moyenPaiement: "especes",
+          billets: [{ ticketsBoisson: 1 }, { ticketsBoisson: 0 }],
+        });
+
+      expect(commande.origine).toBe("sur_place");
+      expect(commande.email).toBeNull();
+      expect(commande.nom).toBe("Robin Petit");
+      expect(nouveauxBillets).toHaveLength(2);
+      for (const billet of nouveauxBillets) {
+        expect(billet.statut).toBe("scanne");
+        expect(billet.scanneA).toBeInstanceOf(Date);
+      }
+    });
+
+    it("compte les entrées sur place dans l'affluence (billets scannés)", async () => {
+      const evenementId = await creerEvenement();
+      await creerCommandeSurPlace(db, evenementId, {
+        nom: "Robin Petit",
+        moyenPaiement: "especes",
+        billets: [{ ticketsBoisson: 0 }, { ticketsBoisson: 0 }],
+      });
+      expect(await listerScansEvenement(db, evenementId)).toHaveLength(2);
     });
   });
 
@@ -518,14 +552,23 @@ describe("service tickets", () => {
         ticketsBoisson: 1,
       });
 
+      const surPlace = await creerCommandeSurPlace(db, evenementId, {
+        nom: "Robin Petit",
+        moyenPaiement: "especes",
+        billets: [{ ticketsBoisson: 2 }],
+      });
+      expect(surPlace.billets).toHaveLength(1);
+
       await expect(obtenirStatsEvenement(db, evenementId)).resolves.toEqual({
-        billetsVendus: 3,
+        billetsVendus: 4,
         billetsInvalides: 1,
         billetsPermanence: 2,
+        billetsSurPlace: 1,
         billetsHelloasso: 1,
-        entreesScannees: 1,
-        ticketsBoisson: 4,
+        entreesScannees: 2,
+        ticketsBoisson: 6,
         ticketsBoissonPermanence: 3,
+        ticketsBoissonSurPlace: 2,
       });
     });
 
