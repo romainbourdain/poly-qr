@@ -46,15 +46,15 @@ export function PermanenceForm({
     },
     onSubmit: async ({ value }) => {
       setError(null);
-      if (value.moyenPaiement === "") return;
-      const nom = value.nom.trim();
-      const email = value.email.trim();
+      // Déjà validé par le schéma ; le parse affine seulement le type de `moyenPaiement`.
+      const { nom, email, moyenPaiement, billets } =
+        permanenceCommandeSchema.parse(value);
 
       const result = await creerPermanenceAction({
         nom,
         email,
-        moyenPaiement: value.moyenPaiement,
-        billets: value.billets,
+        moyenPaiement,
+        billets,
       });
 
       if (!result.success) {

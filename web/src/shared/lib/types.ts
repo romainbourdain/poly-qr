@@ -58,6 +58,7 @@ export interface BilletScanne {
   nom: string;
   email: string;
   origine: Origine;
+  moyenPaiement: MoyenPaiement;
   ticketsBoisson: number;
   scanneA: string | null;
 }

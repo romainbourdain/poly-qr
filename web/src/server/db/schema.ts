@@ -11,20 +11,14 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { MOYENS_PAIEMENT } from "@/shared/lib/types";
 
 export const origineCommande = pgEnum("origine_commande", [
   "helloasso",
   "permanence",
 ]);
 
-export const moyenPaiement = pgEnum("moyen_paiement", [
-  "virement",
-  "hello_asso",
-  "lydia",
-  "especes",
-  "sumup",
-  "autre",
-]);
+export const moyenPaiement = pgEnum("moyen_paiement", MOYENS_PAIEMENT);
 
 export const statutBillet = pgEnum("statut_billet", [
   "non_scanne",

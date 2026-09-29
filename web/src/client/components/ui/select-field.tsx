@@ -1,5 +1,6 @@
 import type { AnyFieldApi } from "@tanstack/react-form";
 import { Field } from "@/client/components/ui/field";
+import { INPUT_CLASSES } from "@/client/components/ui/input";
 import { cn } from "@/shared/lib/cn";
 
 export function SelectField({
@@ -34,7 +35,8 @@ export function SelectField({
         onChange={(e) => field.handleChange(e.target.value)}
         aria-invalid={isInvalid || undefined}
         className={cn(
-          "h-12.5 w-full rounded-xl border border-line-2 bg-ink-3 px-3.5 text-[15.5px] text-fg outline-none focus:border-accent aria-[invalid]:border-bad",
+          INPUT_CLASSES,
+          "aria-[invalid]:border-bad",
           field.state.value === "" && "text-faint",
         )}
       >

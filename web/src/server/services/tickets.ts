@@ -361,6 +361,7 @@ export async function scannerBillet(
       nom: commandes.nom,
       email: commandes.email,
       origine: commandes.origine,
+      moyenPaiement: commandes.moyenPaiement,
     })
     .from(billets)
     .innerJoin(commandes, eq(billets.commandeId, commandes.id))
@@ -373,6 +374,7 @@ export async function scannerBillet(
     nom: ligne.nom,
     email: ligne.email,
     origine: ligne.origine,
+    moyenPaiement: ligne.moyenPaiement,
     ticketsBoisson: ligne.ticketsBoisson,
     scanneA: scanneA ? formatHeure(scanneA) : null,
   });

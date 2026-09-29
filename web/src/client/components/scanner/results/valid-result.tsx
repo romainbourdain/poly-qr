@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ResultIconCircle } from "@/client/components/scanner/result-icon-circle";
+import { MOYEN_PAIEMENT_LABEL } from "@/shared/lib/tickets";
 import type { BilletScanne } from "@/shared/lib/types";
 
 function CheckIcon() {
@@ -38,6 +39,8 @@ export function ValidResult({ billet }: { billet: BilletScanne }) {
             {billet.origine === "helloasso"
               ? "Acheté sur HelloAsso"
               : "Billet de permanence"}
+            {" · "}
+            {MOYEN_PAIEMENT_LABEL[billet.moyenPaiement]}
           </div>
         </div>
 
