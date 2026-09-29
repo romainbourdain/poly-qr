@@ -15,6 +15,16 @@ export function calculerTotalCentimes(
   );
 }
 
+/** Montant, en centimes, de `billets` billets et `ticketsBoisson` tickets boisson aux prix de l'événement. */
+export function montantCentimes(
+  prix: PrixEvenement,
+  ventes: { billets: number; ticketsBoisson: number },
+): number {
+  return (
+    ventes.billets * prix.billet + ventes.ticketsBoisson * prix.ticketBoisson
+  );
+}
+
 const formatteurEuros = new Intl.NumberFormat("fr-FR", {
   style: "currency",
   currency: "EUR",

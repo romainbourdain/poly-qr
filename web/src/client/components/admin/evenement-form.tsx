@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/client/components/ui/button";
 import { CARD_CLASSES } from "@/client/components/ui/card";
+import { Field } from "@/client/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/client/components/ui/input-group";
 import { TextField } from "@/client/components/ui/text-field";
 import { applyFieldErrors } from "@/client/lib/apply-action-errors";
 import { enregistrerEvenementAction } from "@/server/actions/evenements";
@@ -14,12 +21,32 @@ import { centimesVersSaisie } from "@/shared/lib/prix";
 import type { Evenement } from "@/shared/lib/types";
 import { evenementSchema } from "@/shared/validators/evenement";
 
+function LockIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
 export function EvenementForm({
   mode,
   initial,
+  titre,
 }: {
   mode: "creer" | "modifier";
   initial?: Evenement | null;
+  /** Titre affiché en tête de la card. */
+  titre?: string;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +100,7 @@ export function EvenementForm({
       }}
       className={cn(CARD_CLASSES, "flex flex-col gap-5")}
     >
+      {titre && <h2 className="font-bold text-[16px]">{titre}</h2>}
       <form.Field name="nom">
         {(field) => (
           <TextField
@@ -120,27 +148,29 @@ export function EvenementForm({
       </div>
 
       {mode === "modifier" && !changerMotDePasse ? (
-        <div className="flex flex-col gap-2">
-          <span className="font-bold text-[12.5px] text-muted">
+        <Field.Root>
+          <Field.Label htmlFor="mot-de-passe-actuel">
             Mot de passe scanner
-          </span>
-          <div className="flex items-center gap-2">
-            <div
-              role="img"
-              aria-label="Mot de passe défini, masqué"
-              className="flex h-12.5 min-w-0 flex-1 items-center rounded-xl border border-line-2 bg-ink-4 px-3.5 text-[18px] text-muted tracking-[0.3em]"
-            >
-              ••••••••
-            </div>
-            <Button
-              variant="secondary"
-              className="h-12.5 shrink-0"
-              onClick={() => setChangerMotDePasse(true)}
-            >
+          </Field.Label>
+          <InputGroup>
+            <InputGroupAddon>
+              <LockIcon />
+            </InputGroupAddon>
+            <InputGroupInput
+              id="mot-de-passe-actuel"
+              value="••••••••"
+              disabled
+              readOnly
+              aria-describedby="mot-de-passe-actuel-aide"
+            />
+            <InputGroupButton onClick={() => setChangerMotDePasse(true)}>
               Changer
-            </Button>
-          </div>
-        </div>
+            </InputGroupButton>
+          </InputGroup>
+          <Field.Description id="mot-de-passe-actuel-aide">
+            Masqué : définis-en un nouveau pour le remplacer.
+          </Field.Description>
+        </Field.Root>
       ) : (
         <div className="flex flex-col gap-2">
           <form.Field name="motDePasse">

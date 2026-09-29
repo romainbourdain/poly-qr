@@ -1,6 +1,6 @@
 import { Card } from "@/client/components/ui/card";
 import { Stat } from "@/client/components/ui/stat";
-import { formatEuros } from "@/shared/lib/prix";
+import { formatEuros, montantCentimes } from "@/shared/lib/prix";
 import type { Evenement, StatsEvenement } from "@/shared/lib/types";
 
 export function EventSummaryCard({
@@ -10,10 +10,15 @@ export function EventSummaryCard({
   evenement: Evenement;
   stats: StatsEvenement;
 }) {
-  // Seule la permanence a des prix connus : HelloAsso gère ses propres tarifs.
-  const ventesPermanence =
-    stats.billetsPermanence * evenement.prixBilletCentimes +
-    stats.ticketsBoissonPermanence * evenement.prixTicketBoissonCentimes;
+  // Le système ne stocke pas les montants HelloAsso : tous les billets sont
+  // valorisés aux prix de l'événement.
+  const ventes = montantCentimes(
+    {
+      billet: evenement.prixBilletCentimes,
+      ticketBoisson: evenement.prixTicketBoissonCentimes,
+    },
+    { billets: stats.billetsVendus, ticketsBoisson: stats.ticketsBoisson },
+  );
 
   return (
     <Card className="flex flex-col gap-5">
@@ -28,19 +33,15 @@ export function EventSummaryCard({
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3.5">
         <Stat
-          label="Billets vendus"
-          value={stats.billetsVendus}
-          hint={`${stats.billetsHelloasso} HelloAsso · ${stats.billetsPermanence} permanence`}
+          label="Ventes totales"
+          value={formatEuros(ventes)}
+          hint="Billets et tickets boisson"
         />
+        <Stat label="Billets vendus" value={stats.billetsVendus} />
+        <Stat label="Tickets boisson vendus" value={stats.ticketsBoisson} />
         <Stat
           label="Personnes entrées"
           value={`${stats.entreesScannees} / ${stats.billetsVendus}`}
-        />
-        <Stat label="Tickets boisson vendus" value={stats.ticketsBoisson} />
-        <Stat
-          label="Ventes en permanence"
-          value={formatEuros(ventesPermanence)}
-          hint="Hors HelloAsso"
         />
       </div>
     </Card>

@@ -520,6 +520,7 @@ describe("service tickets", () => {
 
       await expect(obtenirStatsEvenement(db, evenementId)).resolves.toEqual({
         billetsVendus: 3,
+        billetsInvalides: 1,
         billetsPermanence: 2,
         billetsHelloasso: 1,
         entreesScannees: 1,

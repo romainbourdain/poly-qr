@@ -257,7 +257,7 @@ export async function obtenirCommandeAvecBillets(
 
 /**
  * Compteurs du résumé admin pour un événement. Un billet = une personne ;
- * les billets invalidés ne comptent nulle part.
+ * les billets invalidés sont comptés à part, jamais parmi les ventes.
  */
 export async function obtenirStatsEvenement(
   db: Db,
@@ -265,6 +265,7 @@ export async function obtenirStatsEvenement(
 ): Promise<StatsEvenement> {
   const stats: StatsEvenement = {
     billetsVendus: 0,
+    billetsInvalides: 0,
     billetsPermanence: 0,
     billetsHelloasso: 0,
     entreesScannees: 0,
@@ -282,7 +283,10 @@ export async function obtenirStatsEvenement(
     .where(eq(commandes.evenementId, evenementId));
 
   for (const ligne of lignes) {
-    if (ligne.statut === "invalide") continue;
+    if (ligne.statut === "invalide") {
+      stats.billetsInvalides += 1;
+      continue;
+    }
     stats.billetsVendus += 1;
     stats.ticketsBoisson += ligne.ticketsBoisson;
     if (ligne.origine === "permanence") {
