@@ -14,8 +14,8 @@ Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 - `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : lien HelloAsso à copier, lien et QR du scanner, édition (nom, date, heure, lieu, mot de passe scanner, tarifs cotisant et non cotisant en pré-vente et sur place, prix du ticket boisson). Le même sélecteur pilote `/admin/statistiques`, `/admin/nouveau` et `/admin/billets`
 - `/admin/statistiques` — chiffres clés, affluence par tranche de 15 min, billets par canal et avancement des entrées (graphiques Recharts), à jour au rechargement de la page
 - `/admin/evenements/nouveau` — création d'un événement, puis guide pour relier HelloAsso (URL de webhook propre à l'événement)
-- `/admin/nouveau` — vente de billets en main propre, avec total à payer (affichage uniquement, aucun montant stocké) : onglet « Pré-vente » (permanence, QR envoyé par email) ou « Sur place » (sans email, billets déjà scannés) ; nom, prénom, statut cotisant et tickets boisson par billet ; l'onglet par défaut dépend de l'heure de début de l'événement
-- `/admin/billets` — liste à plat des billets nominatifs (nom, prénom, email, canal, tarif cotisant ou non) ; recherche et filtre de statut synchronisés à l'URL, tri au clic sur les en-têtes, pagination de 20 billets et invalidation ; l'admin est **responsive**
+- `/admin/nouveau` — vente de billets en main propre, avec total à payer (affichage uniquement, aucun montant stocké) : onglet « Pré-vente » (permanence, QR envoyé par email), « Sur place » (sans email, billets déjà scannés) ou « Ticket boisson » (tickets en plus pour quelqu'un qui a déjà un billet, retrouvé par nom ou prénom, avec son propre moyen de paiement) ; nom, prénom, statut cotisant et tickets boisson par billet ; l'onglet par défaut dépend de l'heure de début de l'événement
+- `/admin/billets` — liste à plat des billets nominatifs (nom, prénom, email, canal, tarif cotisant ou non) ; recherche et filtre de statut synchronisés à l'URL, tri au clic sur les en-têtes, pagination de 20 billets ; un menu d'actions par ligne (modifier le nom, le prénom ou le tarif cotisant, renvoyer l'email de la commande, copier le lien du billet, invalider ou réactiver) ; le bouton « Exporter en CSV » télécharge le justificatif des paiements de l'événement (`/admin/billets/export?evenement=<id>`, une ligne par commande, montants calculés aux prix de l'événement hors billets invalidés ; CSV pour Excel français) ; l'admin est **responsive**
 - `/api/webhooks/helloasso/<id-événement>?secret=…` — création automatique des commandes HelloAsso pour cet événement et envoi de l'email
 
 ## Stack
@@ -48,7 +48,7 @@ web/src/
 │
 ├── client/                     # Tout ce qui s'exécute côté navigateur
 │   ├── components/
-│   │   ├── ui/                 #   design system (Button, Input, Field, Tabs, NumberField...)
+│   │   ├── ui/                 #   design system (Button, Input, Field, Tabs, Table, DropdownMenu, NumberField...)
 │   │   ├── admin/ · billet/ · login/ · scanner/ · home/   # composants par domaine métier
 │   ├── hooks/                  #   hooks de présentation (ex. use-ticket-filters, nuqs)
 │   └── store/                  #   état partagé client (scan-result-store.ts, Zustand)
@@ -82,7 +82,7 @@ Un `React.Context` fait re-render **tous** ses consommateurs à chaque mutation,
 
 ### Couches backend
 
-`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). Les pages et composants passent par `server/actions/` (`auth`, `tickets`, `evenements`), qui délèguent à `server/services/`. Il n'y a pas d'événement « actif » : l'admin en choisit un explicitement. Les prix de l'événement sont en centimes : pré-vente et sur place, chacun avec un tarif cotisant et non cotisant ; ils servent au total affiché en vente et aux estimations des statistiques.
+`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`, `lignes_boisson`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). Les pages et composants passent par `server/actions/` (`auth`, `tickets`, `evenements`), qui délèguent à `server/services/`. Une commande est un acte d'achat (un encaissement) ; elle contient des billets (une personne chacun) et/ou des tickets boisson (`lignes_boisson`, toujours rattachés à un billet), et des clés étrangères composites garantissent le même événement sur toute la chaîne. Il n'y a pas d'événement « actif » : l'admin en choisit un explicitement. Les prix de l'événement sont en centimes : pré-vente et sur place, chacun avec un tarif cotisant et non cotisant ; ils servent au total affiché en vente et aux estimations des statistiques.
 
 ## Base de données
 
@@ -177,7 +177,7 @@ volumes:
 
 ```bash
 # Compose
-POSTGRES_PASSWORD=...          # évite les caractères spéciaux d'URL (@ : / ? #) : inséré tel quel dans DATABASE_URL
+POSTGRES_PASSWORD=...          # openssl rand -hex 24 (PAS -base64 : + et / cassent DATABASE_URL, inséré tel quel)
 # APP_PORT=3000                # port exposé sur l'hôte
 # APP_TAG=0.1.0-r3             # fige une release (défaut : latest)
 
