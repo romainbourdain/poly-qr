@@ -1,4 +1,4 @@
-# PolyQR — Prototype Next.js
+# PolyQR
 
 Billetterie QR de l'association (voir [../docs/CONTEXT.md](../docs/CONTEXT.md)) : les billets sont créés soit par le webhook HelloAsso, soit en permanence par un organisateur ; un QR est envoyé par email et scanné à l'entrée par les bénévoles. Tout est persisté en Postgres (Drizzle) et lu via des server actions.
 
@@ -6,7 +6,7 @@ Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 
 ## Parcours couverts
 
-- `/` — accueil avec les deux entrées (participant, admin)
+- `/` — accueil minimal : nom du service, lien vers l'espace organisateurs et indicateur « en ligne » (les participants arrivent par le lien de leur email)
 - `/billet?commande=<id>` — page participant d'une commande : un QR scannable par billet (`polyqr:<code>`), tickets boisson, téléchargement PDF (`/billet/<id>/pdf`). Affiche l'événement *de la commande*, même après sa fin
 - `/login` — accès admin, protégé par `ADMIN_PASSWORD` (variable d'environnement, cookie de session signé)
 - `/scanner/<id-événement>` — un scanner par événement, protégé par le mot de passe *de cet événement* (`/scanner/<id>/login`, session valable pour cet événement seulement) ; scan par caméra réelle (`getUserMedia` + décodage `jsQR`), avec repli manuel
@@ -49,7 +49,7 @@ web/src/
 ├── client/                     # Tout ce qui s'exécute côté navigateur
 │   ├── components/
 │   │   ├── ui/                 #   design system (Button, Input, Field, Tabs, Table, DropdownMenu, NumberField...)
-│   │   ├── admin/ · billet/ · login/ · scanner/ · home/   # composants par domaine métier
+│   │   ├── admin/ · billet/ · login/ · scanner/   # composants par domaine métier
 │   ├── hooks/                  #   hooks de présentation (ex. use-ticket-filters, nuqs)
 │   └── store/                  #   état partagé client (scan-result-store.ts, Zustand)
 │

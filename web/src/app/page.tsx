@@ -1,38 +1,43 @@
-import { FeatureCard } from "@/client/components/home/feature-card";
+import Link from "next/link";
+import { buttonVariants } from "@/client/components/ui/button";
+import { cn } from "@/shared/lib/cn";
+
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-12 px-6 py-16">
-      <div className="flex flex-col gap-3">
-        <div className="font-bold text-[12px] text-muted uppercase tracking-[0.18em]">
-          BDE TPS · Prototype
-        </div>
-        <h1 className="font-display font-extrabold text-4xl tracking-tight sm:text-5xl">
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col items-center justify-center gap-8 px-7 text-center">
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-accent">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M3 12h18" />
+        </svg>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h1 className="font-display font-extrabold text-4xl tracking-tight">
           PolyQR
         </h1>
-        <p className="max-w-xl text-[15px] text-muted leading-relaxed">
-          Démo cliquable du système de QR code d&apos;entrée. Ce prototype sert
-          à valider le parcours, pas à gérer une vraie soirée.
+        <p className="text-[15px] text-muted leading-relaxed">
+          Billetterie des soirées du BDE TPS.
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <FeatureCard
-          href="/billet"
-          eyebrow="Participant"
-          title="Voir un billet"
-          desc="L'écran reçu par email après paiement, avec le QR et les tickets boisson."
-          cta="Ouvrir le billet"
-          accent="#6C4BF0"
-        />
-        <FeatureCard
-          href="/admin"
-          eyebrow="Organisateurs"
-          title="Espace admin"
-          desc="Événements, billets de permanence, liste des billets et accès au scanner de chaque événement."
-          cta="Ouvrir l'admin"
-          accent="#FFB020"
-        />
-      </div>
+      <Link href="/admin" className={cn(buttonVariants(), "h-12 px-6")}>
+        Espace organisateurs
+      </Link>
+
+      <p className="flex items-center gap-2 text-[13px] text-muted">
+        <span aria-hidden="true" className="size-2 rounded-full bg-good" />
+        Le service est en ligne
+      </p>
     </main>
   );
 }
