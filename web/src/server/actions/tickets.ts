@@ -226,9 +226,8 @@ export const obtenirCommandeAction = actionClient
 export const scannerBilletAction = scannerActionClient
   .inputSchema(scanCodeSchema)
   .action(async ({ parsedInput: code, ctx }) => {
-    const resultat = await scannerBillet(db, ctx.evenementId, code);
-    if (resultat.type === "valide") {
-      revalidatePath("/admin/billets");
-    }
-    return resultat;
+    // Pas de `revalidatePath` ici : il ferait re-rendre la page du scanner (et
+    // toute la liste des billets) à chaque scan réussi. Les pages admin sont
+    // `force-dynamic`, elles relisent la base à chaque visite.
+    return scannerBillet(db, ctx.evenementId, code);
   });
