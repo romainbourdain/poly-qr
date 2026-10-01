@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
+// Polices hébergées dans le repo (sous-ensemble latin, variables) : le build ne
+// dépend plus de Google Fonts, dont les échecs intermittents cassaient la release.
+const bricolage = localFont({
+  src: "./fonts/bricolage-grotesque-latin.woff2",
   variable: "--font-bricolage",
-  subsets: ["latin"],
-  weight: ["500", "700", "800"],
+  weight: "200 800",
+  display: "swap",
 });
 
-const manrope = Manrope({
+const manrope = localFont({
+  src: "./fonts/manrope-latin.woff2",
   variable: "--font-manrope",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "200 800",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
