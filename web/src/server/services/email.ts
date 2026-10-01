@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { env } from "@/server/env";
+import { genererHtmlCommande } from "@/server/services/email-template";
 import {
   type EvenementInfoPdf,
   genererPdfCommande,
@@ -150,27 +151,12 @@ export async function envoyerEmailCommande(
     })),
   );
 
-  const lien = `${appUrl}/billet?commande=${commande.commandeId}`;
-  const pluriel = commande.billets.length > 1;
-
-  const qrHtml = qrs
-    .map(
-      ({ cid, billet }) => `
-        <p style="text-align:center;margin:0 0 24px;">
-          <img src="cid:${cid}" alt="QR billet ${billet.code}" width="${QR_SIZE}" height="${QR_SIZE}" />
-          <br />
-          Billet ${billet.code}
-        </p>`,
-    )
-    .join("");
-
-  const html = `
-    <p>Bonjour ${commande.nom},</p>
-    <p>Voici ${pluriel ? "tes billets" : "ton billet"} pour ${evenement.nom} (${evenement.date} à ${evenement.heure}, ${evenement.lieu}).</p>
-    ${qrHtml}
-    <p>Retrouve ${pluriel ? "tes billets" : "ton billet"} en ligne, ou télécharge le PDF joint pour le consulter hors connexion :<br />
-    <a href="${lien}">${lien}</a></p>
-  `;
+  const html = genererHtmlCommande({
+    nom: commande.nom,
+    evenement,
+    qrs: qrs.map(({ cid, billet }) => ({ cid, billet, size: QR_SIZE })),
+    lien: `${appUrl}/billet?commande=${commande.commandeId}`,
+  });
 
   await sender.envoyer({
     to: commande.email,

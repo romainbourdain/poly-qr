@@ -2,7 +2,6 @@ export type Origine = "helloasso" | "permanence" | "sur_place";
 export const MOYENS_PAIEMENT = [
   "virement",
   "hello_asso",
-  "lydia",
   "especes",
   "sumup",
   "autre",
@@ -42,6 +41,7 @@ export interface BilletListe {
 
 /** Un billet nominatif tel qu'affiché dans la liste admin, avec les infos de sa commande. */
 export interface BilletAdmin extends BilletListe {
+  commandeId: string;
   /** La personne bénéficie du tarif cotisant. */
   cotisant: boolean;
   /** Absent pour une vente sur place. */

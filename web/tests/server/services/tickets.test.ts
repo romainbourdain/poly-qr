@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { Sql } from "postgres";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import { billets, commandes, evenements } from "@/server/db/schema";
+import {
+  billets,
+  commandes,
+  evenements,
+  lignesBoisson,
+} from "@/server/db/schema";
 import {
   creerTestDb,
   fermerTestDb,
@@ -53,6 +58,20 @@ describe("service tickets", () => {
       })
       .returning();
     return evenement.id;
+  }
+
+  /** Tickets boisson achetés par `commande` pour `billet` (même événement). */
+  async function acheterBoisson(
+    commande: { id: string; evenementId: string },
+    billetId: string,
+    quantite: number,
+  ) {
+    await db.insert(lignesBoisson).values({
+      evenementId: commande.evenementId,
+      commandeId: commande.id,
+      billetId,
+      quantite,
+    });
   }
 
   describe("creerCommandePermanence", () => {
@@ -246,33 +265,38 @@ describe("service tickets", () => {
         })
         .returning();
 
-      await db.insert(billets).values([
-        {
-          commandeId: commandeA.id,
-          nom: "Lemoine",
-          prenom: "Sacha",
-          code: "AAAA",
-          cotisant: true,
-          ticketsBoisson: 1,
-          statut: "non_scanne",
-        },
-        {
-          commandeId: commandeA.id,
-          nom: "Petit",
-          prenom: "Robin",
-          code: "BBBB",
-          ticketsBoisson: 0,
-          statut: "invalide",
-        },
-        {
-          commandeId: commandeB.id,
-          nom: "Dupont",
-          prenom: "Léa",
-          code: "CCCC",
-          ticketsBoisson: 3,
-          statut: "non_scanne",
-        },
-      ]);
+      const [billetAAAA, , billetCCCC] = await db
+        .insert(billets)
+        .values([
+          {
+            evenementId: commandeA.evenementId,
+            commandeId: commandeA.id,
+            nom: "Lemoine",
+            prenom: "Sacha",
+            code: "AAAA",
+            cotisant: true,
+            statut: "non_scanne",
+          },
+          {
+            evenementId: commandeA.evenementId,
+            commandeId: commandeA.id,
+            nom: "Petit",
+            prenom: "Robin",
+            code: "BBBB",
+            statut: "invalide",
+          },
+          {
+            evenementId: commandeB.evenementId,
+            commandeId: commandeB.id,
+            nom: "Dupont",
+            prenom: "Léa",
+            code: "CCCC",
+            statut: "non_scanne",
+          },
+        ])
+        .returning();
+      await acheterBoisson(commandeA, billetAAAA.id, 1);
+      await acheterBoisson(commandeB, billetCCCC.id, 3);
 
       const tous = await listerBillets(db, evenementId, {
         q: "",
@@ -341,18 +365,18 @@ describe("service tickets", () => {
         .insert(billets)
         .values([
           {
+            evenementId: commande.evenementId,
             commandeId: commande.id,
             nom: "Martin",
             prenom: "Alix",
             code: "AAAA",
-            ticketsBoisson: 0,
           },
           {
+            evenementId: commande.evenementId,
             commandeId: commande.id,
             nom: "Martin",
             prenom: "Alix",
             code: "BBBB",
-            ticketsBoisson: 0,
           },
         ])
         .returning();
@@ -393,13 +417,17 @@ describe("service tickets", () => {
         })
         .returning();
 
-      await db.insert(billets).values({
-        commandeId: commande.id,
-        nom: "Lemoine",
-        prenom: "Sacha",
-        code: "AAAA",
-        ticketsBoisson: 2,
-      });
+      const [billet] = await db
+        .insert(billets)
+        .values({
+          evenementId: commande.evenementId,
+          commandeId: commande.id,
+          nom: "Lemoine",
+          prenom: "Sacha",
+          code: "AAAA",
+        })
+        .returning();
+      await acheterBoisson(commande, billet.id, 2);
 
       const resultat = await scannerBillet(db, evenementId, "AAAA");
 
@@ -432,6 +460,7 @@ describe("service tickets", () => {
         .returning();
 
       await db.insert(billets).values({
+        evenementId: commande.evenementId,
         commandeId: commande.id,
         nom: "Martin",
         prenom: "Alix",
@@ -468,6 +497,7 @@ describe("service tickets", () => {
 
       const premierScan = new Date("2026-09-30T20:00:00Z");
       await db.insert(billets).values({
+        evenementId: commande.evenementId,
         commandeId: commande.id,
         nom: "Martin",
         prenom: "Alix",
@@ -497,6 +527,7 @@ describe("service tickets", () => {
         .returning();
 
       await db.insert(billets).values({
+        evenementId: commande.evenementId,
         commandeId: commande.id,
         nom: "Martin",
         prenom: "Alix",
@@ -531,6 +562,7 @@ describe("service tickets", () => {
         })
         .returning();
       await db.insert(billets).values({
+        evenementId: commande.evenementId,
         commandeId: commande.id,
         nom: "Martin",
         prenom: "Alix",
@@ -559,12 +591,14 @@ describe("service tickets", () => {
 
       await db.insert(billets).values([
         {
+          evenementId: commande.evenementId,
           commandeId: commande.id,
           nom: "Martin",
           prenom: "Alix",
           code: "AAAA",
         },
         {
+          evenementId: commande.evenementId,
           commandeId: commande.id,
           nom: "Martin",
           prenom: "Alix",
@@ -604,21 +638,22 @@ describe("service tickets", () => {
         .insert(billets)
         .values([
           {
+            evenementId: commande.evenementId,
             commandeId: commande.id,
             nom: "Martin",
             prenom: "Alix",
             code: "AAAA",
-            ticketsBoisson: 1,
           },
           {
+            evenementId: commande.evenementId,
             commandeId: commande.id,
             nom: "Martin",
             prenom: "Alix",
             code: "BBBB",
-            ticketsBoisson: 0,
           },
         ])
         .returning();
+      await acheterBoisson(commande, billetA.id, 1);
 
       const resultat = await obtenirCommandeAvecBillets(db, commande.id);
 
@@ -653,33 +688,40 @@ describe("service tickets", () => {
         })
         .returning();
 
-      await db.insert(billets).values([
-        {
-          commandeId: commande.id,
-          nom: "Martin",
-          prenom: "Alix",
-          code: "AAAA",
-          statut: "scanne",
-          ticketsBoisson: 2,
-        },
-        {
-          commandeId: commande.id,
-          nom: "Martin",
-          prenom: "Alix",
-          code: "BBBB",
-          statut: "non_scanne",
-          cotisant: true,
-          ticketsBoisson: 1,
-        },
-        {
-          commandeId: commande.id,
-          nom: "Martin",
-          prenom: "Alix",
-          code: "CCCC",
-          statut: "invalide",
-          ticketsBoisson: 5,
-        },
-      ]);
+      const [billetA, billetB, billetInvalide] = await db
+        .insert(billets)
+        .values([
+          {
+            evenementId: commande.evenementId,
+            commandeId: commande.id,
+            nom: "Martin",
+            prenom: "Alix",
+            code: "AAAA",
+            statut: "scanne",
+          },
+          {
+            evenementId: commande.evenementId,
+            commandeId: commande.id,
+            nom: "Martin",
+            prenom: "Alix",
+            code: "BBBB",
+            statut: "non_scanne",
+            cotisant: true,
+          },
+          {
+            evenementId: commande.evenementId,
+            commandeId: commande.id,
+            nom: "Martin",
+            prenom: "Alix",
+            code: "CCCC",
+            statut: "invalide",
+          },
+        ])
+        .returning();
+      await acheterBoisson(commande, billetA.id, 2);
+      await acheterBoisson(commande, billetB.id, 1);
+      // Les tickets d'un billet invalidé ne comptent pas.
+      await acheterBoisson(commande, billetInvalide.id, 5);
 
       const [commandeHelloasso] = await db
         .insert(commandes)
@@ -692,14 +734,18 @@ describe("service tickets", () => {
           helloassoPaymentId: "hpid-stats",
         })
         .returning();
-      await db.insert(billets).values({
-        commandeId: commandeHelloasso.id,
-        nom: "Martin",
-        prenom: "Alix",
-        code: "DDDD",
-        cotisant: true,
-        ticketsBoisson: 1,
-      });
+      const [billetHelloasso] = await db
+        .insert(billets)
+        .values({
+          evenementId: commandeHelloasso.evenementId,
+          commandeId: commandeHelloasso.id,
+          nom: "Martin",
+          prenom: "Alix",
+          code: "DDDD",
+          cotisant: true,
+        })
+        .returning();
+      await acheterBoisson(commandeHelloasso, billetHelloasso.id, 1);
 
       const surPlace = await creerCommandeSurPlace(db, evenementId, {
         moyenPaiement: "especes",
@@ -744,6 +790,7 @@ describe("service tickets", () => {
         })
         .returning();
       await db.insert(billets).values({
+        evenementId: commande.evenementId,
         commandeId: commande.id,
         nom: "Martin",
         prenom: "Alix",
@@ -776,6 +823,7 @@ describe("service tickets", () => {
 
       await db.insert(billets).values([
         {
+          evenementId: commande.evenementId,
           commandeId: commande.id,
           nom: "Martin",
           prenom: "Alix",
@@ -783,6 +831,7 @@ describe("service tickets", () => {
           statut: "scanne",
         },
         {
+          evenementId: commande.evenementId,
           commandeId: commande.id,
           nom: "Martin",
           prenom: "Alix",
@@ -790,6 +839,7 @@ describe("service tickets", () => {
           statut: "non_scanne",
         },
         {
+          evenementId: commande.evenementId,
           commandeId: commande.id,
           nom: "Martin",
           prenom: "Alix",

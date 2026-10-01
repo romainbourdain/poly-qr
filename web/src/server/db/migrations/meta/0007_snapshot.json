@@ -1,0 +1,380 @@
+{
+  "id": "f282138e-e797-48ce-a8e2-1653d6e799b2",
+  "prevId": "09adc19b-59d2-40f1-ba14-45477e1f2cf1",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.billets": {
+      "name": "billets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "evenement_id": {
+          "name": "evenement_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "commande_id": {
+          "name": "commande_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cotisant": {
+          "name": "cotisant",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_billet",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'non_scanne'"
+        },
+        "scanne_a": {
+          "name": "scanne_a",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cree_a": {
+          "name": "cree_a",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "billets_commande_evenement_fk": {
+          "name": "billets_commande_evenement_fk",
+          "tableFrom": "billets",
+          "tableTo": "commandes",
+          "columnsFrom": ["commande_id", "evenement_id"],
+          "columnsTo": ["id", "evenement_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "billets_code_unique": {
+          "name": "billets_code_unique",
+          "nullsNotDistinct": false,
+          "columns": ["code"]
+        },
+        "billets_id_evenement_unique": {
+          "name": "billets_id_evenement_unique",
+          "nullsNotDistinct": false,
+          "columns": ["id", "evenement_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.commandes": {
+      "name": "commandes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "evenement_id": {
+          "name": "evenement_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "origine": {
+          "name": "origine",
+          "type": "origine_commande",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "moyen_paiement": {
+          "name": "moyen_paiement",
+          "type": "moyen_paiement",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "helloasso_payment_id": {
+          "name": "helloasso_payment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cree_a": {
+          "name": "cree_a",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "commandes_evenement_id_evenements_id_fk": {
+          "name": "commandes_evenement_id_evenements_id_fk",
+          "tableFrom": "commandes",
+          "tableTo": "evenements",
+          "columnsFrom": ["evenement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "commandes_helloasso_payment_id_unique": {
+          "name": "commandes_helloasso_payment_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["helloasso_payment_id"]
+        },
+        "commandes_id_evenement_unique": {
+          "name": "commandes_id_evenement_unique",
+          "nullsNotDistinct": false,
+          "columns": ["id", "evenement_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.evenements": {
+      "name": "evenements",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "heure": {
+          "name": "heure",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lieu": {
+          "name": "lieu",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mot_de_passe_hash": {
+          "name": "mot_de_passe_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prix_billet_centimes": {
+          "name": "prix_billet_centimes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "prix_billet_cotisant_centimes": {
+          "name": "prix_billet_cotisant_centimes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "prix_billet_sur_place_centimes": {
+          "name": "prix_billet_sur_place_centimes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "prix_billet_sur_place_cotisant_centimes": {
+          "name": "prix_billet_sur_place_cotisant_centimes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "prix_ticket_boisson_centimes": {
+          "name": "prix_ticket_boisson_centimes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "cree_a": {
+          "name": "cree_a",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.lignes_boisson": {
+      "name": "lignes_boisson",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "evenement_id": {
+          "name": "evenement_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "commande_id": {
+          "name": "commande_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "billet_id": {
+          "name": "billet_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantite": {
+          "name": "quantite",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "lignes_boisson_commande_evenement_fk": {
+          "name": "lignes_boisson_commande_evenement_fk",
+          "tableFrom": "lignes_boisson",
+          "tableTo": "commandes",
+          "columnsFrom": ["commande_id", "evenement_id"],
+          "columnsTo": ["id", "evenement_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "lignes_boisson_billet_evenement_fk": {
+          "name": "lignes_boisson_billet_evenement_fk",
+          "tableFrom": "lignes_boisson",
+          "tableTo": "billets",
+          "columnsFrom": ["billet_id", "evenement_id"],
+          "columnsTo": ["id", "evenement_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "lignes_boisson_quantite_positive": {
+          "name": "lignes_boisson_quantite_positive",
+          "value": "\"lignes_boisson\".\"quantite\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.moyen_paiement": {
+      "name": "moyen_paiement",
+      "schema": "public",
+      "values": ["virement", "hello_asso", "especes", "sumup", "autre"]
+    },
+    "public.origine_commande": {
+      "name": "origine_commande",
+      "schema": "public",
+      "values": ["helloasso", "permanence", "sur_place"]
+    },
+    "public.statut_billet": {
+      "name": "statut_billet",
+      "schema": "public",
+      "values": ["non_scanne", "scanne", "invalide"]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

@@ -29,7 +29,7 @@ export async function creerTestDb(): Promise<{ db: TestDb; client: Sql }> {
  */
 export async function nettoyerTestDb(db: TestDb): Promise<void> {
   await db.execute(
-    sql`TRUNCATE TABLE billets, commandes, evenements RESTART IDENTITY CASCADE`,
+    sql`TRUNCATE TABLE lignes_boisson, billets, commandes, evenements RESTART IDENTITY CASCADE`,
   );
 }
 

@@ -57,18 +57,18 @@ describe("schéma DB (evenements / commandes / billets)", () => {
       .insert(billets)
       .values([
         {
+          evenementId: commande.evenementId,
           commandeId: commande.id,
           nom: "Martin",
           prenom: "Alix",
           code: "ABC123",
-          ticketsBoisson: 1,
         },
         {
+          evenementId: commande.evenementId,
           commandeId: commande.id,
           nom: "Martin",
           prenom: "Alix",
           code: "ABC124",
-          ticketsBoisson: 0,
         },
       ])
       .returning();
@@ -99,6 +99,7 @@ describe("schéma DB (evenements / commandes / billets)", () => {
       .returning();
 
     await db.insert(billets).values({
+      evenementId: commande.evenementId,
       commandeId: commande.id,
       nom: "Martin",
       prenom: "Alix",
@@ -107,6 +108,7 @@ describe("schéma DB (evenements / commandes / billets)", () => {
 
     await expect(
       db.insert(billets).values({
+        evenementId: commande.evenementId,
         commandeId: commande.id,
         nom: "Martin",
         prenom: "Alix",

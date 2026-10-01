@@ -6,7 +6,7 @@ Remplacer le contrôle d'entrée manuel (fichier Excel + pointage humain) par un
 
 ## Concepts centraux : commande et billet
 
-Une **commande** = un achat, identifié par le nom et l'email de l'acheteur·se, qui regroupe un ou plusieurs **billets**.
+Une **commande** = un acte d'achat (un encaissement), identifié par le nom et l'email de l'acheteur·se, qui regroupe un ou plusieurs **billets** et/ou des **tickets boisson**. Un ajout de tickets boisson pour quelqu'un qui a déjà un billet est une nouvelle commande, sans billet.
 
 Un **billet** = une personne. Chaque billet a son propre QR, son propre nombre de tickets boisson, et son propre statut (utilisé/non utilisé/invalidé) — **totalement indépendant des autres billets de la même commande**. Scanner un billet ne consomme que ce billet ; les autres billets de la commande restent valables et scannables séparément, à un autre moment, par une autre personne.
 
@@ -22,7 +22,7 @@ Une personne qui achète pour plusieurs (elle-même incluse ou non) reçoit une 
 
 ## Tickets boisson
 
-Add-on **par billet** (donc par personne) plutôt que globalisé sur la commande, à quantité choisie librement en permanence (saisie par le bénévole), mais **binaire (0 ou 1) sur HelloAsso** : une "option" HelloAsso ne porte pas de quantité, elle ne peut être achetée qu'une fois par billet — voir [DECISIONS.md](DECISIONS.md). Toujours distribués en **papier physique** à l'entrée. Le système ne fait que dire au bénévole combien en donner au moment du scan d'un billet — aucun suivi numérique de la distribution elle-même. Pour les payeurs sur place (sans QR), le bénévole de la caisse les calcule et les remet à la main, hors système.
+Add-on **par billet** (donc par personne) plutôt que globalisé sur la commande, à quantité choisie librement en permanence (saisie par le bénévole), mais **binaire (0 ou 1) sur HelloAsso** : une "option" HelloAsso ne porte pas de quantité, elle ne peut être achetée qu'une fois par billet — voir [DECISIONS.md](DECISIONS.md). Toujours distribués en **papier physique** à l'entrée. Un billet peut recevoir des tickets en plus à tout moment (onglet « Ticket boisson » de Nouveau billet, achat avec son propre moyen de paiement) ; son total est la somme de ses achats. Le système ne fait que dire au bénévole combien en donner au moment du scan d'un billet — aucun suivi numérique de la distribution elle-même. Pour les payeurs sur place (sans QR), le bénévole de la caisse les calcule et les remet à la main, hors système.
 
 ## Scan à l'entrée
 
@@ -34,8 +34,8 @@ Add-on **par billet** (donc par personne) plutôt que globalisé sur la commande
 
 ## Ce que le système ne fait pas
 
-- **Pas de montant stocké.** L'événement porte quatre prix de billet : pré-vente et sur place, chacun pour cotisant et non cotisant, ainsi qu'un prix de ticket boisson. Ils servent uniquement à calculer le total à payer des formulaires de vente et à estimer les ventes affichées dans les statistiques (les tarifs réellement appliqués par HelloAsso ne sont pas lus). Le système ne gère ni encaissement ni facturation. Il stocke par ailleurs, par commande, le moyen de paiement utilisé (ex. CB, espèces, virement, HelloAsso), et par billet : nom (de la commande), email (de la commande), statut cotisant, nombre de tickets boisson, statut (utilisé/non utilisé/invalidé).
-- **Pas de remboursement automatique.** Cas rare, géré manuellement via un bouton d'invalidation dans l'admin.
+- **Pas de montant stocké.** L'événement porte quatre prix de billet : pré-vente et sur place, chacun pour cotisant et non cotisant, ainsi qu'un prix de ticket boisson. Ils servent uniquement à calculer le total à payer des formulaires de vente et à estimer les ventes affichées dans les statistiques (les tarifs réellement appliqués par HelloAsso ne sont pas lus). Le système ne gère ni encaissement ni facturation. Il stocke par ailleurs, par commande, le moyen de paiement utilisé (ex. CB, espèces, virement, HelloAsso), et par billet : nom (de la commande), email (de la commande), statut cotisant, statut (utilisé/non utilisé/invalidé) ; les tickets boisson sont des lignes d'achat rattachées à une commande et à un billet.
+- **Pas de remboursement automatique.** Cas rare, géré manuellement via l'action « Invalider » du menu de la ligne dans l'admin.
 - **Statistiques** : la page admin « Statistiques » (chiffres clés, affluence par tranche de 15 min, billets par canal, entrées) se met à jour au rechargement de la page ; pas de temps réel.
 
 ## Multi-admin

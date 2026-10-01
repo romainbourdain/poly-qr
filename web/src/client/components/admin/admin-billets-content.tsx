@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import type { BilletActions } from "@/client/components/admin/billet-actions-menu";
+import { ModifierBilletDialog } from "@/client/components/admin/modifier-billet-dialog";
 import { TicketPagination } from "@/client/components/admin/ticket-pagination";
 import { TicketSearchInput } from "@/client/components/admin/ticket-search-input";
 import { TicketStatusTabs } from "@/client/components/admin/ticket-status-tabs";
@@ -10,9 +12,10 @@ import { useTicketFilters } from "@/client/hooks/use-ticket-filters";
 import {
   invaliderBilletAction,
   reactiverBilletAction,
+  renvoyerEmailCommandeAction,
 } from "@/server/actions/tickets";
 import { GENERIC_SERVER_ERROR } from "@/shared/lib/form-errors";
-import type { BilletAdmin, Statut } from "@/shared/lib/types";
+import type { BilletAdmin } from "@/shared/lib/types";
 
 export function AdminBilletsContent({
   billets,
@@ -36,19 +39,52 @@ export function AdminBilletsContent({
   } = useTicketFilters();
   const [, startTransition] = useTransition();
   const [erreur, setErreur] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [enEdition, setEnEdition] = useState<BilletAdmin | null>(null);
 
-  function toggleStatut(billetId: string, statutActuel: Statut) {
+  function lancer(
+    action: () => Promise<
+      { serverError?: string; validationErrors?: unknown } | undefined
+    >,
+    succes?: string,
+  ) {
     setErreur(null);
+    setInfo(null);
     startTransition(async () => {
-      const result =
-        statutActuel === "invalide"
-          ? await reactiverBilletAction(billetId)
-          : await invaliderBilletAction(billetId);
+      const result = await action();
       if (result?.serverError || result?.validationErrors) {
         setErreur(result.serverError ?? GENERIC_SERVER_ERROR);
+      } else if (succes) {
+        setInfo(succes);
       }
     });
   }
+
+  const actions: BilletActions = {
+    onModifier: setEnEdition,
+    onToggleStatut: (billet) =>
+      lancer(() =>
+        billet.statut === "invalide"
+          ? reactiverBilletAction(billet.id)
+          : invaliderBilletAction(billet.id),
+      ),
+    onRenvoyerEmail: (billet) =>
+      lancer(
+        () => renvoyerEmailCommandeAction(billet.commandeId),
+        `Email renvoyé à ${billet.email}.`,
+      ),
+    onCopierLien: (billet) =>
+      lancer(async () => {
+        try {
+          await navigator.clipboard.writeText(
+            `${window.location.origin}/billet?commande=${billet.commandeId}`,
+          );
+          return undefined;
+        } catch {
+          return { serverError: "Impossible de copier le lien." };
+        }
+      }, "Lien du billet copié."),
+  };
 
   return (
     <div className="flex flex-col gap-4 px-4 py-6 sm:gap-5 sm:px-6 sm:py-8 md:px-9">
@@ -82,6 +118,11 @@ export function AdminBilletsContent({
           {erreur}
         </div>
       )}
+      {info && !erreur && (
+        <div role="status" className="font-semibold text-[13px] text-good">
+          {info}
+        </div>
+      )}
 
       {billets.length === 0 ? (
         <div className="rounded-2xl border border-line bg-ink-2 px-6 py-8 text-center text-[14px] text-muted">
@@ -90,12 +131,17 @@ export function AdminBilletsContent({
       ) : (
         <TicketTableDesktop
           billets={billets}
-          onToggleStatut={toggleStatut}
+          actions={actions}
           tri={tri}
           ordre={ordre}
           onSort={setTri}
         />
       )}
+
+      <ModifierBilletDialog
+        billet={enEdition}
+        onClose={() => setEnEdition(null)}
+      />
 
       <TicketPagination
         page={page}
