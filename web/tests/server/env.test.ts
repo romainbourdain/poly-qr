@@ -7,10 +7,6 @@ const VALID = {
   SESSION_SECRET: "a-session-secret-long-enough",
   ADMIN_PASSWORD: "an-admin-password",
   APP_URL: "http://localhost:3000",
-  SMTP_HOST: "smtp.example.org",
-  SMTP_PORT: "465",
-  SMTP_USER: "association@example.org",
-  SMTP_PASSWORD: "secret",
   SMTP_FROM: "BDE TPS <association@example.org>",
   HELLOASSO_WEBHOOK_SECRET: "webhook-secret",
   HELLOASSO_API_BASE_URL: "https://api.helloasso.com",
@@ -28,11 +24,16 @@ function parse(runtimeEnv: Record<string, string | undefined>) {
 }
 
 describe("schéma des variables d'environnement", () => {
-  it("accepte une configuration valide et convertit SMTP_PORT en nombre", () => {
+  it("accepte une configuration valide sans variables d'envoi optionnelles", () => {
     const env = parse(VALID);
 
-    expect(env.SMTP_PORT).toBe(465);
     expect(env.DATABASE_URL_TEST).toBeUndefined();
+    expect(env.BREVO_API_KEY).toBeUndefined();
+    expect(env.SMTP_HOST).toBeUndefined();
+  });
+
+  it("convertit SMTP_PORT en nombre", () => {
+    expect(parse({ ...VALID, SMTP_PORT: "465" }).SMTP_PORT).toBe(465);
   });
 
   it.each(Object.keys(VALID))("refuse l'absence de %s", (key) => {

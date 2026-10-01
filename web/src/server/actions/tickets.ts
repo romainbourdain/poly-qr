@@ -10,7 +10,7 @@ import {
 } from "@/server/actions/safe-action";
 import { db } from "@/server/db/client";
 import {
-  creerSmtpSender,
+  creerEmailSender,
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
@@ -73,7 +73,7 @@ export const creerPermanenceAction = adminActionClient
       if (!evenement) throw new Error("Événement introuvable.");
       if (!commande.email) throw new Error("Commande sans email.");
       await envoyerEmailCommande(
-        creerSmtpSender(),
+        creerEmailSender(),
         {
           commandeId: commande.id,
           nom: commande.nom,

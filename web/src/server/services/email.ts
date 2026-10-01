@@ -32,11 +32,18 @@ export interface EmailSender {
 }
 
 export function creerSmtpSender(): EmailSender {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD } = env;
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASSWORD) {
+    throw new Error(
+      "Configuration email manquante : renseigner BREVO_API_KEY ou SMTP_HOST, SMTP_PORT, SMTP_USER et SMTP_PASSWORD.",
+    );
+  }
+
   const transporter = nodemailer.createTransport({
-    host: env.SMTP_HOST,
-    port: env.SMTP_PORT,
-    secure: env.SMTP_PORT === 465,
-    auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD },
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
   });
 
   return {
@@ -50,6 +57,66 @@ export function creerSmtpSender(): EmailSender {
       });
     },
   };
+}
+
+/** Découpe `Nom <adresse>` (ou `adresse` seule) pour l'API Brevo. */
+export function parserExpediteur(from: string): {
+  name?: string;
+  email: string;
+} {
+  const match = from.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+  if (!match) return { email: from.trim() };
+  const name = match[1].trim();
+  return name ? { name, email: match[2].trim() } : { email: match[2].trim() };
+}
+
+/**
+ * Envoi par l'API HTTPS de Brevo. L'API ne gère pas les images `cid:` : les
+ * images intégrées sont retirées du HTML et restent en pièces jointes.
+ */
+export function creerBrevoSender(
+  apiKey: string,
+  from: string,
+  fetchImpl: typeof fetch = fetch,
+): EmailSender {
+  return {
+    async envoyer(email) {
+      const html = email.html.replace(
+        /<img\b[^>]*\bsrc="cid:[^"]*"[^>]*>/g,
+        "",
+      );
+      const response = await fetchImpl("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": apiKey,
+          "content-type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify({
+          sender: parserExpediteur(from),
+          to: [{ email: email.to }],
+          subject: email.subject,
+          htmlContent: html,
+          attachment: email.attachments.map((a) => ({
+            name: a.filename,
+            content: a.content.toString("base64"),
+          })),
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Brevo a refusé l'envoi (${response.status}) : ${await response.text()}`,
+        );
+      }
+    },
+  };
+}
+
+/** Brevo (API HTTPS) si BREVO_API_KEY est définie, sinon SMTP. */
+export function creerEmailSender(): EmailSender {
+  return env.BREVO_API_KEY
+    ? creerBrevoSender(env.BREVO_API_KEY, env.SMTP_FROM)
+    : creerSmtpSender();
 }
 
 export function getAppUrl(): string {

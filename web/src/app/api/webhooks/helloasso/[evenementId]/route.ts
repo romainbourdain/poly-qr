@@ -1,7 +1,7 @@
 import { db } from "@/server/db/client";
 import { env } from "@/server/env";
 import {
-  creerSmtpSender,
+  creerEmailSender,
   envoyerEmailCommande,
   getAppUrl,
 } from "@/server/services/email";
@@ -152,7 +152,7 @@ export async function POST(
       if (!evenement) throw new Error("Événement introuvable.");
       if (!resultat.commande.email) throw new Error("Commande sans email.");
       await envoyerEmailCommande(
-        creerSmtpSender(),
+        creerEmailSender(),
         {
           commandeId: resultat.commande.id,
           nom: resultat.commande.nom,
