@@ -97,6 +97,28 @@ describe("envoyerEmailCommande", () => {
     expect(pdf.getPageCount()).toBe(2);
   });
 
+  it("échappe le HTML des données saisies et affiche les tickets boisson de chaque billet", async () => {
+    const sender = new FakeSender();
+
+    await envoyerEmailCommande(
+      sender,
+      {
+        commandeId: "commande-4",
+        nom: "<b>Sacha</b>",
+        email: "sacha@etu-poly.fr",
+        billets: [{ ...billet("AAAA"), ticketsBoisson: 2 }],
+      },
+      EVENEMENT,
+      "https://polyqr.exemple.fr",
+    );
+
+    const [email] = sender.envoyes;
+    expect(email.html).not.toContain("<b>Sacha</b>");
+    expect(email.html).toContain("&lt;b&gt;Sacha&lt;/b&gt;");
+    expect(email.html).toContain("tickets boisson");
+    expect(email.html).toContain("Soirée d'hiver");
+  });
+
   it("propage l'échec d'envoi plutôt que de l'avaler silencieusement", async () => {
     const sender = new SenderQuiEchoue();
 

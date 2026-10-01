@@ -9,7 +9,9 @@ import { cn } from "@/shared/lib/cn";
 
 const PAGES: Record<string, string> = {
   "/admin/statistiques": "Statistiques",
-  "/admin/nouveau": "Nouveau billet",
+  "/admin/nouveau/pre-vente": "Vente à l'avance",
+  "/admin/nouveau/sur-place": "Vente sur place",
+  "/admin/nouveau/boisson": "Tickets boisson",
   "/admin/billets": "Billets",
 };
 

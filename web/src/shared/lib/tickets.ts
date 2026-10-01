@@ -5,6 +5,15 @@ export function nomComplet(prenom: string, nom: string): string {
   return `${prenom} ${nom}`.trim();
 }
 
+/** Minuscules sans accents, pour chercher « lea » et trouver « Léa ». */
+export function normaliser(texte: string): string {
+  return texte
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
+
 export const ORIGINE_LABEL: Record<Origine, string> = {
   helloasso: "HelloAsso",
   permanence: "Permanence",
@@ -14,7 +23,6 @@ export const ORIGINE_LABEL: Record<Origine, string> = {
 export const MOYEN_PAIEMENT_LABEL: Record<MoyenPaiement, string> = {
   virement: "Virement",
   hello_asso: "HelloAsso",
-  lydia: "Lydia",
   especes: "Espèces",
   sumup: "SumUp",
   autre: "Autre",

@@ -11,7 +11,12 @@ import {
   vi,
 } from "vitest";
 import { POST } from "@/app/api/webhooks/helloasso/[evenementId]/route";
-import { billets, commandes, evenements } from "@/server/db/schema";
+import {
+  billets,
+  commandes,
+  evenements,
+  lignesBoisson,
+} from "@/server/db/schema";
 import {
   creerTestDb,
   fermerTestDb,
@@ -134,9 +139,12 @@ describe("POST /api/webhooks/helloasso", () => {
       .from(billets)
       .where(eq(billets.commandeId, lignes[0].id));
     expect(lignesBillets).toHaveLength(2);
-    expect(new Set(lignesBillets.map((b) => b.ticketsBoisson))).toEqual(
-      new Set([1, 0]),
-    );
+    // Une ligne boisson pour le seul billet qui a pris l'option.
+    const lignesBoissonCommande = await db
+      .select()
+      .from(lignesBoisson)
+      .where(eq(lignesBoisson.commandeId, lignes[0].id));
+    expect(lignesBoissonCommande.map((l) => l.quantite)).toEqual([1]);
   });
 
   it("nomme chaque billet d'après la personne inscrite, sinon d'après celle qui a payé", async () => {

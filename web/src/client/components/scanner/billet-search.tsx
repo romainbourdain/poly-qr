@@ -9,7 +9,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/client/components/ui/input-group";
-import { STATUT_BADGE_VARIANT } from "@/shared/lib/tickets";
+import { normaliser, STATUT_BADGE_VARIANT } from "@/shared/lib/tickets";
 import type { BilletRecherchable, Statut } from "@/shared/lib/types";
 
 const STATUT_RECHERCHE_LABEL: Record<Statut, string> = {
@@ -19,15 +19,6 @@ const STATUT_RECHERCHE_LABEL: Record<Statut, string> = {
 };
 
 const MAX_RESULTATS = 30;
-
-/** Minuscules sans accents, pour chercher « lea » et trouver « Léa ». */
-function normaliser(texte: string): string {
-  return texte
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .trim();
-}
 
 function SearchIcon() {
   return (

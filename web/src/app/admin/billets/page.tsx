@@ -51,6 +51,7 @@ export default async function AdminBilletsPage({
   const resultat = unwrapAction(billets);
   return (
     <AdminBilletsContent
+      evenementId={evenement.id}
       billets={resultat.billets}
       totalPages={resultat.totalPages}
       stats={unwrapAction(stats)}

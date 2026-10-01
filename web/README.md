@@ -1,4 +1,4 @@
-# PolyQR — Prototype Next.js
+# PolyQR
 
 Billetterie QR de l'association (voir [../docs/CONTEXT.md](../docs/CONTEXT.md)) : les billets sont créés soit par le webhook HelloAsso, soit en permanence par un organisateur ; un QR est envoyé par email et scanné à l'entrée par les bénévoles. Tout est persisté en Postgres (Drizzle) et lu via des server actions.
 
@@ -6,16 +6,16 @@ Déployé sur Vercel : **https://app-eight-sigma-27.vercel.app**
 
 ## Parcours couverts
 
-- `/` — accueil avec les deux entrées (participant, admin)
+- `/` — accueil minimal : nom du service, lien vers l'espace organisateurs et indicateur « en ligne » (les participants arrivent par le lien de leur email)
 - `/billet?commande=<id>` — page participant d'une commande : un QR scannable par billet (`polyqr:<code>`), tickets boisson, téléchargement PDF (`/billet/<id>/pdf`). Affiche l'événement *de la commande*, même après sa fin
 - `/login` — accès admin, protégé par `ADMIN_PASSWORD` (variable d'environnement, cookie de session signé)
 - `/scanner/<id-événement>` — un scanner par événement, protégé par le mot de passe *de cet événement* (`/scanner/<id>/login`, session valable pour cet événement seulement) ; scan par caméra réelle (`getUserMedia` + décodage `jsQR`), avec repli manuel
 - `/scanner/<id-événement>/resultat` — les 4 issues d'un scan : valide, déjà scanné, invalidé, inconnu (un billet d'un autre événement est « inconnu »)
-- `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : lien HelloAsso à copier, lien et QR du scanner, édition (nom, date, heure, lieu, mot de passe scanner, tarifs cotisant et non cotisant en pré-vente et sur place, prix du ticket boisson). Le même sélecteur pilote `/admin/statistiques`, `/admin/nouveau` et `/admin/billets`
+- `/admin` — événement choisi dans le sélecteur de la sidebar (`?evenement=<id>`, par défaut le plus récent) : lien HelloAsso à copier, lien et QR du scanner, édition (nom, date, heure, lieu, mot de passe scanner, tarifs cotisant et non cotisant en pré-vente et sur place, prix du ticket boisson). Le même sélecteur pilote `/admin/statistiques`, `/admin/nouveau/*` et `/admin/billets`
 - `/admin/statistiques` — chiffres clés, affluence par tranche de 15 min, billets par canal et avancement des entrées (graphiques Recharts), à jour au rechargement de la page
 - `/admin/evenements/nouveau` — création d'un événement, puis guide pour relier HelloAsso (URL de webhook propre à l'événement)
-- `/admin/nouveau` — vente de billets en main propre, avec total à payer (affichage uniquement, aucun montant stocké) : onglet « Pré-vente » (permanence, QR envoyé par email) ou « Sur place » (sans email, billets déjà scannés) ; nom, prénom, statut cotisant et tickets boisson par billet ; l'onglet par défaut dépend de l'heure de début de l'événement
-- `/admin/billets` — liste à plat des billets nominatifs (nom, prénom, email, canal, tarif cotisant ou non) ; recherche et filtre de statut synchronisés à l'URL, tri au clic sur les en-têtes, pagination de 20 billets et invalidation ; l'admin est **responsive**
+- `/admin/nouveau/pre-vente`, `/admin/nouveau/sur-place`, `/admin/nouveau/boisson` — trois pages regroupées sous l'entrée repliable « Nouveau billet » de la sidebar, avec total à payer (affichage uniquement, aucun montant stocké) : « Vente à l'avance » (permanence, QR envoyé par email), « Vente sur place » (sans email, billets déjà scannés) et « Tickets boisson » (tickets en plus pour quelqu'un qui a déjà un billet, retrouvé par nom ou prénom, avec son propre moyen de paiement) ; nom, prénom, statut cotisant et tickets boisson par billet. `/admin/nouveau` redirige vers la pré-vente avant l'heure de début de l'événement, vers la vente sur place ensuite
+- `/admin/billets` — liste à plat des billets nominatifs (nom, prénom, email, canal, tarif cotisant ou non) ; recherche et filtre de statut synchronisés à l'URL, tri au clic sur les en-têtes, pagination de 20 billets ; un menu d'actions par ligne (modifier le nom, le prénom ou le tarif cotisant, renvoyer l'email de la commande, copier le lien du billet, invalider ou réactiver) ; le bouton « Exporter en CSV » télécharge le justificatif des paiements de l'événement (`/admin/billets/export?evenement=<id>`, une ligne par commande, montants calculés aux prix de l'événement hors billets invalidés ; CSV pour Excel français) ; l'admin est **responsive**
 - `/api/webhooks/helloasso/<id-événement>?secret=…` — création automatique des commandes HelloAsso pour cet événement et envoi de l'email
 
 ## Stack
@@ -48,8 +48,8 @@ web/src/
 │
 ├── client/                     # Tout ce qui s'exécute côté navigateur
 │   ├── components/
-│   │   ├── ui/                 #   design system (Button, Input, Field, Tabs, NumberField...)
-│   │   ├── admin/ · billet/ · login/ · scanner/ · home/   # composants par domaine métier
+│   │   ├── ui/                 #   design system (Button, Input, Field, Tabs, Table, DropdownMenu, NumberField...)
+│   │   ├── admin/ · billet/ · login/ · scanner/   # composants par domaine métier
 │   ├── hooks/                  #   hooks de présentation (ex. use-ticket-filters, nuqs)
 │   └── store/                  #   état partagé client (scan-result-store.ts, Zustand)
 │
@@ -82,7 +82,7 @@ Un `React.Context` fait re-render **tous** ses consommateurs à chaque mutation,
 
 ### Couches backend
 
-`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). Les pages et composants passent par `server/actions/` (`auth`, `tickets`, `evenements`), qui délèguent à `server/services/`. Il n'y a pas d'événement « actif » : l'admin en choisit un explicitement. Les prix de l'événement sont en centimes : pré-vente et sur place, chacun avec un tarif cotisant et non cotisant ; ils servent au total affiché en vente et aux estimations des statistiques.
+`server/db/` contient le schéma Drizzle (`schema.ts` : `evenements`, `commandes`, `billets`, `lignes_boisson`) et le client Postgres (`client.ts`, lit `DATABASE_URL`). Les pages et composants passent par `server/actions/` (`auth`, `tickets`, `evenements`), qui délèguent à `server/services/`. Une commande est un acte d'achat (un encaissement) ; elle contient des billets (une personne chacun) et/ou des tickets boisson (`lignes_boisson`, toujours rattachés à un billet), et des clés étrangères composites garantissent le même événement sur toute la chaîne. Il n'y a pas d'événement « actif » : l'admin en choisit un explicitement. Les prix de l'événement sont en centimes : pré-vente et sur place, chacun avec un tarif cotisant et non cotisant ; ils servent au total affiché en vente et aux estimations des statistiques.
 
 ## Base de données
 
@@ -177,7 +177,7 @@ volumes:
 
 ```bash
 # Compose
-POSTGRES_PASSWORD=...          # évite les caractères spéciaux d'URL (@ : / ? #) : inséré tel quel dans DATABASE_URL
+POSTGRES_PASSWORD=...          # openssl rand -hex 24 (PAS -base64 : + et / cassent DATABASE_URL, inséré tel quel)
 # APP_PORT=3000                # port exposé sur l'hôte
 # APP_TAG=0.1.0-r3             # fige une release (défaut : latest)
 
@@ -185,8 +185,8 @@ POSTGRES_PASSWORD=...          # évite les caractères spéciaux d'URL (@ : / ?
 SESSION_SECRET=...             # openssl rand -hex 32
 ADMIN_PASSWORD=...
 APP_URL=https://billets.exemple.fr
-SMTP_FROM=...                  # "Nom <adresse>" ; avec Brevo, expéditeur validé
-BREVO_API_KEY=...              # envoi par API HTTPS (prioritaire) ; sinon SMTP_HOST/PORT/USER/PASSWORD
+SMTP_FROM="Nom <adresse>"      # expéditeur des emails : adresse vérifiée chez Brevo (voir « Emails »)
+BREVO_API_KEY=...              # clé API Brevo (envoi par HTTPS, port 443)
 HELLOASSO_WEBHOOK_SECRET=...   # openssl rand -hex 32
 HELLOASSO_API_BASE_URL=https://api.helloasso.com
 HELLOASSO_CLIENT_ID=...
@@ -194,6 +194,13 @@ HELLOASSO_CLIENT_SECRET=...
 ```
 
 `DATABASE_URL` n'y figure pas : le compose la construit depuis `POSTGRES_PASSWORD`. Ne jamais mettre `SKIP_ENV_VALIDATION` ici. Le détail de chaque variable est dans [`.env.example`](.env.example).
+
+**Emails (Brevo).** Les billets partent par l'API HTTPS de Brevo (offre gratuite : 300 emails par jour), car de nombreux hébergeurs de VPS bloquent les ports SMTP sortants (465, 587, 2525). Côté Brevo :
+
+1. *Senders, Domains, IPs → Expéditeurs → Ajouter un expéditeur* : saisir le nom et l'adresse d'envoi, puis le code de vérification reçu à cette adresse. C'est cette adresse (`Nom <adresse>`) qui va dans `SMTP_FROM`.
+2. *SMTP & API → Clés API → Générer une nouvelle clé API* : à copier tout de suite (elle ne s'affiche qu'une fois) dans `BREVO_API_KEY`.
+
+Avec une adresse gratuite (Gmail…), les mails risquent d'arriver en spam : pour une meilleure délivrabilité, authentifier un domaine à soi (DKIM et DMARC, onglet *Domaines*) et utiliser une adresse de ce domaine. Avec l'API, les QR sont **en pièces jointes** (PNG, plus le PDF et le lien vers la page billet), pas affichés dans le corps du mail : l'API ne gère pas les images `cid:`. Sans `BREVO_API_KEY`, l'app retombe sur SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`), utile en local avec Mailpit.
 
 **3. Démarrer**
 

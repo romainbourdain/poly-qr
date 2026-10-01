@@ -1,8 +1,9 @@
 "use client";
 
+import { Collapsible } from "@base-ui/react/collapsible";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import {
   type EvenementOption,
   EvenementSwitcher,
@@ -15,7 +16,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/client/components/ui/sidebar";
+import { cn } from "@/shared/lib/cn";
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -33,7 +38,7 @@ function Icon({ children }: { children: ReactNode }) {
   );
 }
 
-const NAV = [
+const NAV_DEBUT = [
   {
     href: "/admin",
     label: "Événement",
@@ -53,16 +58,9 @@ const NAV = [
       </Icon>
     ),
   },
-  {
-    href: "/admin/nouveau",
-    label: "Nouveau billet",
-    icon: (
-      <Icon>
-        <path d="M3.5 9V7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5Z" />
-        <path d="M12 9.5v5M9.5 12h5" />
-      </Icon>
-    ),
-  },
+];
+
+const NAV_FIN = [
   {
     href: "/admin/billets",
     label: "Billets",
@@ -73,6 +71,94 @@ const NAV = [
     ),
   },
 ];
+
+/** Les trois façons d'ajouter des billets, regroupées sous une seule entrée repliable. */
+const NOUVEAU_BILLET = {
+  label: "Nouveau billet",
+  icon: (
+    <Icon>
+      <path d="M3.5 9V7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5Z" />
+      <path d="M12 9.5v5M9.5 12h5" />
+    </Icon>
+  ),
+  pages: [
+    { href: "/admin/nouveau/pre-vente", label: "Vente à l'avance" },
+    { href: "/admin/nouveau/sur-place", label: "Vente sur place" },
+    { href: "/admin/nouveau/boisson", label: "Tickets boisson" },
+  ],
+};
+
+function LienMenu({
+  item,
+  pathname,
+  avecEvenement,
+}: {
+  item: { href: string; label: string; icon: ReactNode };
+  pathname: string;
+  avecEvenement: (href: string) => string;
+}) {
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        isActive={pathname === item.href}
+        render={<Link href={avecEvenement(item.href)} />}
+      >
+        {item.icon}
+        {item.label}
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
+function NouveauBilletMenu({
+  pathname,
+  avecEvenement,
+}: {
+  pathname: string;
+  avecEvenement: (href: string) => string;
+}) {
+  const [ouvert, setOuvert] = useState(pathname.startsWith("/admin/nouveau"));
+
+  return (
+    <SidebarMenuItem>
+      <Collapsible.Root open={ouvert} onOpenChange={setOuvert}>
+        <Collapsible.Trigger render={<SidebarMenuButton />}>
+          {NOUVEAU_BILLET.icon}
+          {NOUVEAU_BILLET.label}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={cn(
+              "ml-auto transition-transform",
+              ouvert && "rotate-90",
+            )}
+          >
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </Collapsible.Trigger>
+        <Collapsible.Panel>
+          <SidebarMenuSub>
+            {NOUVEAU_BILLET.pages.map((page) => (
+              <SidebarMenuSubItem key={page.href}>
+                <SidebarMenuSubButton
+                  isActive={pathname === page.href}
+                  render={<Link href={avecEvenement(page.href)} />}
+                >
+                  {page.label}
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </Collapsible.Panel>
+      </Collapsible.Root>
+    </SidebarMenuItem>
+  );
+}
 
 export function AdminSidebar({
   evenements,
@@ -116,16 +202,25 @@ export function AdminSidebar({
           <SidebarGroup>
             <nav aria-label="Administration">
               <SidebarMenu>
-                {NAV.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      isActive={pathname === item.href}
-                      render={<Link href={avecEvenement(item.href)} />}
-                    >
-                      {item.icon}
-                      {item.label}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                {NAV_DEBUT.map((item) => (
+                  <LienMenu
+                    key={item.href}
+                    item={item}
+                    pathname={pathname}
+                    avecEvenement={avecEvenement}
+                  />
+                ))}
+                <NouveauBilletMenu
+                  pathname={pathname}
+                  avecEvenement={avecEvenement}
+                />
+                {NAV_FIN.map((item) => (
+                  <LienMenu
+                    key={item.href}
+                    item={item}
+                    pathname={pathname}
+                    avecEvenement={avecEvenement}
+                  />
                 ))}
               </SidebarMenu>
             </nav>

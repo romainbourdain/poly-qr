@@ -50,6 +50,13 @@
       "when": 1790701030094,
       "tag": "0006_cotisants",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790885846190,
+      "tag": "0007_tickets_boisson_en_lignes",
+      "breakpoints": true
     }
   ]
 }
