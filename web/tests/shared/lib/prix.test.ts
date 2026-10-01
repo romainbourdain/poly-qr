@@ -7,6 +7,8 @@ import {
   montantCentimes,
   parseEuros,
   prixBillet,
+  prixPrevente,
+  prixSurPlace,
 } from "@/shared/lib/prix";
 
 describe("prix", () => {
@@ -50,5 +52,31 @@ describe("prix", () => {
     expect(formatDateLongue("2026-03-14")).toBe("Samedi 14 mars");
     expect(formatHeureEvenement("22:00:00")).toBe("22h00");
     expect(formatHeureEvenement("09:05")).toBe("09h05");
+  });
+});
+
+describe("prixPrevente / prixSurPlace", () => {
+  const evenement = {
+    prixBilletCentimes: 800,
+    prixBilletCotisantCentimes: 600,
+    prixBilletSurPlaceCentimes: 1000,
+    prixBilletSurPlaceCotisantCentimes: 800,
+    prixTicketBoissonCentimes: 200,
+  };
+
+  it("reprend les prix de pré-vente de l'événement", () => {
+    expect(prixPrevente(evenement)).toEqual({
+      billet: 800,
+      billetCotisant: 600,
+      ticketBoisson: 200,
+    });
+  });
+
+  it("reprend les prix de vente sur place de l'événement", () => {
+    expect(prixSurPlace(evenement)).toEqual({
+      billet: 1000,
+      billetCotisant: 800,
+      ticketBoisson: 200,
+    });
   });
 });

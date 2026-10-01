@@ -76,3 +76,29 @@ export function formatHeureEvenement(heure: string): string {
   const [h, m] = heure.split(":");
   return `${h}h${m}`;
 }
+
+/** Prix de la pré-vente (HelloAsso et permanence) d'un événement. */
+export function prixPrevente(evenement: {
+  prixBilletCentimes: number;
+  prixBilletCotisantCentimes: number;
+  prixTicketBoissonCentimes: number;
+}): PrixEvenement {
+  return {
+    billet: evenement.prixBilletCentimes,
+    billetCotisant: evenement.prixBilletCotisantCentimes,
+    ticketBoisson: evenement.prixTicketBoissonCentimes,
+  };
+}
+
+/** Prix de la vente sur place d'un événement. */
+export function prixSurPlace(evenement: {
+  prixBilletSurPlaceCentimes: number;
+  prixBilletSurPlaceCotisantCentimes: number;
+  prixTicketBoissonCentimes: number;
+}): PrixEvenement {
+  return {
+    billet: evenement.prixBilletSurPlaceCentimes,
+    billetCotisant: evenement.prixBilletSurPlaceCotisantCentimes,
+    ticketBoisson: evenement.prixTicketBoissonCentimes,
+  };
+}

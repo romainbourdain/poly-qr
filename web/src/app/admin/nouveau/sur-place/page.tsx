@@ -1,17 +1,17 @@
-import { redirect } from "next/navigation";
 import { createSearchParamsCache } from "nuqs/server";
 import { AucunEvenement } from "@/client/components/admin/aucun-evenement";
+import { NouveauBilletShell } from "@/client/components/admin/nouveau-billet-shell";
+import { VenteForm } from "@/client/components/admin/vente-form";
 import { db } from "@/server/db/client";
 import { resoudreEvenementAdmin } from "@/server/services/evenements";
-import { evenementADebute } from "@/shared/lib/horaires";
+import { prixSurPlace } from "@/shared/lib/prix";
 import { adminSearchParams } from "@/shared/lib/search-params";
 
 export const dynamic = "force-dynamic";
 
 const searchParamsCache = createSearchParamsCache(adminSearchParams);
 
-/** « Nouveau billet » renvoie vers la vente qui correspond au moment : pré-vente avant l'événement, sur place ensuite. */
-export default async function AdminNouveauBilletPage({
+export default async function PageVenteSurPlace({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -20,11 +20,17 @@ export default async function AdminNouveauBilletPage({
   const evenement = await resoudreEvenementAdmin(db, demande);
   if (!evenement) return <AucunEvenement />;
 
-  const page = evenementADebute({
-    date: evenement.dateIso,
-    heure: evenement.heureIso,
-  })
-    ? "sur-place"
-    : "pre-vente";
-  redirect(`/admin/nouveau/${page}?evenement=${evenement.id}`);
+  return (
+    <NouveauBilletShell
+      titre="Vente sur place"
+      evenementNom={evenement.nom}
+      description="La personne paye et entre tout de suite, sans QR ni email."
+    >
+      <VenteForm
+        mode="sur_place"
+        evenementId={evenement.id}
+        prix={prixSurPlace(evenement)}
+      />
+    </NouveauBilletShell>
+  );
 }

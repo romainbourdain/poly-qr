@@ -219,3 +219,46 @@ export function SidebarMenuButton({
     ),
   });
 }
+
+/** Sous-menu d'une entrée repliable (façon `SidebarMenuSub` de shadcn) : filet vertical sous l'icône du parent, libellés alignés sur celui du parent. */
+export function SidebarMenuSub({ className, ...props }: ComponentProps<"ul">) {
+  return (
+    <ul
+      className={cn(
+        "mt-0.5 mb-1 ml-[21px] flex min-w-0 flex-col gap-0.5 border-line-2 border-l pl-2.5",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function SidebarMenuSubItem(props: ComponentProps<"li">) {
+  return <li {...props} />;
+}
+
+/** Lien d'un sous-menu ; `render={<Link … />}` pour en faire un lien. */
+export function SidebarMenuSubButton({
+  isActive = false,
+  render,
+  className,
+  ...props
+}: useRender.ComponentProps<"a"> & { isActive?: boolean }) {
+  return useRender({
+    defaultTagName: "a",
+    render,
+    props: mergeProps<"a">(
+      {
+        "aria-current": isActive ? "page" : undefined,
+        className: cn(
+          "flex h-10 w-full min-w-0 items-center rounded-[10px] px-2.5 text-left font-semibold text-[14px] transition-colors",
+          isActive
+            ? "bg-ink-4 font-bold text-fg"
+            : "text-muted hover:bg-ink-4 hover:text-fg",
+          className,
+        ),
+      },
+      props,
+    ),
+  });
+}
