@@ -185,8 +185,8 @@ POSTGRES_PASSWORD=...          # évite les caractères spéciaux d'URL (@ : / ?
 SESSION_SECRET=...             # openssl rand -hex 32
 ADMIN_PASSWORD=...
 APP_URL=https://billets.exemple.fr
-SMTP_FROM=...                  # "Nom <adresse>" ; avec Brevo, expéditeur validé
-BREVO_API_KEY=...              # envoi par API HTTPS (prioritaire) ; sinon SMTP_HOST/PORT/USER/PASSWORD
+SMTP_FROM="Nom <adresse>"      # expéditeur des emails : adresse vérifiée chez Brevo (voir « Emails »)
+BREVO_API_KEY=...              # clé API Brevo (envoi par HTTPS, port 443)
 HELLOASSO_WEBHOOK_SECRET=...   # openssl rand -hex 32
 HELLOASSO_API_BASE_URL=https://api.helloasso.com
 HELLOASSO_CLIENT_ID=...
@@ -194,6 +194,13 @@ HELLOASSO_CLIENT_SECRET=...
 ```
 
 `DATABASE_URL` n'y figure pas : le compose la construit depuis `POSTGRES_PASSWORD`. Ne jamais mettre `SKIP_ENV_VALIDATION` ici. Le détail de chaque variable est dans [`.env.example`](.env.example).
+
+**Emails (Brevo).** Les billets partent par l'API HTTPS de Brevo (offre gratuite : 300 emails par jour), car de nombreux hébergeurs de VPS bloquent les ports SMTP sortants (465, 587, 2525). Côté Brevo :
+
+1. *Senders, Domains, IPs → Expéditeurs → Ajouter un expéditeur* : saisir le nom et l'adresse d'envoi, puis le code de vérification reçu à cette adresse. C'est cette adresse (`Nom <adresse>`) qui va dans `SMTP_FROM`.
+2. *SMTP & API → Clés API → Générer une nouvelle clé API* : à copier tout de suite (elle ne s'affiche qu'une fois) dans `BREVO_API_KEY`.
+
+Avec une adresse gratuite (Gmail…), les mails risquent d'arriver en spam : pour une meilleure délivrabilité, authentifier un domaine à soi (DKIM et DMARC, onglet *Domaines*) et utiliser une adresse de ce domaine. Avec l'API, les QR sont **en pièces jointes** (PNG, plus le PDF et le lien vers la page billet), pas affichés dans le corps du mail : l'API ne gère pas les images `cid:`. Sans `BREVO_API_KEY`, l'app retombe sur SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`), utile en local avec Mailpit.
 
 **3. Démarrer**
 
