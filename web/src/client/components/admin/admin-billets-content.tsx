@@ -7,21 +7,24 @@ import { TicketPagination } from "@/client/components/admin/ticket-pagination";
 import { TicketSearchInput } from "@/client/components/admin/ticket-search-input";
 import { TicketStatusTabs } from "@/client/components/admin/ticket-status-tabs";
 import { TicketTableDesktop } from "@/client/components/admin/ticket-table-desktop";
-import { Button } from "@/client/components/ui/button";
+import { buttonVariants } from "@/client/components/ui/button";
 import { useTicketFilters } from "@/client/hooks/use-ticket-filters";
 import {
   invaliderBilletAction,
   reactiverBilletAction,
   renvoyerEmailCommandeAction,
 } from "@/server/actions/tickets";
+import { cn } from "@/shared/lib/cn";
 import { GENERIC_SERVER_ERROR } from "@/shared/lib/form-errors";
 import type { BilletAdmin } from "@/shared/lib/types";
 
 export function AdminBilletsContent({
+  evenementId,
   billets,
   totalPages,
   stats,
 }: {
+  evenementId: string;
   billets: BilletAdmin[];
   totalPages: number;
   stats: { total: number; scannes: number };
@@ -98,14 +101,16 @@ export function AdminBilletsContent({
             déjà scanné{stats.scannes > 1 ? "s" : ""}
           </div>
         </div>
-        <Button
-          variant="secondary"
-          disabled
-          title="Démo : export désactivé"
-          className="h-10.5 px-4.5 text-[14px]"
+        <a
+          href={`/admin/billets/export?evenement=${evenementId}`}
+          download
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "h-10.5 px-4.5 text-[14px]",
+          )}
         >
           Exporter en CSV
-        </Button>
+        </a>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
