@@ -1,7 +1,11 @@
 import { PDFDocument } from "pdf-lib";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { EmailAEnvoyer, EmailSender } from "@/server/services/email";
-import { envoyerEmailCommande } from "@/server/services/email";
+import {
+  creerBrevoSender,
+  envoyerEmailCommande,
+  parserExpediteur,
+} from "@/server/services/email";
 import type { BilletListe } from "@/shared/lib/types";
 
 const EVENEMENT = {
@@ -109,5 +113,73 @@ describe("envoyerEmailCommande", () => {
         "https://polyqr.exemple.fr",
       ),
     ).rejects.toThrow("SMTP indisponible");
+  });
+});
+
+describe("parserExpediteur", () => {
+  it("sépare le nom et l'adresse", () => {
+    expect(parserExpediteur('"BDE TPS" <asso@example.org>')).toEqual({
+      name: "BDE TPS",
+      email: "asso@example.org",
+    });
+    expect(parserExpediteur("BDE TPS <asso@example.org>")).toEqual({
+      name: "BDE TPS",
+      email: "asso@example.org",
+    });
+  });
+
+  it("accepte une adresse seule", () => {
+    expect(parserExpediteur("asso@example.org")).toEqual({
+      email: "asso@example.org",
+    });
+  });
+});
+
+describe("creerBrevoSender", () => {
+  const email: EmailAEnvoyer = {
+    to: "sacha@example.org",
+    subject: "Ton billet",
+    html: '<p>Salut</p><img src="cid:qr-0@polyqr" alt="QR" width="220" />',
+    attachments: [
+      {
+        filename: "qr-A.png",
+        content: Buffer.from("png"),
+        contentType: "image/png",
+        cid: "qr-0@polyqr",
+      },
+    ],
+  };
+
+  it("poste sur l'API Brevo, retire les images cid et garde les pièces jointes", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response("{}", { status: 201 }));
+    const sender = creerBrevoSender(
+      "cle-api",
+      "BDE TPS <asso@example.org>",
+      fetchMock,
+    );
+
+    await sender.envoyer(email);
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://api.brevo.com/v3/smtp/email");
+    expect(init.headers["api-key"]).toBe("cle-api");
+    const body = JSON.parse(init.body);
+    expect(body.sender).toEqual({ name: "BDE TPS", email: "asso@example.org" });
+    expect(body.to).toEqual([{ email: "sacha@example.org" }]);
+    expect(body.htmlContent).toBe("<p>Salut</p>");
+    expect(body.attachment).toEqual([
+      { name: "qr-A.png", content: Buffer.from("png").toString("base64") },
+    ]);
+  });
+
+  it("échoue avec le détail de la réponse si Brevo refuse", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response("sender invalide", { status: 400 }));
+    const sender = creerBrevoSender("cle", "asso@example.org", fetchMock);
+
+    await expect(sender.envoyer(email)).rejects.toThrow(/400.*sender invalide/);
   });
 });
