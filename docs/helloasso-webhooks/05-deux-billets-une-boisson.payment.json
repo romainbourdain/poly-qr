@@ -1,0 +1,72 @@
+{
+  "data": {
+    "cardExpirationDate": "2042-02-28T00:00:00Z",
+    "order": {
+      "id": 99084,
+      "date": "2026-10-04T20:36:29.9084911+02:00",
+      "formSlug": "poly",
+      "formType": "Event",
+      "organizationName": "Asso Poly",
+      "organizationSlug": "asso-poly",
+      "organizationType": "Association1901",
+      "organizationIsUnderColucheLaw": false,
+      "formName": "Poly",
+      "meta": {
+        "createdAt": "2026-10-04T20:36:13.7958095+02:00",
+        "updatedAt": "2026-10-04T20:36:30.0133333+02:00"
+      },
+      "isAnonymous": false,
+      "isAmountHidden": false
+    },
+    "payer": {
+      "email": "camille.martin.test@example.org",
+      "country": "FRA",
+      "firstName": "Camille",
+      "lastName": "Martin"
+    },
+    "items": [
+      {
+        "shareAmount": 400,
+        "shareItemAmount": 400,
+        "id": 108990,
+        "amount": 400,
+        "type": "Registration",
+        "state": "Processed"
+      },
+      {
+        "shareAmount": 400,
+        "shareItemAmount": 400,
+        "id": 108991,
+        "amount": 400,
+        "type": "Registration",
+        "state": "Processed"
+      },
+      {
+        "shareAmount": 600,
+        "shareItemAmount": 600,
+        "id": 108992,
+        "amount": 600,
+        "type": "Registration",
+        "state": "Processed"
+      }
+    ],
+    "displayData": {
+      "formDisplayType": "Event",
+      "isTapToPay": false
+    },
+    "cashOutState": "Transfered",
+    "paymentReceiptUrl": "https://www.helloasso-sandbox.com/associations/asso-poly/evenements/poly/paiement-attestation/99084",
+    "id": 70738,
+    "amount": 1400,
+    "date": "2026-10-04T20:36:29.9084911+02:00",
+    "paymentMeans": "Card",
+    "installmentNumber": 1,
+    "state": "Authorized",
+    "meta": {
+      "createdAt": "2026-10-04T20:36:13.7958095+02:00",
+      "updatedAt": "2026-10-04T20:36:30.0231106+02:00"
+    },
+    "refundOperations": []
+  },
+  "eventType": "Payment"
+}

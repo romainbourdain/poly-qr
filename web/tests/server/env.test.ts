@@ -9,9 +9,6 @@ const VALID = {
   APP_URL: "http://localhost:3000",
   SMTP_FROM: "BDE TPS <association@example.org>",
   HELLOASSO_WEBHOOK_SECRET: "webhook-secret",
-  HELLOASSO_API_BASE_URL: "https://api.helloasso.com",
-  HELLOASSO_CLIENT_ID: "client-id",
-  HELLOASSO_CLIENT_SECRET: "client-secret",
 };
 
 function parse(runtimeEnv: Record<string, string | undefined>) {
@@ -41,13 +38,12 @@ describe("schéma des variables d'environnement", () => {
   });
 
   it("traite une variable vide comme absente", () => {
-    expect(() => parse({ ...VALID, HELLOASSO_CLIENT_ID: "" })).toThrow();
+    expect(() => parse({ ...VALID, HELLOASSO_WEBHOOK_SECRET: "" })).toThrow();
   });
 
   it.each([
     ["DATABASE_URL", "pas-une-url"],
     ["APP_URL", "localhost"],
-    ["HELLOASSO_API_BASE_URL", "api.helloasso.com"],
     ["SMTP_PORT", "abc"],
   ])("refuse %s invalide (%s)", (key, value) => {
     expect(() => parse({ ...VALID, [key]: value })).toThrow();

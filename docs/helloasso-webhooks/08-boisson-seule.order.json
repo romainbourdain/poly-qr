@@ -1,0 +1,79 @@
+{
+  "data": {
+    "payer": {
+      "email": "camille.martin.test@example.org",
+      "country": "FRA",
+      "firstName": "Camille",
+      "lastName": "Martin"
+    },
+    "items": [
+      {
+        "payments": [
+          {
+            "id": 70741,
+            "shareAmount": 600
+          }
+        ],
+        "name": "Ticket boisson",
+        "user": {
+          "firstName": "Lima",
+          "lastName": "Lambert"
+        },
+        "priceCategory": "Fixed",
+        "ticketUrl": "https://www.helloasso-sandbox.com/associations/asso-poly/evenements/poly/ticket?ticketId=109002&ag=99087",
+        "qrCode": "MTA5MDAyOjYzOTI2NzQzMTQ2NzM5OTU0NA==",
+        "tierDescription": "en + du billet, obligatoire pour profiter de la boisson !!!\n\n",
+        "tierId": 23559,
+        "id": 109002,
+        "amount": 600,
+        "type": "Registration",
+        "initialAmount": 600,
+        "state": "Processed"
+      }
+    ],
+    "payments": [
+      {
+        "items": [
+          {
+            "id": 109002,
+            "shareAmount": 600,
+            "shareItemAmount": 600
+          }
+        ],
+        "cashOutState": "Transfered",
+        "paymentReceiptUrl": "https://www.helloasso-sandbox.com/associations/asso-poly/evenements/poly/paiement-attestation/99087",
+        "id": 70741,
+        "amount": 600,
+        "date": "2026-10-04T20:39:17.7416355+02:00",
+        "paymentMeans": "Card",
+        "installmentNumber": 1,
+        "state": "Authorized",
+        "meta": {
+          "createdAt": "2026-10-04T20:39:06.7399544+02:00",
+          "updatedAt": "2026-10-04T20:39:17.8021763+02:00"
+        },
+        "refundOperations": []
+      }
+    ],
+    "amount": {
+      "total": 600,
+      "vat": 0,
+      "discount": 0
+    },
+    "id": 99087,
+    "date": "2026-10-04T20:39:17.7416355+02:00",
+    "formSlug": "poly",
+    "formType": "Event",
+    "organizationName": "Asso Poly",
+    "organizationSlug": "asso-poly",
+    "organizationType": "Association1901Rig",
+    "organizationIsUnderColucheLaw": false,
+    "meta": {
+      "createdAt": "2026-10-04T20:39:06.7399544+02:00",
+      "updatedAt": "2026-10-04T20:39:17.7933333+02:00"
+    },
+    "isAnonymous": false,
+    "isAmountHidden": false
+  },
+  "eventType": "Order"
+}
