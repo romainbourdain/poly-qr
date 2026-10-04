@@ -1,15 +1,7 @@
-import { eq } from "drizzle-orm";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { Sql } from "postgres";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { POST } from "@/app/api/webhooks/helloasso/[evenementId]/route";
 import {
   billets,
@@ -29,46 +21,17 @@ const ENDPOINT = "http://localhost:3000/api/webhooks/helloasso";
 const EVENEMENT_INCONNU = "00000000-0000-4000-8000-000000000000";
 const SECRET = process.env.HELLOASSO_WEBHOOK_SECRET as string;
 
-/** Items 1 et 3 ont l'option boisson, l'item 2 non. */
-const ITEMS_AVEC_OPTION_BOISSON = new Set([1, 3]);
-/** L'item 2 a une personne inscrite ; les autres tombent sur celle qui a payé. */
-const INSCRITS = new Map([[2, { firstName: "Léa", lastName: "Martin" }]]);
+const DOSSIER_PAYLOADS = resolve(process.cwd(), "../docs/helloasso-webhooks");
 
-function stubFetchHelloAsso() {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (url: string) => {
-      if (url.endsWith("/oauth2/token")) {
-        return { ok: true, json: async () => ({ access_token: "token" }) };
-      }
-
-      const itemId = Number(new URL(url).pathname.split("/").pop());
-      const options = ITEMS_AVEC_OPTION_BOISSON.has(itemId)
-        ? [{ name: "Ticket boisson" }]
-        : [];
-      return {
-        ok: true,
-        json: async () => ({ options, user: INSCRITS.get(itemId) }),
-      };
-    }),
-  );
+/** Webhook réel capturé sur HelloAsso Sandbox (docs/helloasso-webhooks/). */
+function payloadReel(nom: string) {
+  return JSON.parse(readFileSync(`${DOSSIER_PAYLOADS}/${nom}.json`, "utf8"));
 }
 
-function payloadValide(
-  overrides: { id?: number | string; itemIds?: number[] } = {},
-) {
-  return {
-    eventType: "Order",
-    data: {
-      id: overrides.id ?? 42,
-      payer: {
-        firstName: "Jean",
-        lastName: "Dupont",
-        email: "jean.dupont@example.org",
-      },
-      items: (overrides.itemIds ?? [1, 2]).map((id) => ({ id })),
-    },
-  };
+function payloadValide(overrides: { id?: number | string } = {}) {
+  const payload = payloadReel("01-billet-cotisant.order");
+  if (overrides.id !== undefined) payload.data.id = overrides.id;
+  return payload;
 }
 
 function requete(body: unknown, evenementId: string, secret = SECRET) {
@@ -92,12 +55,7 @@ describe("POST /api/webhooks/helloasso", () => {
     ({ db, client } = await creerTestDb());
   });
 
-  beforeEach(() => {
-    stubFetchHelloAsso();
-  });
-
   afterEach(async () => {
-    vi.unstubAllGlobals();
     await nettoyerTestDb(db);
   });
 
@@ -119,46 +77,90 @@ describe("POST /api/webhooks/helloasso", () => {
     return evenement.id;
   }
 
-  it("crée une commande et ses billets pour un paiement valide, avec 1 ticket boisson si l'option a été prise", async () => {
+  async function envoyer(nom: string) {
     const evenementId = await creerEvenement();
-
     const reponse = await appeler(
-      requete(payloadValide({ id: 1, itemIds: [1, 2] }), evenementId),
+      requete(payloadReel(nom), evenementId),
       evenementId,
     );
-
     expect(reponse.status).toBe(200);
+
+    const lignesBillets = await db.select().from(billets);
+    const lignesBoissonBillet = await db.select().from(lignesBoisson);
+    return lignesBillets
+      .map((b) => ({
+        nom: `${b.prenom} ${b.nom}`,
+        cotisant: b.cotisant,
+        boissons: lignesBoissonBillet
+          .filter((l) => l.billetId === b.id)
+          .reduce((total, l) => total + l.quantite, 0),
+      }))
+      .sort((x, y) => x.nom.localeCompare(y.nom));
+  }
+
+  it("crée une commande HelloAsso rattachée à l'événement, sans moyen de paiement saisi", async () => {
+    await envoyer("01-billet-cotisant.order");
 
     const lignes = await db.select().from(commandes);
     expect(lignes).toHaveLength(1);
     expect(lignes[0].origine).toBe("helloasso");
-    expect(lignes[0].helloassoPaymentId).toBe("1");
-
-    const lignesBillets = await db
-      .select()
-      .from(billets)
-      .where(eq(billets.commandeId, lignes[0].id));
-    expect(lignesBillets).toHaveLength(2);
-    // Une ligne boisson pour le seul billet qui a pris l'option.
-    const lignesBoissonCommande = await db
-      .select()
-      .from(lignesBoisson)
-      .where(eq(lignesBoisson.commandeId, lignes[0].id));
-    expect(lignesBoissonCommande.map((l) => l.quantite)).toEqual([1]);
+    expect(lignes[0].moyenPaiement).toBe("hello_asso");
+    expect(lignes[0].helloassoPaymentId).toBe("99078");
+    expect(lignes[0].email).toBe("camille.martin.test@example.org");
   });
 
-  it("nomme chaque billet d'après la personne inscrite, sinon d'après celle qui a payé", async () => {
-    const evenementId = await creerEvenement();
-
-    await appeler(
-      requete(payloadValide({ id: 9, itemIds: [1, 2] }), evenementId),
-      evenementId,
-    );
-
-    const noms = (await db.select().from(billets)).map(
-      (b) => `${b.prenom} ${b.nom}`,
-    );
-    expect(noms.sort()).toEqual(["Jean Dupont", "Léa Martin"]);
+  it.each([
+    [
+      "1 billet cotisant",
+      "01-billet-cotisant.order",
+      [{ nom: "Alpha Durand", cotisant: true, boissons: 0 }],
+    ],
+    [
+      "1 billet non cotisant",
+      "02-billet-non-cotisant.order",
+      [{ nom: "Bravo Lefevre", cotisant: false, boissons: 0 }],
+    ],
+    [
+      "billet cotisant + 1 boisson (l'item boisson ne crée pas de billet)",
+      "03-billet-cotisant-plus-boisson.order",
+      [{ nom: "Charlie Moreau", cotisant: true, boissons: 1 }],
+    ],
+    [
+      "billet + 3 boissons",
+      "04-billet-plus-3-boissons.order",
+      [{ nom: "Delta Garnier", cotisant: true, boissons: 3 }],
+    ],
+    [
+      "2 billets, la boisson va au billet de la même personne",
+      "05-deux-billets-une-boisson.order",
+      [
+        { nom: "Echo Fournier", cotisant: true, boissons: 0 },
+        { nom: "Foxtrot Girard", cotisant: true, boissons: 1 },
+      ],
+    ],
+    [
+      "2 billets, une boisson chacun",
+      "06-deux-billets-deux-boissons.order",
+      [
+        { nom: "Golf Hamel", cotisant: true, boissons: 1 },
+        { nom: "Hotel Imbert", cotisant: true, boissons: 1 },
+      ],
+    ],
+    [
+      "billet cotisant et billet non cotisant dans la même commande",
+      "07-cotisant-et-non-cotisant.order",
+      [
+        { nom: "India Jacob", cotisant: true, boissons: 0 },
+        { nom: "Juliet Klein", cotisant: false, boissons: 0 },
+      ],
+    ],
+    [
+      "boisson seule : un billet non cotisant qui porte la boisson",
+      "08-boisson-seule.order",
+      [{ nom: "Lima Lambert", cotisant: false, boissons: 1 }],
+    ],
+  ])("webhook réel : %s", async (_cas, fichier, attendu) => {
+    expect(await envoyer(fichier)).toEqual(attendu);
   });
 
   it("rejette un secret invalide sans créer de commande", async () => {
@@ -174,14 +176,13 @@ describe("POST /api/webhooks/helloasso", () => {
     expect(lignes).toHaveLength(0);
   });
 
-  it("ne crée pas deux commandes pour le même paiement rejoué, sans rappeler l'API HelloAsso", async () => {
+  it("ne crée pas deux commandes pour le même paiement rejoué", async () => {
     const evenementId = await creerEvenement();
 
     const premiere = await appeler(
       requete(payloadValide({ id: 3 }), evenementId),
       evenementId,
     );
-    const appelsApresPremiere = vi.mocked(fetch).mock.calls.length;
 
     const rejeu = await appeler(
       requete(payloadValide({ id: 3 }), evenementId),
@@ -190,7 +191,6 @@ describe("POST /api/webhooks/helloasso", () => {
 
     expect(premiere.status).toBe(200);
     expect(rejeu.status).toBe(200);
-    expect(vi.mocked(fetch).mock.calls.length).toBe(appelsApresPremiere);
 
     const lignes = await db.select().from(commandes);
     expect(lignes).toHaveLength(1);

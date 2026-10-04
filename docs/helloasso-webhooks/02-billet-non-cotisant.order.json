@@ -1,0 +1,79 @@
+{
+  "data": {
+    "payer": {
+      "email": "camille.martin.test@example.org",
+      "country": "FRA",
+      "firstName": "Camille",
+      "lastName": "Martin"
+    },
+    "items": [
+      {
+        "payments": [
+          {
+            "id": 70733,
+            "shareAmount": 500
+          }
+        ],
+        "name": "Billet non cotisant",
+        "user": {
+          "firstName": "Bravo",
+          "lastName": "Lefevre"
+        },
+        "priceCategory": "Fixed",
+        "ticketUrl": "https://www.helloasso-sandbox.com/associations/asso-poly/evenements/poly/ticket?ticketId=108978&ag=99079",
+        "qrCode": "MTA4OTc4OjYzOTI2NzQyNTAwNTA5OTc1MQ==",
+        "tierDescription": "",
+        "tierId": 23558,
+        "id": 108978,
+        "amount": 500,
+        "type": "Registration",
+        "initialAmount": 500,
+        "state": "Processed"
+      }
+    ],
+    "payments": [
+      {
+        "items": [
+          {
+            "id": 108978,
+            "shareAmount": 500,
+            "shareItemAmount": 500
+          }
+        ],
+        "cashOutState": "Transfered",
+        "paymentReceiptUrl": "https://www.helloasso-sandbox.com/associations/asso-poly/evenements/poly/paiement-attestation/99079",
+        "id": 70733,
+        "amount": 500,
+        "date": "2026-10-04T20:28:32.1924999+02:00",
+        "paymentMeans": "Card",
+        "installmentNumber": 1,
+        "state": "Authorized",
+        "meta": {
+          "createdAt": "2026-10-04T20:28:20.5099751+02:00",
+          "updatedAt": "2026-10-04T20:28:32.2569307+02:00"
+        },
+        "refundOperations": []
+      }
+    ],
+    "amount": {
+      "total": 500,
+      "vat": 0,
+      "discount": 0
+    },
+    "id": 99079,
+    "date": "2026-10-04T20:28:32.1924999+02:00",
+    "formSlug": "poly",
+    "formType": "Event",
+    "organizationName": "Asso Poly",
+    "organizationSlug": "asso-poly",
+    "organizationType": "Association1901Rig",
+    "organizationIsUnderColucheLaw": false,
+    "meta": {
+      "createdAt": "2026-10-04T20:28:20.5099751+02:00",
+      "updatedAt": "2026-10-04T20:28:32.2466667+02:00"
+    },
+    "isAnonymous": false,
+    "isAmountHidden": false
+  },
+  "eventType": "Order"
+}

@@ -49,9 +49,6 @@ jobs:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           HELLOASSO_WEBHOOK_SECRET: ${{ secrets.HELLOASSO_WEBHOOK_SECRET }}
-          HELLOASSO_CLIENT_SECRET: ${{ secrets.HELLOASSO_CLIENT_SECRET }}
-          HELLOASSO_API_BASE_URL: ${{ vars.HELLOASSO_API_BASE_URL }}
-          HELLOASSO_CLIENT_ID: ${{ vars.HELLOASSO_CLIENT_ID }}
       - run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "1"

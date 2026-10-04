@@ -1,0 +1,107 @@
+{
+  "data": {
+    "payer": {
+      "email": "camille.martin.test@example.org",
+      "country": "FRA",
+      "firstName": "Camille",
+      "lastName": "Martin"
+    },
+    "items": [
+      {
+        "payments": [
+          {
+            "id": 70734,
+            "shareAmount": 400
+          }
+        ],
+        "name": "Billet cotisant",
+        "user": {
+          "firstName": "Charlie",
+          "lastName": "Moreau"
+        },
+        "priceCategory": "Fixed",
+        "ticketUrl": "https://www.helloasso-sandbox.com/associations/asso-poly/evenements/poly/ticket?ticketId=108980&ag=99080",
+        "qrCode": "MTA4OTgwOjYzOTI2NzQyNjIzNTIwNTI2Mg==",
+        "tierDescription": "",
+        "tierId": 23557,
+        "id": 108980,
+        "amount": 400,
+        "type": "Registration",
+        "initialAmount": 400,
+        "state": "Processed"
+      },
+      {
+        "payments": [
+          {
+            "id": 70734,
+            "shareAmount": 600
+          }
+        ],
+        "name": "Ticket boisson",
+        "user": {
+          "firstName": "Charlie",
+          "lastName": "Moreau"
+        },
+        "priceCategory": "Fixed",
+        "ticketUrl": "https://www.helloasso-sandbox.com/associations/asso-poly/evenements/poly/ticket?ticketId=108981&ag=99080",
+        "qrCode": "MTA4OTgxOjYzOTI2NzQyNjIzNTIwNTI2Mg==",
+        "tierDescription": "en + du billet, obligatoire pour profiter de la boisson !!!\n\n",
+        "tierId": 23559,
+        "id": 108981,
+        "amount": 600,
+        "type": "Registration",
+        "initialAmount": 600,
+        "state": "Processed"
+      }
+    ],
+    "payments": [
+      {
+        "items": [
+          {
+            "id": 108980,
+            "shareAmount": 400,
+            "shareItemAmount": 400
+          },
+          {
+            "id": 108981,
+            "shareAmount": 600,
+            "shareItemAmount": 600
+          }
+        ],
+        "cashOutState": "Transfered",
+        "paymentReceiptUrl": "https://www.helloasso-sandbox.com/associations/asso-poly/evenements/poly/paiement-attestation/99080",
+        "id": 70734,
+        "amount": 1000,
+        "date": "2026-10-04T20:30:36.2473892+02:00",
+        "paymentMeans": "Card",
+        "installmentNumber": 1,
+        "state": "Authorized",
+        "meta": {
+          "createdAt": "2026-10-04T20:30:23.5205262+02:00",
+          "updatedAt": "2026-10-04T20:30:36.3673756+02:00"
+        },
+        "refundOperations": []
+      }
+    ],
+    "amount": {
+      "total": 1000,
+      "vat": 0,
+      "discount": 0
+    },
+    "id": 99080,
+    "date": "2026-10-04T20:30:36.2473892+02:00",
+    "formSlug": "poly",
+    "formType": "Event",
+    "organizationName": "Asso Poly",
+    "organizationSlug": "asso-poly",
+    "organizationType": "Association1901Rig",
+    "organizationIsUnderColucheLaw": false,
+    "meta": {
+      "createdAt": "2026-10-04T20:30:23.5205262+02:00",
+      "updatedAt": "2026-10-04T20:30:36.3566667+02:00"
+    },
+    "isAnonymous": false,
+    "isAmountHidden": false
+  },
+  "eventType": "Order"
+}

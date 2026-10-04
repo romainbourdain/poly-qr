@@ -188,9 +188,6 @@ APP_URL=https://billets.exemple.fr
 SMTP_FROM="Nom <adresse>"      # expéditeur des emails : adresse vérifiée chez Brevo (voir « Emails »)
 BREVO_API_KEY=...              # clé API Brevo (envoi par HTTPS, port 443)
 HELLOASSO_WEBHOOK_SECRET=...   # openssl rand -hex 32
-HELLOASSO_API_BASE_URL=https://api.helloasso.com
-HELLOASSO_CLIENT_ID=...
-HELLOASSO_CLIENT_SECRET=...
 ```
 
 `DATABASE_URL` n'y figure pas : le compose la construit depuis `POSTGRES_PASSWORD`. Ne jamais mettre `SKIP_ENV_VALIDATION` ici. Le détail de chaque variable est dans [`.env.example`](.env.example).
