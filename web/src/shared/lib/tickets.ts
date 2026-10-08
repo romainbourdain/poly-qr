@@ -51,10 +51,19 @@ export function nowLabel(): string {
   return formatHeure(new Date());
 }
 
+const formatteurHeure = new Intl.DateTimeFormat("fr-FR", {
+  timeZone: "Europe/Paris",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** Heure de Paris (`21h05`), quel que soit le fuseau du serveur ou du navigateur. */
 export function formatHeure(date: Date): string {
-  const h = date.getHours().toString().padStart(2, "0");
-  const m = date.getMinutes().toString().padStart(2, "0");
-  return `${h}h${m}`;
+  const { hour, minute } = Object.fromEntries(
+    formatteurHeure.formatToParts(date).map((p) => [p.type, p.value]),
+  );
+  return `${hour}h${minute}`;
 }
 
 export function genTicketCode(): string {

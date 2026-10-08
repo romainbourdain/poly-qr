@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { StatsEvenement } from "@/shared/lib/types";
 import {
   calculerVentesParCanal,
+  totalBilletsCentimes,
+  totalBoissonCentimes,
   totalVentesCentimes,
 } from "@/shared/lib/ventes";
 
@@ -39,6 +41,8 @@ describe("calculerVentesParCanal", () => {
         billets: 3,
         ticketsBoisson: 3,
         montantCentimes: 1600,
+        montantBilletsCentimes: 1300,
+        montantBoissonCentimes: 300,
       },
       {
         id: "permanence",
@@ -46,6 +50,8 @@ describe("calculerVentesParCanal", () => {
         billets: 2,
         ticketsBoisson: 1,
         montantCentimes: 1100,
+        montantBilletsCentimes: 1000,
+        montantBoissonCentimes: 100,
       },
       {
         id: "sur_place",
@@ -53,8 +59,12 @@ describe("calculerVentesParCanal", () => {
         billets: 2,
         ticketsBoisson: 2,
         montantCentimes: 1400,
+        montantBilletsCentimes: 1200,
+        montantBoissonCentimes: 200,
       },
     ]);
     expect(totalVentesCentimes(canaux)).toBe(4100);
+    expect(totalBilletsCentimes(canaux)).toBe(3500);
+    expect(totalBoissonCentimes(canaux)).toBe(600);
   });
 });
