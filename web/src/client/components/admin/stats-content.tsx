@@ -12,6 +12,8 @@ import { formatEuros } from "@/shared/lib/prix";
 import type { Evenement, StatsEvenement } from "@/shared/lib/types";
 import {
   calculerVentesParCanal,
+  totalBilletsCentimes,
+  totalBoissonCentimes,
   totalVentesCentimes,
 } from "@/shared/lib/ventes";
 
@@ -47,15 +49,26 @@ export function StatsContent({
           label="Ventes totales"
           value={formatEuros(totalVentesCentimes(ventes))}
         />
-        <Stat label="Billets vendus" value={stats.billetsVendus} />
-        <Stat label="Tickets boisson vendus" value={stats.ticketsBoisson} />
+        <Stat
+          label="Billets"
+          value={formatEuros(totalBilletsCentimes(ventes))}
+          hint={`${stats.billetsVendus} vendus`}
+        />
+        <Stat
+          label="Tickets boisson"
+          value={formatEuros(totalBoissonCentimes(ventes))}
+          hint={`${stats.ticketsBoisson} vendus`}
+        />
         <Stat
           label="Personnes entrées"
           value={`${stats.entreesScannees} / ${stats.billetsVendus}`}
         />
       </div>
 
-      <AffluenceCard tranches={tranches} />
+      <AffluenceCard
+        tranches={tranches}
+        entreesScannees={stats.entreesScannees}
+      />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <CanalDonutCard canaux={canaux} />

@@ -16,7 +16,14 @@ const CONFIG = {
 const heureCourte = (hhmm: string) => hhmm.replace(":", "h");
 
 /** Entrées par tranche de 15 min, pour suivre les pics d'arrivée. */
-export function AffluenceCard({ tranches }: { tranches: TrancheAffluence[] }) {
+export function AffluenceCard({
+  tranches,
+  entreesScannees,
+}: {
+  tranches: TrancheAffluence[];
+  /** Toutes les entrées scannées, y compris celles hors de la plage affichée. */
+  entreesScannees: number;
+}) {
   const total = tranches.reduce((n, t) => n + t.entrees, 0);
   const pic = tranches.reduce((max, t) => (t.entrees > max.entrees ? t : max));
 
@@ -25,7 +32,9 @@ export function AffluenceCard({ tranches }: { tranches: TrancheAffluence[] }) {
       <h2 className="font-bold text-[16px]">Affluence à l&apos;entrée</h2>
       {total === 0 && (
         <p className="text-[13.5px] text-muted">
-          Aucune entrée pour l&apos;instant.
+          {entreesScannees > 0
+            ? `${entreesScannees} entrée${entreesScannees > 1 ? "s" : ""} scannée${entreesScannees > 1 ? "s" : ""}, mais hors de la soirée (plus d'1 h avant le début ou 12 h après) : ignorée${entreesScannees > 1 ? "s" : ""} dans ce graphique.`
+            : "Aucune entrée pour l'instant."}
         </p>
       )}
       {total > 0 && (

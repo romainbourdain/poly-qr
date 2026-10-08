@@ -45,8 +45,14 @@ describe("construireAffluence", () => {
       [scan("10:00"), scan("20:05")],
       evenement,
     );
-    expect(tranches).toHaveLength(12);
+    expect(tranches).toHaveLength(4);
     expect(tranches[0].debut).toBe("21:00");
     expect(tranches.reduce((n, t) => n + t.entrees, 0)).toBe(1);
+  });
+
+  it("se resserre sur 1 h minimum quand il y a des entrées", () => {
+    const tranches = construireAffluence([scan("20:05")], evenement);
+    expect(tranches).toHaveLength(4);
+    expect(tranches.at(-1)?.fin).toBe("22:00");
   });
 });

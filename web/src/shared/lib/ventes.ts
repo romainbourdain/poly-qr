@@ -10,6 +10,8 @@ export interface VentesCanal {
   ticketsBoisson: number;
   /** Aux prix de l'événement : le système ne stocke pas les montants réellement payés. */
   montantCentimes: number;
+  montantBilletsCentimes: number;
+  montantBoissonCentimes: number;
 }
 
 /**
@@ -35,20 +37,31 @@ export function calculerVentesParCanal(
     cotisants: number,
     ticketsBoisson: number,
     prixBillet: { normal: number; cotisant: number },
-  ): VentesCanal => ({
-    id,
-    label,
-    billets,
-    ticketsBoisson,
-    montantCentimes: montantCentimes(
-      {
-        billet: prixBillet.normal,
-        billetCotisant: prixBillet.cotisant,
-        ticketBoisson: evenement.prixTicketBoissonCentimes,
-      },
-      { billets, cotisants, ticketsBoisson },
-    ),
-  });
+  ): VentesCanal => {
+    const prix = {
+      billet: prixBillet.normal,
+      billetCotisant: prixBillet.cotisant,
+      ticketBoisson: evenement.prixTicketBoissonCentimes,
+    };
+    const montantBoissonCentimes = ticketsBoisson * prix.ticketBoisson;
+    return {
+      id,
+      label,
+      billets,
+      ticketsBoisson,
+      montantCentimes: montantCentimes(prix, {
+        billets,
+        cotisants,
+        ticketsBoisson,
+      }),
+      montantBilletsCentimes: montantCentimes(prix, {
+        billets,
+        cotisants,
+        ticketsBoisson: 0,
+      }),
+      montantBoissonCentimes,
+    };
+  };
   const prevente = {
     normal: evenement.prixBilletCentimes,
     cotisant: evenement.prixBilletCotisantCentimes,
@@ -89,4 +102,12 @@ export function calculerVentesParCanal(
 
 export function totalVentesCentimes(canaux: VentesCanal[]): number {
   return canaux.reduce((somme, c) => somme + c.montantCentimes, 0);
+}
+
+export function totalBilletsCentimes(canaux: VentesCanal[]): number {
+  return canaux.reduce((somme, c) => somme + c.montantBilletsCentimes, 0);
+}
+
+export function totalBoissonCentimes(canaux: VentesCanal[]): number {
+  return canaux.reduce((somme, c) => somme + c.montantBoissonCentimes, 0);
 }
