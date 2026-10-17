@@ -5,6 +5,10 @@ import { MOYENS_PAIEMENT } from "@/shared/lib/types";
  * Achat de tickets boisson sans nouveau billet : pour un billet existant
  * (`billetId`), ou pour un·e invité·e sans billet (`invite`, avec son nom et
  * l'événement).
+ *
+ * Les erreurs sur `billetId` et `evenementId` sont sans chemin : ces champs ne
+ * sont pas affichés dans le formulaire, et une erreur par champ y resterait
+ * collée une fois ajoutée.
  */
 export const boissonSchema = z
   .object({
@@ -23,7 +27,7 @@ export const boissonSchema = z
       if (!z.string().uuid().safeParse(valeur.billetId).success) {
         ctx.addIssue({
           code: "custom",
-          path: ["billetId"],
+          path: [],
           message: "Choisis une personne.",
         });
       }
@@ -32,7 +36,7 @@ export const boissonSchema = z
     if (!z.string().uuid().safeParse(valeur.evenementId).success) {
       ctx.addIssue({
         code: "custom",
-        path: ["evenementId"],
+        path: [],
         message: "L'événement est requis.",
       });
     }
