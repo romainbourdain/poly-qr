@@ -16,6 +16,7 @@ import type {
 } from "@/shared/lib/search-params";
 import { formatHeure, nomComplet } from "@/shared/lib/tickets";
 import {
+  type AchatSansBillet,
   type BilletAdmin,
   type BilletListe,
   type CommandeAvecBillets,
@@ -402,6 +403,42 @@ export async function obtenirCommandeAvecBillets(
     moyenPaiement: lignes[0].moyenPaiement,
     billets: lignes.map(versBilletListe),
   };
+}
+
+/**
+ * Achats de tickets boisson d'invité·es sans billet (une ligne par achat, le
+ * plus récent d'abord), filtrés par nom. Ils n'ont pas de billet, donc la liste
+ * des billets ne les montre pas.
+ */
+export async function listerAchatsSansBillet(
+  db: Db,
+  evenementId: string,
+  q = "",
+): Promise<AchatSansBillet[]> {
+  const conditions = [
+    eq(lignesBoisson.evenementId, evenementId),
+    sql`${lignesBoisson.billetId} is null`,
+  ];
+  const terme = q.trim();
+  if (terme) conditions.push(ilike(commandes.nom, `%${terme}%`));
+
+  const lignes = await db
+    .select({
+      commandeId: commandes.id,
+      nom: commandes.nom,
+      quantite: lignesBoisson.quantite,
+      origine: commandes.origine,
+      moyenPaiement: commandes.moyenPaiement,
+      creeA: commandes.creeA,
+    })
+    .from(lignesBoisson)
+    .innerJoin(commandes, eq(lignesBoisson.commandeId, commandes.id))
+    .where(and(...conditions))
+    .orderBy(desc(commandes.creeA));
+  return lignes.map(({ creeA, ...ligne }) => ({
+    ...ligne,
+    heure: formatHeure(creeA),
+  }));
 }
 
 /**

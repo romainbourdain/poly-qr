@@ -8,6 +8,7 @@ import {
 } from "@/server/actions/tickets";
 import { db } from "@/server/db/client";
 import { resoudreEvenementAdmin } from "@/server/services/evenements";
+import { listerAchatsSansBillet } from "@/server/services/tickets";
 import {
   adminSearchParams,
   ticketFiltersSearchParams,
@@ -36,7 +37,7 @@ export default async function AdminBilletsPage({
   const evenement = await resoudreEvenementAdmin(db, demande);
   if (!evenement) return <AucunEvenement />;
 
-  const [billets, stats] = await Promise.all([
+  const [billets, stats, achatsSansBillet] = await Promise.all([
     listerBilletsAction({
       evenementId: evenement.id,
       q,
@@ -46,6 +47,10 @@ export default async function AdminBilletsPage({
       page,
     }),
     obtenirStatsBilletsAction({ evenementId: evenement.id }),
+    // Les filtres de statut ne concernent que les billets.
+    statut === "tous"
+      ? listerAchatsSansBillet(db, evenement.id, q)
+      : Promise.resolve([]),
   ]);
 
   const resultat = unwrapAction(billets);
@@ -55,6 +60,7 @@ export default async function AdminBilletsPage({
       billets={resultat.billets}
       totalPages={resultat.totalPages}
       stats={unwrapAction(stats)}
+      achatsSansBillet={achatsSansBillet}
     />
   );
 }

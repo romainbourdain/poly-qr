@@ -21,6 +21,7 @@ import {
   creerCommandePermanence,
   creerCommandeSurPlace,
   invaliderBillet,
+  listerAchatsSansBillet,
   listerBillets,
   listerScansEvenement,
   obtenirCommandeAvecBillets,
@@ -776,6 +777,36 @@ describe("service tickets", () => {
         ticketsBoissonSurPlace: 2,
         moyensPaiement: expect.any(Object),
       });
+    });
+
+    it("liste les achats d'invité·es sans billet, filtrables par nom", async () => {
+      const evenementId = await creerEvenement();
+      const autreId = await creerEvenement("Autre");
+      await ajouterTicketsBoisson(db, {
+        evenementId,
+        prenom: "Camille",
+        nom: "Invitée",
+        quantite: 2,
+        moyenPaiement: "especes",
+      });
+      await ajouterTicketsBoisson(db, {
+        evenementId: autreId,
+        prenom: "Autre",
+        nom: "Soirée",
+        quantite: 1,
+        moyenPaiement: "especes",
+      });
+
+      const achats = await listerAchatsSansBillet(db, evenementId);
+      expect(achats).toHaveLength(1);
+      expect(achats[0]).toMatchObject({
+        nom: "Camille Invitée",
+        quantite: 2,
+        moyenPaiement: "especes",
+      });
+      await expect(
+        listerAchatsSansBillet(db, evenementId, "zzz"),
+      ).resolves.toEqual([]);
     });
 
     it("répartit billets et tickets boisson par moyen de paiement, invité·es sans billet compris", async () => {

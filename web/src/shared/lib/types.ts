@@ -50,6 +50,16 @@ export interface BilletAdmin extends BilletListe {
   moyenPaiement: MoyenPaiement;
 }
 
+/** Achat de tickets boisson d'un·e invité·e sans billet. */
+export interface AchatSansBillet {
+  commandeId: string;
+  nom: string;
+  quantite: number;
+  origine: Origine;
+  moyenPaiement: MoyenPaiement;
+  heure: string;
+}
+
 export interface CommandeAvecBillets {
   commandeId: string;
   nom: string;

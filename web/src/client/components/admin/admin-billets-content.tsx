@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { AchatsSansBilletCard } from "@/client/components/admin/achats-sans-billet-card";
 import type { BilletActions } from "@/client/components/admin/billet-actions-menu";
 import { ModifierBilletDialog } from "@/client/components/admin/modifier-billet-dialog";
 import { TicketPagination } from "@/client/components/admin/ticket-pagination";
@@ -16,18 +17,20 @@ import {
 } from "@/server/actions/tickets";
 import { cn } from "@/shared/lib/cn";
 import { GENERIC_SERVER_ERROR } from "@/shared/lib/form-errors";
-import type { BilletAdmin } from "@/shared/lib/types";
+import type { AchatSansBillet, BilletAdmin } from "@/shared/lib/types";
 
 export function AdminBilletsContent({
   evenementId,
   billets,
   totalPages,
   stats,
+  achatsSansBillet,
 }: {
   evenementId: string;
   billets: BilletAdmin[];
   totalPages: number;
   stats: { total: number; scannes: number };
+  achatsSansBillet: AchatSansBillet[];
 }) {
   const {
     query,
@@ -142,6 +145,8 @@ export function AdminBilletsContent({
           onSort={setTri}
         />
       )}
+
+      <AchatsSansBilletCard achats={achatsSansBillet} />
 
       <ModifierBilletDialog
         billet={enEdition}
