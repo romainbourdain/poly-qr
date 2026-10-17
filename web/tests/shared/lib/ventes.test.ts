@@ -20,6 +20,13 @@ const stats: StatsEvenement = {
   ticketsBoisson: 6,
   ticketsBoissonPermanence: 1,
   ticketsBoissonSurPlace: 2,
+  moyensPaiement: {
+    virement: { billets: 0, ticketsBoisson: 0 },
+    hello_asso: { billets: 0, ticketsBoisson: 0 },
+    especes: { billets: 0, ticketsBoisson: 0 },
+    sumup: { billets: 0, ticketsBoisson: 0 },
+    autre: { billets: 0, ticketsBoisson: 0 },
+  },
 };
 
 describe("calculerVentesParCanal", () => {

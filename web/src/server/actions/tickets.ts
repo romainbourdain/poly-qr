@@ -25,6 +25,7 @@ import {
   compterBillets,
   creerCommandePermanence,
   creerCommandeSurPlace,
+  EvenementIntrouvableError,
   invaliderBillet,
   listerBillets,
   modifierBillet,
@@ -163,19 +164,35 @@ export const renvoyerEmailCommandeAction = adminActionClient
     }
   });
 
-/** Admin : ajoute des tickets boisson à un billet existant (nouvel achat, sans nouveau billet). */
+/** Admin : ajoute des tickets boisson à un billet existant ou à un·e invité·e sans billet (nouvel achat, sans nouveau billet). */
 export const ajouterBoissonAction = adminActionClient
   .inputSchema(boissonSchema)
   .action(async ({ parsedInput }) => {
     try {
-      const commande = await ajouterTicketsBoisson(db, parsedInput);
+      const commande = await ajouterTicketsBoisson(
+        db,
+        parsedInput.invite
+          ? {
+              evenementId: parsedInput.evenementId,
+              prenom: parsedInput.prenom,
+              nom: parsedInput.nom,
+              quantite: parsedInput.quantite,
+              moyenPaiement: parsedInput.moyenPaiement,
+            }
+          : {
+              billetId: parsedInput.billetId,
+              quantite: parsedInput.quantite,
+              moyenPaiement: parsedInput.moyenPaiement,
+            },
+      );
       revalidatePath("/admin/billets");
       revalidatePath("/admin/statistiques");
       return { commandeId: commande.id };
     } catch (error) {
       if (
         error instanceof BilletIntrouvableError ||
-        error instanceof BilletInvalideError
+        error instanceof BilletInvalideError ||
+        error instanceof EvenementIntrouvableError
       ) {
         return returnServerError(error.message);
       }

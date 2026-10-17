@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import { boissonSchema } from "@/shared/validators/boisson";
 
 const valide = {
+  invite: false,
   billetId: randomUUID(),
+  evenementId: "",
+  prenom: "",
+  nom: "",
   quantite: 2,
   moyenPaiement: "especes",
 };
@@ -32,5 +36,35 @@ describe("boissonSchema", () => {
     expect(boissonSchema.safeParse({ ...valide, billetId: "" }).success).toBe(
       false,
     );
+  });
+
+  describe("invité·e sans billet", () => {
+    const invite = {
+      ...valide,
+      invite: true,
+      billetId: "",
+      evenementId: randomUUID(),
+      prenom: "Alix",
+      nom: "Martin",
+    };
+
+    it("accepte un nom, un prénom et un événement", () => {
+      expect(boissonSchema.safeParse(invite).success).toBe(true);
+    });
+
+    it("exige le nom et le prénom", () => {
+      expect(boissonSchema.safeParse({ ...invite, nom: " " }).success).toBe(
+        false,
+      );
+      expect(boissonSchema.safeParse({ ...invite, prenom: "" }).success).toBe(
+        false,
+      );
+    });
+
+    it("n'exige pas de billet", () => {
+      expect(boissonSchema.safeParse({ ...invite, billetId: "" }).success).toBe(
+        true,
+      );
+    });
   });
 });

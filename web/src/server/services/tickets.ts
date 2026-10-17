@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, count, desc, eq, ilike, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schema from "@/server/db/schema";
 import {
@@ -15,13 +15,14 @@ import type {
   TicketSort,
 } from "@/shared/lib/search-params";
 import { formatHeure, nomComplet } from "@/shared/lib/tickets";
-import type {
-  BilletAdmin,
-  BilletListe,
-  CommandeAvecBillets,
-  MoyenPaiement,
-  ResultatScan,
-  StatsEvenement,
+import {
+  type BilletAdmin,
+  type BilletListe,
+  type CommandeAvecBillets,
+  MOYENS_PAIEMENT,
+  type MoyenPaiement,
+  type ResultatScan,
+  type StatsEvenement,
 } from "@/shared/lib/types";
 import type { HelloassoCommandeInput } from "@/shared/validators/helloasso";
 import type { PermanenceCommandeInput } from "@/shared/validators/permanence";
@@ -424,36 +425,45 @@ export async function obtenirStatsEvenement(
     ticketsBoisson: 0,
     ticketsBoissonPermanence: 0,
     ticketsBoissonSurPlace: 0,
+    moyensPaiement: Object.fromEntries(
+      MOYENS_PAIEMENT.map((moyen) => [
+        moyen,
+        { billets: 0, ticketsBoisson: 0 },
+      ]),
+    ) as StatsEvenement["moyensPaiement"],
   };
   const lignes = await db
     .select({
       statut: billets.statut,
       cotisant: billets.cotisant,
       origine: commandes.origine,
+      moyenPaiement: commandes.moyenPaiement,
     })
     .from(billets)
     .innerJoin(commandes, eq(billets.commandeId, commandes.id))
     .where(eq(commandes.evenementId, evenementId));
 
   // Tickets boisson par canal de la commande qui les a vendus ; ceux d'un
-  // billet invalidé ne sont pas comptés.
+  // billet invalidé ne sont pas comptés (ceux d'un·e invité·e sans billet, si).
   const achats = await db
     .select({
       origine: commandes.origine,
+      moyenPaiement: commandes.moyenPaiement,
       quantite: sql<number>`coalesce(sum(${lignesBoisson.quantite}), 0)::int`,
     })
     .from(lignesBoisson)
     .innerJoin(commandes, eq(lignesBoisson.commandeId, commandes.id))
-    .innerJoin(billets, eq(lignesBoisson.billetId, billets.id))
+    .leftJoin(billets, eq(lignesBoisson.billetId, billets.id))
     .where(
       and(
         eq(lignesBoisson.evenementId, evenementId),
-        ne(billets.statut, "invalide"),
+        sql`${billets.statut} is distinct from 'invalide'`,
       ),
     )
-    .groupBy(commandes.origine);
-  for (const { origine, quantite } of achats) {
+    .groupBy(commandes.origine, commandes.moyenPaiement);
+  for (const { origine, moyenPaiement, quantite } of achats) {
     stats.ticketsBoisson += quantite;
+    stats.moyensPaiement[moyenPaiement].ticketsBoisson += quantite;
     if (origine === "permanence") stats.ticketsBoissonPermanence += quantite;
     if (origine === "sur_place") stats.ticketsBoissonSurPlace += quantite;
   }
@@ -464,6 +474,7 @@ export async function obtenirStatsEvenement(
       continue;
     }
     stats.billetsVendus += 1;
+    stats.moyensPaiement[ligne.moyenPaiement].billets += 1;
     if (ligne.origine === "permanence") {
       stats.billetsPermanence += 1;
       if (ligne.cotisant) stats.cotisantsPermanence += 1;
@@ -521,6 +532,12 @@ export class BilletIntrouvableError extends Error {
   }
 }
 
+export class EvenementIntrouvableError extends Error {
+  constructor() {
+    super("Cet événement n'existe plus.");
+  }
+}
+
 export class BilletInvalideError extends Error {
   constructor() {
     super("Ce billet est invalidé : réactive-le d'abord.");
@@ -565,23 +582,56 @@ export async function modifierBillet(
 }
 
 /**
- * Achat de tickets boisson pour un billet existant : une nouvelle commande
- * (son origine, son moyen de paiement, sa date) sans billet ni email, avec une
- * ligne boisson vers le billet.
+ * Achat de tickets boisson sans nouveau billet : une nouvelle commande (son
+ * origine, son moyen de paiement, sa date) sans email, avec une ligne boisson
+ * vers le billet existant — ou sans billet pour un·e invité·e, auquel cas la
+ * commande porte son nom.
  */
 export async function ajouterTicketsBoisson(
   db: Db,
-  input: { billetId: string; quantite: number; moyenPaiement: MoyenPaiement },
+  input: { quantite: number; moyenPaiement: MoyenPaiement } & (
+    | { billetId: string }
+    | { evenementId: string; prenom: string; nom: string }
+  ),
 ) {
-  const billet = await trouverBillet(db, input.billetId);
-  if (!billet) throw new BilletIntrouvableError();
-  if (billet.statut === "invalide") throw new BilletInvalideError();
+  let cible: {
+    evenementId: string;
+    billetId: string | null;
+    nom: string;
+    prenom: string;
+    evenementDate: string;
+    evenementHeure: string;
+  };
+  if ("billetId" in input) {
+    const billet = await trouverBillet(db, input.billetId);
+    if (!billet) throw new BilletIntrouvableError();
+    if (billet.statut === "invalide") throw new BilletInvalideError();
+    cible = { ...billet, billetId: billet.id };
+  } else {
+    const [evenement] = await db
+      .select({
+        date: evenements.date,
+        heure: evenements.heure,
+      })
+      .from(evenements)
+      .where(eq(evenements.id, input.evenementId))
+      .limit(1);
+    if (!evenement) throw new EvenementIntrouvableError();
+    cible = {
+      evenementId: input.evenementId,
+      billetId: null,
+      nom: input.nom,
+      prenom: input.prenom,
+      evenementDate: evenement.date,
+      evenementHeure: evenement.heure,
+    };
+  }
 
   // Avant le début de l'événement c'est une vente de permanence, ensuite une
   // vente sur place (même règle que l'onglet par défaut de « Nouveau billet »).
   const origine = evenementADebute({
-    date: billet.evenementDate,
-    heure: billet.evenementHeure.slice(0, 5),
+    date: cible.evenementDate,
+    heure: cible.evenementHeure.slice(0, 5),
   })
     ? "sur_place"
     : "permanence";
@@ -590,17 +640,17 @@ export async function ajouterTicketsBoisson(
     const [commande] = await tx
       .insert(commandes)
       .values({
-        evenementId: billet.evenementId,
-        nom: nomComplet(billet.prenom, billet.nom),
+        evenementId: cible.evenementId,
+        nom: nomComplet(cible.prenom, cible.nom),
         email: null,
         origine,
         moyenPaiement: input.moyenPaiement,
       })
       .returning();
     await tx.insert(lignesBoisson).values({
-      evenementId: billet.evenementId,
+      evenementId: cible.evenementId,
       commandeId: commande.id,
-      billetId: billet.id,
+      billetId: cible.billetId,
       quantite: input.quantite,
     });
     return commande;

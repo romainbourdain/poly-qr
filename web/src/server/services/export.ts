@@ -103,9 +103,9 @@ export async function exporterCommandesCsv(
         quantite: sql<number>`coalesce(sum(${lignesBoisson.quantite}), 0)::int`,
       })
       .from(lignesBoisson)
-      .innerJoin(billets, eq(lignesBoisson.billetId, billets.id))
+      .leftJoin(billets, eq(lignesBoisson.billetId, billets.id))
       .where(
-        sql`${lignesBoisson.evenementId} = ${evenementId} and ${billets.statut} <> 'invalide'`,
+        sql`${lignesBoisson.evenementId} = ${evenementId} and ${billets.statut} is distinct from 'invalide'`,
       )
       .groupBy(lignesBoisson.commandeId),
   ]);

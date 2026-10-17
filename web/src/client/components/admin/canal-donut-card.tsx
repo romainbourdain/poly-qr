@@ -13,12 +13,21 @@ export interface CanalVentes {
   id: string;
   label: string;
   billets: number;
-  montantCentimes: number;
+  /** Estimation aux prix de l'événement ; absent, la légende n'affiche que les billets. */
+  montantCentimes?: number;
+  /** Précision affichée en légende, après le nombre de billets. */
+  detail?: string;
   color: string;
 }
 
-/** Billets vendus par canal ; le montant, en légende, est une estimation aux prix de l'événement. */
-export function CanalDonutCard({ canaux }: { canaux: CanalVentes[] }) {
+/** Billets vendus par canal (ou autre découpage) ; le montant éventuel, en légende, est une estimation aux prix de l'événement. */
+export function CanalDonutCard({
+  canaux,
+  titre = "Billets par canal",
+}: {
+  canaux: CanalVentes[];
+  titre?: string;
+}) {
   const total = canaux.reduce((n, c) => n + c.billets, 0);
   const config = Object.fromEntries(
     canaux.map((c) => [c.id, { label: c.label, color: c.color }]),
@@ -27,14 +36,14 @@ export function CanalDonutCard({ canaux }: { canaux: CanalVentes[] }) {
 
   return (
     <Card className="flex flex-col gap-4">
-      <h2 className="font-bold text-[16px]">Billets par canal</h2>
+      <h2 className="font-bold text-[16px]">{titre}</h2>
       {total === 0 ? (
         <p className="text-[13.5px] text-muted">Aucun billet vendu.</p>
       ) : (
         <ChartContainer
           config={config}
           className="mx-auto aspect-square max-h-52"
-          label={`Billets vendus par canal : ${canaux.map((c) => `${c.label} ${c.billets}`).join(", ")}.`}
+          label={`${titre} : ${canaux.map((c) => `${c.label} ${c.billets}`).join(", ")}.`}
         >
           <PieChart>
             <Tooltip
@@ -97,7 +106,10 @@ export function CanalDonutCard({ canaux }: { canaux: CanalVentes[] }) {
             />
             <span className="flex-1 font-semibold text-[14px]">{c.label}</span>
             <span className="text-[13px] text-muted tabular-nums">
-              {c.billets} · ≈ {formatEuros(c.montantCentimes)}
+              {c.billets}
+              {c.montantCentimes !== undefined &&
+                ` · ≈ ${formatEuros(c.montantCentimes)}`}
+              {c.detail && ` · ${c.detail}`}
             </span>
           </li>
         ))}
