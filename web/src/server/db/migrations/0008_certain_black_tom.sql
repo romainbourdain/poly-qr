@@ -1,0 +1,1 @@
+ALTER TABLE "lignes_boisson" ALTER COLUMN "billet_id" DROP NOT NULL;

@@ -10,6 +10,7 @@ import { Field } from "@/client/components/ui/field";
 import { Input } from "@/client/components/ui/input";
 import { SelectField } from "@/client/components/ui/select-field";
 import { Separator } from "@/client/components/ui/separator";
+import { TextField } from "@/client/components/ui/text-field";
 import { applyFieldErrors } from "@/client/lib/apply-action-errors";
 import {
   ajouterBoissonAction,
@@ -35,9 +36,9 @@ import { boissonSchema } from "@/shared/validators/boisson";
 const MAX_RESULTATS = 8;
 
 /**
- * Ajout de tickets boisson pour quelqu'un qui a déjà un billet : on retrouve la
- * personne par son nom ou son prénom, puis on encaisse les tickets (nouvel achat
- * avec son propre moyen de paiement, sans nouveau billet).
+ * Ajout de tickets boisson sans nouveau billet : pour quelqu'un qui a déjà un
+ * billet (on le retrouve par son nom ou son prénom), ou pour un·e invité·e qui
+ * n'en a pas (on saisit son nom). Nouvel achat avec son propre moyen de paiement.
  */
 export function BoissonForm({
   evenementId,
@@ -50,6 +51,7 @@ export function BoissonForm({
   const [chargement, setChargement] = useState(true);
   const [recherche, setRecherche] = useState("");
   const [choisi, setChoisi] = useState<BilletAdmin | null>(null);
+  const [invite, setInvite] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
 
@@ -66,7 +68,11 @@ export function BoissonForm({
 
   const form = useForm({
     defaultValues: {
+      invite: false,
       billetId: "",
+      evenementId,
+      prenom: "",
+      nom: "",
       quantite: 1,
       moyenPaiement: "" as MoyenPaiement | "",
     },
@@ -81,7 +87,11 @@ export function BoissonForm({
         setError(errors.form ?? null);
         return;
       }
-      const qui = choisi ? nomComplet(choisi.prenom, choisi.nom) : "";
+      const qui = value.invite
+        ? nomComplet(value.prenom, value.nom)
+        : choisi
+          ? nomComplet(choisi.prenom, choisi.nom)
+          : "";
       setSucces(
         `${value.quantite} ticket${value.quantite > 1 ? "s" : ""} boisson ajouté${value.quantite > 1 ? "s" : ""} pour ${qui}.`,
       );
@@ -110,6 +120,16 @@ export function BoissonForm({
     form.setFieldValue("billetId", billet.id);
   }
 
+  function changerMode(valeur: boolean) {
+    setInvite(valeur);
+    setChoisi(null);
+    setRecherche("");
+    setSucces(null);
+    setError(null);
+    form.setFieldValue("invite", valeur);
+    form.setFieldValue("billetId", "");
+  }
+
   return (
     <form
       onSubmit={(e) => {
@@ -118,7 +138,38 @@ export function BoissonForm({
       }}
       className={cn(CARD_CLASSES, "flex w-full max-w-2xl flex-col gap-5")}
     >
-      {choisi ? (
+      <fieldset className="m-0 flex gap-2 border-0 p-0">
+        <legend className="sr-only">Type de personne</legend>
+        <Button
+          type="button"
+          size="sm"
+          variant={invite ? "ghost" : "primary"}
+          aria-pressed={!invite}
+          onClick={() => changerMode(false)}
+        >
+          A un billet
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={invite ? "primary" : "ghost"}
+          aria-pressed={invite}
+          onClick={() => changerMode(true)}
+        >
+          Invité·e sans billet
+        </Button>
+      </fieldset>
+
+      {invite ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <form.Field name="prenom">
+            {(field) => <TextField field={field} label="Prénom" />}
+          </form.Field>
+          <form.Field name="nom">
+            {(field) => <TextField field={field} label="Nom" />}
+          </form.Field>
+        </div>
+      ) : choisi ? (
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-line-2 bg-ink-3 p-4">
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="truncate font-bold text-[15px]">
@@ -247,7 +298,7 @@ export function BoissonForm({
             </div>
             <Button
               type="submit"
-              disabled={!canSubmit || !choisi}
+              disabled={!canSubmit || (!invite && !choisi)}
               className="h-13 text-[15.5px]"
             >
               Encaisser les tickets

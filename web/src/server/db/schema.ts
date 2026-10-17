@@ -119,7 +119,8 @@ export const lignesBoisson = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     evenementId: uuid("evenement_id").notNull(),
     commandeId: uuid("commande_id").notNull(),
-    billetId: uuid("billet_id").notNull(),
+    // Absent pour un·e invité·e sans billet : les tickets sont alors rattachés au nom de la commande.
+    billetId: uuid("billet_id"),
     quantite: integer("quantite").notNull(),
   },
   (t) => [

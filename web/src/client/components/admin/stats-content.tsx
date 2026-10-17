@@ -9,7 +9,13 @@ import { EntreesRadialCard } from "@/client/components/admin/entrees-radial-card
 import { Stat } from "@/client/components/ui/stat";
 import type { TrancheAffluence } from "@/shared/lib/affluence";
 import { formatEuros } from "@/shared/lib/prix";
-import type { Evenement, StatsEvenement } from "@/shared/lib/types";
+import { MOYEN_PAIEMENT_LABEL } from "@/shared/lib/tickets";
+import {
+  type Evenement,
+  MOYENS_PAIEMENT,
+  type MoyenPaiement,
+  type StatsEvenement,
+} from "@/shared/lib/types";
 import {
   calculerVentesParCanal,
   totalBilletsCentimes,
@@ -21,6 +27,14 @@ const COULEURS: Record<string, string> = {
   helloasso: "var(--color-accent)",
   permanence: "var(--color-accent-3)",
   sur_place: "var(--color-warn)",
+};
+
+const COULEURS_PAIEMENT: Record<MoyenPaiement, string> = {
+  hello_asso: "var(--color-accent)",
+  especes: "var(--color-warn)",
+  sumup: "var(--color-accent-3)",
+  virement: "var(--color-good)",
+  autre: "var(--color-muted)",
 };
 
 export function StatsContent({
@@ -37,6 +51,16 @@ export function StatsContent({
     ...v,
     color: COULEURS[v.id],
   }));
+  const paiements: CanalVentes[] = MOYENS_PAIEMENT.map((moyen) => {
+    const { billets, ticketsBoisson } = stats.moyensPaiement[moyen];
+    return {
+      id: moyen,
+      label: MOYEN_PAIEMENT_LABEL[moyen],
+      billets,
+      detail: `${ticketsBoisson} ticket${ticketsBoisson > 1 ? "s" : ""} boisson`,
+      color: COULEURS_PAIEMENT[moyen],
+    };
+  });
 
   return (
     <div className="flex flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 md:px-9">
@@ -73,6 +97,10 @@ export function StatsContent({
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <CanalDonutCard canaux={canaux} />
         <EntreesRadialCard stats={stats} />
+        <CanalDonutCard
+          canaux={paiements}
+          titre="Billets par moyen de paiement"
+        />
       </div>
     </div>
   );

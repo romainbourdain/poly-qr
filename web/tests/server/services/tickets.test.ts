@@ -16,6 +16,7 @@ import {
 } from "@/server/db/test-utils/test-db";
 import { hashPassword } from "@/server/services/auth";
 import {
+  ajouterTicketsBoisson,
   creerCommandeDepuisHelloAsso,
   creerCommandePermanence,
   creerCommandeSurPlace,
@@ -773,7 +774,49 @@ describe("service tickets", () => {
         ticketsBoisson: 6,
         ticketsBoissonPermanence: 3,
         ticketsBoissonSurPlace: 2,
+        moyensPaiement: expect.any(Object),
       });
+    });
+
+    it("répartit billets et tickets boisson par moyen de paiement, invité·es sans billet compris", async () => {
+      const evenementId = await creerEvenement();
+      await creerCommandePermanence(db, evenementId, {
+        email: "a@b.fr",
+        moyenPaiement: "especes",
+        billets: [
+          { nom: "A", prenom: "A", cotisant: false, ticketsBoisson: 1 },
+          { nom: "B", prenom: "B", cotisant: false, ticketsBoisson: 0 },
+        ],
+      });
+      await creerCommandeSurPlace(db, evenementId, {
+        moyenPaiement: "sumup",
+        billets: [
+          { nom: "C", prenom: "C", cotisant: false, ticketsBoisson: 0 },
+        ],
+      });
+      await ajouterTicketsBoisson(db, {
+        evenementId,
+        prenom: "Invité",
+        nom: "Sans-billet",
+        quantite: 3,
+        moyenPaiement: "virement",
+      });
+
+      const stats = await obtenirStatsEvenement(db, evenementId);
+      expect(stats.moyensPaiement.especes).toEqual({
+        billets: 2,
+        ticketsBoisson: 1,
+      });
+      expect(stats.moyensPaiement.sumup).toEqual({
+        billets: 1,
+        ticketsBoisson: 0,
+      });
+      expect(stats.moyensPaiement.virement).toEqual({
+        billets: 0,
+        ticketsBoisson: 3,
+      });
+      expect(stats.ticketsBoisson).toBe(4);
+      expect(stats.billetsVendus).toBe(3);
     });
 
     it("ne compte que les billets de l'événement demandé", async () => {

@@ -122,4 +122,9 @@ export interface StatsEvenement {
   ticketsBoisson: number;
   ticketsBoissonPermanence: number;
   ticketsBoissonSurPlace: number;
+  /** Par moyen de paiement de la commande : billets vendus et tickets boisson. */
+  moyensPaiement: Record<
+    MoyenPaiement,
+    { billets: number; ticketsBoisson: number }
+  >;
 }
